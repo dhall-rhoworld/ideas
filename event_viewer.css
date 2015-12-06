@@ -1,0 +1,27 @@
+.dataPoint {
+    fill: steelBlue;
+}
+
+line {
+    stroke: black;
+    stroke-width: 2;
+}
+
+rect {
+    fill: blue;
+}
+
+text {
+    font-size: 10pt;
+}
+
+.axis text {
+    font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
