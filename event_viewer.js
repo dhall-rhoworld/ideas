@@ -4,7 +4,8 @@ ev.trackHeight = 40;
 ev.boxSize = 14;
 ev.fontSize = "10pt" 
 
-ev.render = function(divId, dataUrl, width) {
+ev.render = function(divId, dataUrl, width, anchor) {
+    ev.anchor = anchor;
     
     // Define base geometric properties
     var margin = {
@@ -27,12 +28,12 @@ ev.render = function(divId, dataUrl, width) {
             .attr("transform", "translate(" + margin.left + "," +  margin.top + ")");
     
     // Create scales for X and Y coordinates
-    var x = d3.time.scale()
+    ev.x = d3.time.scale()
         .range([0, chartWidth]);
     var y = d3.scale.ordinal();
     
     // X-axis
-    var xAxis = d3.svg.axis().orient("bottom").scale(x);
+    var xAxis = d3.svg.axis().orient("bottom").scale(ev.x);
     
     // Retrieve data and finish drawing chart
     d3.json(dataUrl, function(error, data) {
@@ -57,7 +58,7 @@ ev.render = function(divId, dataUrl, width) {
                 return parser.parse(data.date);
             });
         });
-        x.domain([minDate, maxDate]);
+        ev.x.domain([minDate, maxDate]);
         y.domain(data.map(function(data) {return data.subject;}));
             
         // X-axis
@@ -86,28 +87,30 @@ ev.render = function(divId, dataUrl, width) {
             .data(function(subjectData) {return subjectData.events;})
             .enter().append("rect")
             .attr("x", 0)
-            //.attr("x", function(event) {return x(parser.parse(event.date))})
             .attr("y", ev.trackHeight / 2 - ev.boxSize / 2)
             .attr("height", ev.boxSize)
-            .attr("width", ev.boxSize);
+            .attr("width", ev.boxSize)
+            .attr("class", function(data) {return data.type;});
             
         ev.data = data;
-        ev.update();
+        layoutX();
     });
 };
 
-ev.update = function() {
-    var track = ev.chart.selectAll("g")
-    .data(ev.data)
-    .enter().append("g")
-    .attr("transform", function(data) {
-          return "translate(0," + y(data.subject) + ")";
-          });
-    track.selectAll("rect")
-    .data(function(subjectData) {return subjectData.events;})
-    .enter().append("rect")
-    .attr("x", function(event) {return x(parser.parse(event.date))})
+ev.setAnchor = function(anchor) {
+    console.log(anchor);
 };
+
+function update() {
+    d3.selectAll(("rect"))
+        .transition()
+        .duration(500)
+    .attr("x", function(data) {return ev.x(parser.parse(data.date));});
+};
+
+function layoutX() {
+    update();
+}
 
 var parser = d3.time.format("%m/%d/%Y");
 

@@ -8,8 +8,18 @@
     </head>
     <body>
         <div id="chart"></div>
+        <div>
+            Anchor timeline by:
+            <select id="anchor">
+                <option value="date">Date</option>
+                <option value="transplant">Transplant</option>
+            </select>
+        </div>
     </body>
     <script charset="utf-8">
-        ev.render(chart, "data.json", 800);
+        d3.select("#anchor").on("input", function() {
+            ev.setAnchor(this.value);
+        });
+        ev.render(chart, "data.json", 800, "date");
     </script>
 </html>

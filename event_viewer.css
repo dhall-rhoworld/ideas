@@ -7,8 +7,12 @@ line {
     stroke-width: 2;
 }
 
-rect {
+rect.transplant {
     fill: blue;
+}
+
+rect.blood {
+    fill: green;
 }
 
 text {
