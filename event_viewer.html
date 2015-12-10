@@ -12,7 +12,7 @@
             Anchor timeline by:
             <select id="anchor">
                 <option value="date">Date</option>
-                <option value="transplant">Transplant</option>
+                <option value="transplant" selected>Transplant</option>
             </select>
         </div>
     </body>
@@ -20,6 +20,6 @@
         d3.select("#anchor").on("input", function() {
             ev.setAnchor(this.value);
         });
-        ev.render(chart, "data.json", 800, "date");
+        ev.render(chart, "data.json", 800, "transplant");
     </script>
 </html>

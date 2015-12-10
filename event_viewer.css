@@ -12,7 +12,7 @@ rect.transplant {
 }
 
 rect.blood {
-    fill: green;
+    fill: red;
 }
 
 text {
