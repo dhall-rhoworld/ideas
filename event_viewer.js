@@ -1,22 +1,27 @@
-var ev = {};
+var ev = {
 
-ev.trackHeight = 40;
-ev.boxSize = 14;
-ev.fontSize = "10pt" 
+	// Attributes
+	trackHeight: 40,
+	boxSize: 14,
+	margin: {top: 20, right: 30, bottom: 30, left: 40},
+	
+	// Private attributes
+	_anchor: "date",
+	_chartWidth: 0,
+	_data: {},
+	
+	/**
+	 * Set the event type that will anchor the timeline.
+	 * @param {string} eventType - An event type. 
+	 */
+	setAnchor: function(eventType) {
+		ev.anchor = eventType;
+		layoutX();
+	}
+};
 
 ev.render = function(divId, dataUrl, width, anchor) {
     ev.anchor = anchor;
-    
-    // Define base geometric properties
-    var margin = {
-        top: 20,
-        right: 30,
-        bottom: 30,
-        left: 40
-    };
-    var height;
-    ev.chartWidth = width - margin.left - margin.right;
-    var chartHeight;
     
     // Create SVG canvas
     var svg = d3.select(divId)
@@ -25,26 +30,32 @@ ev.render = function(divId, dataUrl, width, anchor) {
     
     // Create SVG group for the chart
     ev.chart = svg.append("g")
-            .attr("transform", "translate(" + margin.left + "," +  margin.top + ")");
-    
-    // Create scales for X and Y coordinates
-    var y = d3.scale.ordinal();
-    
-    // Retrieve data and finish drawing chart
+            .attr("transform", "translate(" + ev.margin.left + "," +  ev.margin.top + ")");
+        
+    // Retrieve data and lay out chart
     d3.json(dataUrl, function(error, data) {
+    
+    	// Handle error
         if (error) {
             console.log("Error: " + error);
+            ev.chart.append("text")
+            	.text(error)
+            	.attr("class", "errorMsg");
+            return;
         }
+        
+        ev._data = data;
             
-        // Set height-related properties
-        height = ev.trackHeight * data.length + margin.top + margin.bottom;
+        // Initialize height and y-axis variables and attributes
+        var height = ev.trackHeight * data.length + ev.margin.top + ev.margin.bottom;
+        var chartHeight = height - ev.margin.top - ev.margin.bottom;
         svg.attr("height", height);
-        chartHeight = height - margin.top - margin.bottom;
-        y.rangeRoundBands([0, chartHeight], 0.1);
+        var y = d3.scale.ordinal()
+        	.rangeRoundBands([0, chartHeight], 0.1)
+    		.domain(data.map(function(data) {return data.subject;}));
             
-        y.domain(data.map(function(data) {return data.subject;}));
-            
-        // Draw tracks
+        // Add vertically-stacked data "tracks" for subjects
+        ev._chartWidth = width - ev.margin.left - ev.margin.right;
         var track = ev.chart.selectAll("g")
                 .data(data)
             .enter().append("g")
@@ -54,12 +65,14 @@ ev.render = function(divId, dataUrl, width, anchor) {
         track.append("line")
             .attr("x1", 0)
             .attr("y1", ev.trackHeight / 2)
-            .attr("x2", ev.chartWidth)
+            .attr("x2", ev._chartWidth)
             .attr("y2", ev.trackHeight / 2);
         track.append("text")
             .text(function(subjectData) {return subjectData.subject;})
             .attr("x", 0)
             .attr("y", ev.trackHeight / 2 - ev.boxSize / 2 - 2);
+            
+        // Add data "points" for each event to the tracks
         track.selectAll("rect")
             .data(function(subjectData) {return subjectData.events;})
             .enter().append("rect")
@@ -67,21 +80,17 @@ ev.render = function(divId, dataUrl, width, anchor) {
             .attr("y", ev.trackHeight / 2 - ev.boxSize / 2)
             .attr("height", ev.boxSize)
             .attr("width", ev.boxSize)
-            .attr("class", function(data) {return data.type;});
+            .attr("class", function(event) {return event.type;});
             
-        ev.data = data;
+        // Add x-axis
 		ev.xAxis = d3.svg.axis().orient("bottom");
         ev.xAxisGroup = svg.append("g")
             .attr("class", "x axis")
-            .attr("transform", "translate(" + margin.left + ", " + (chartHeight + ev.trackHeight / 2) + ")");
+            .attr("transform", "translate(" + ev.margin.left + ", " + (chartHeight + ev.trackHeight / 2) + ")");
         
+        // Layout data along the x-axis
         layoutX();
     });
-};
-
-ev.setAnchor = function(anchor) {
-    ev.anchor = anchor;
-    layoutX();
 };
 
 function update() {
@@ -98,12 +107,12 @@ function update() {
 
 function layoutX() {
 	if (ev.anchor == "date") {
-    	var minDate = d3.min(ev.data, function(d) {
+    	var minDate = d3.min(ev._data, function(d) {
         	return d3.min(d.events, function(event) {
             	return parser.parse(event.date);
         	});
     	});
-    	var maxDate = d3.max(ev.data, function(d) {
+    	var maxDate = d3.max(ev._data, function(d) {
         	return d3.max(d.events, function(event) {
             	return parser.parse(event.date);
         	});
@@ -115,17 +124,17 @@ function layoutX() {
     }
     else {
     	setRelativeDate();
-    	var minDay = d3.min(ev.data, function(d) {
+    	var minDay = d3.min(ev._data, function(d) {
         	return d3.min(d.events, function(event) {
             	return event.relativeDate;
         	});
     	});
-    	var maxDay = d3.max(ev.data, function(d) {
+    	var maxDay = d3.max(ev._data, function(d) {
         	return d3.max(d.events, function(event) {
             	return event.relativeDate;
         	});
     	});
-    	ev.x = d3.scale.linear().range([0, ev.chartWidth]);
+    	ev.x = d3.scale.linear().range([0, ev._chartWidth]);
     	ev.x.domain([minDay, maxDay]);
     	ev.xAxis.scale(ev.x);
     }
@@ -135,8 +144,8 @@ function layoutX() {
 
 function setRelativeDate() {
 	var msecInDay = 1000 * 60 * 60 * 24;
-	for (var i = 0; i < ev.data.length; i++) {
-		var subjectRec = ev.data[i];
+	for (var i = 0; i < ev._data.length; i++) {
+		var subjectRec = ev._data[i];
 		var refDate = null;
 		for (var j = 0; j < subjectRec.events.length; j++) {
 			var event = subjectRec.events[j];

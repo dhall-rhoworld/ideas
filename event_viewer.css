@@ -29,3 +29,8 @@ text {
     stroke: #000;
     shape-rendering: crispEdges;
 }
+
+text.errorMsg {
+	font: 14px sans-serif;
+	fill: red;
+}
