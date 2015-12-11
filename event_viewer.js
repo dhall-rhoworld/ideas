@@ -15,11 +15,11 @@ var ev = {
 	_parser: d3.time.format("%m/%d/%Y"),
 	
 	/**
-	 * Set the event type that will anchor the timeline.
-	 * @param {string} eventType - An event type. 
+	 * Set the visit type that will anchor the timeline.
+	 * @param {string} visitType - A visit type. 
 	 */
-	setAnchor: function(eventType) {
-		this._anchor = eventType;
+	setAnchor: function(visitType) {
+		this._anchor = visitType;
 		this._layoutX();
 	},
 
@@ -28,7 +28,7 @@ var ev = {
 	 * @param {string} divId - ID of DIV element to contain viewer.
 	 * @param {string} dataUrl - URL to fetch data.
 	 * @param {int} width - Width of viewer in pixels.
-	 * @param {string} anchor - The string "date" or an event type to anchor timeline.
+	 * @param {string} anchor - The string "date" or a visit type to anchor timeline.
 	 */
 	render: function(divId, dataUrl, width, anchor) {
 		this._anchor = anchor;
@@ -53,7 +53,8 @@ var ev = {
 					.attr("class", "errorMsg");
 				return;
 			}
-		
+			
+			// Save data for later
 			ev._data = data;
 			
 			// Initialize height and y-axis variables and attributes
@@ -63,7 +64,7 @@ var ev = {
 			var y = d3.scale.ordinal()
 				.rangeRoundBands([0, chartHeight], 0.1)
 				.domain(data.map(function(data) {
-					return data.subject;
+					return data.subject_id;
 				}));
 			
 			// Add vertically-stacked data "tracks" for subjects
@@ -72,7 +73,7 @@ var ev = {
 					.data(data)
 				.enter().append("g")
 					.attr("transform", function(data) {
-						  return "translate(0," + y(data.subject) + ")";
+						  return "translate(0," + y(data.subject_id) + ")";
 					});
 			track.append("line")
 				.attr("x1", 0)
@@ -80,19 +81,19 @@ var ev = {
 				.attr("x2", ev._chartWidth)
 				.attr("y2", ev.trackHeight / 2);
 			track.append("text")
-				.text(function(subjectData) {return subjectData.subject;})
+				.text(function(subjectData) {return subjectData.subject_id;})
 				.attr("x", 0)
 				.attr("y", ev.trackHeight / 2 - ev.boxSize / 2 - 2);
 			
-			// Add data "points" for each event to the tracks
-			track.selectAll("rect")
-				.data(function(subjectData) {return subjectData.events;})
+			// Add data "points" for each visit to the tracks
+			track.selectAll("g")
+				.data(function(subjectData) {return subjectData.visits;})
 				.enter().append("rect")
 				.attr("x", 0)
 				.attr("y", ev.trackHeight / 2 - ev.boxSize / 2)
 				.attr("height", ev.boxSize)
 				.attr("width", ev.boxSize)
-				.attr("class", function(event) {return event.type;});
+				.attr("class", function(visit) {return visit.type;});
 			
 			// Add x-axis
 			ev._xAxis = d3.svg.axis().orient("bottom");
@@ -119,7 +120,7 @@ var ev = {
 		}
 		else {
 			rects.attr("x", function(data) {
-				return ev._x(data.daysSinceAnchorEvent) - ev.boxSize / 2;}
+				return ev._x(data.daysSinceAnchorVisit) - ev.boxSize / 2;}
 			);
 		}
 	},
@@ -130,13 +131,13 @@ var ev = {
 	_layoutX: function() {
 		if (this._anchor == "date") {
 			var minDate = d3.min(this._data, function(d) {
-				return d3.min(d.events, function(event) {
-					return ev._parser.parse(event.date);
+				return d3.min(d.visits, function(visit) {
+					return ev._parser.parse(visit.date);
 				});
 			});
 			var maxDate = d3.max(this._data, function(d) {
-				return d3.max(d.events, function(event) {
-					return ev._parser.parse(event.date);
+				return d3.max(d.visits, function(visit) {
+					return ev._parser.parse(visit.date);
 				});
 			});
 			this._x = d3.time.scale()
@@ -144,15 +145,15 @@ var ev = {
 				.domain([minDate, maxDate]);
 		}
 		else {
-			this._setDaysSinceAnchorEvent();
+			this._setDaysSinceAnchorVisit();
 			var minDay = d3.min(this._data, function(d) {
-				return d3.min(d.events, function(event) {
-					return event.daysSinceAnchorEvent;
+				return d3.min(d.visits, function(visit) {
+					return visit.daysSinceAnchorVisit;
 				});
 			});
 			var maxDay = d3.max(this._data, function(d) {
-				return d3.max(d.events, function(event) {
-					return event.daysSinceAnchorEvent;
+				return d3.max(d.visits, function(visit) {
+					return visit.daysSinceAnchorVisit;
 				});
 			});
 			this._x = d3.scale.linear()
@@ -165,24 +166,24 @@ var ev = {
 	},
 
 	/*
-	 * Set time in days since/till the anchor event.
+	 * Set time in days since/till the anchor visit.
 	 */
-	_setDaysSinceAnchorEvent: function() {
+	_setDaysSinceAnchorVisit: function() {
 		var msecInDay = 1000 * 60 * 60 * 24;
 		for (var i = 0; i < this._data.length; i++) {
 			var subjectRec = this._data[i];
 			var refDate = null;
-			for (var j = 0; j < subjectRec.events.length; j++) {
-				var event = subjectRec.events[j];
-				if (event.type == this._anchor) {
-					refDate = this._parser.parse(event.date);
+			for (var j = 0; j < subjectRec.visits.length; j++) {
+				var visit = subjectRec.visits[j];
+				if (visit.type == this._anchor) {
+					refDate = this._parser.parse(visit.date);
 					break;
 				}
 			}
-			for (var j = 0; j < subjectRec.events.length; j++) {
-				var event = subjectRec.events[j];
-				var eventDate = this._parser.parse(event.date);
-				event.daysSinceAnchorEvent = Math.round((eventDate.getTime() - refDate.getTime()) / msecInDay);
+			for (var j = 0; j < subjectRec.visits.length; j++) {
+				var visit = subjectRec.visits[j];
+				var visitDate = this._parser.parse(visit.date);
+				visit.daysSinceAnchorVisit = Math.round((visitDate.getTime() - refDate.getTime()) / msecInDay);
 			}
 		}
 	}

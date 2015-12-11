@@ -1,26 +1,71 @@
 [
     {
-        "subject": "123456",
-        "events": [
-            {"id": "1", "type": "blood", "date": "1/25/2015"},
-            {"id": "2", "type": "transplant", "date": "2/5/2015"}
+        "subject_id": "123456",
+        "visits": [
+            {
+				"id": "1", 
+				"type": "labs", 
+				"date": "1/25/2015",
+				"specimens": ["blood", "RNA"]
+			},
+            {
+				"id": "2", 
+				"type": "surgery", 
+				"date": "2/5/2015",
+				"specimens": ["biopsy"]
+			}
         ]
     },
     {
-        "subject": "234567",
-        "events": [
-            {"id": "3", "type": "blood", "date": "3/30/2015"},
-            {"id": "4", "type": "transplant", "date": "5/30/2015"},
-            {"id": "5", "type": "blood", "date": "6/8/2015"},
-            {"id": "6", "type": "blood", "date": "7/1/2015"}
+        "subject_id": "234567",
+        "visits": [
+            {
+				"id": "3", 
+				"type": "labs", 
+				"date": "3/30/2015",
+				"specimens": ["blood"]
+			},
+            {
+				"id": "4", 
+				"type": "surgery", 
+				"date": "5/30/2015",
+				"specimens": ["biopsy"]
+			},
+            {
+				"id": "5", 
+				"type": "labs", 
+				"date": "6/8/2015",
+				"specimens": ["blood", "RNA"]
+			},
+            {
+				"id": "6", 
+				"type": "labs", 
+				"date": "7/1/2015",
+				"specimens": ["blood", "RNA"]
+			}
         ]
     },
     {
-        "subject": "345678",
-        "events": [
-            {"id": "7", "type": "blood", "date": "2/12/2015"},
-            {"id": "8", "type": "transplant", "date": "4/16/2015"},
-            {"id": "9", "type": "blood", "date": "6/30/2015"}
+        "subject_id": "345678",
+        "visits": [
+            {
+				"id": "7", 
+				"type": "labs", 
+				"date": "2/12/2015",
+				"specimens": ["blood", "RNA"]
+			},
+            {
+				"id": "8", 
+				"type": "surgery", 
+				"date": "4/16/2015",
+				"specimens": ["biopsy"]
+			},
+            {
+				"id": "9", 
+				"type": "labs", 
+				"date": "6/30/2015",
+				"specimens": ["blood", "RNA"]
+			}
         ]
     }
 ]

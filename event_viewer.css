@@ -7,11 +7,23 @@ line {
     stroke-width: 2;
 }
 
-rect.transplant {
+rect.surgery {
     fill: blue;
 }
 
 rect.blood {
+    fill: red;
+}
+
+rect.RNA {
+    fill: green;
+}
+
+rect.biopsy {
+	fill: blue;
+}
+
+rect.labs {
     fill: red;
 }
 
