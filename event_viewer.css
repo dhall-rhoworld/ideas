@@ -31,8 +31,9 @@ rect.labs {
     fill: red;
 }
 
-text {
+text.subject-label {
     font-size: 10pt;
+	text-anchor: end;
 }
 
 .axis text {

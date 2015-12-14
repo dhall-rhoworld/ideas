@@ -1,9 +1,10 @@
 var ev = {
 
 	// Attributes
-	trackHeight: 40,
 	boxSize: 14,
-	margin: {top: 20, right: 30, bottom: 30, left: 40},
+	margin: {top: 20, right: 30, bottom: 30, left: 60},
+	padding: 5,
+	xAxisHeight: 20,
 	
 	// Private attributes
 	_anchor: "date",
@@ -13,6 +14,7 @@ var ev = {
 	_xAxis: {},
 	_xAxisGroup: {},
 	_parser: d3.time.format("%m/%d/%Y"),
+	_trackY: [],
 	
 	/**
 	 * Set the visit type that will anchor the timeline.
@@ -39,8 +41,7 @@ var ev = {
 				.attr("width", width);
 	
 		// Create SVG group for the chart
-		var chart = svg.append("g")
-				.attr("transform", "translate(" + this.margin.left + "," +  this.margin.top + ")");
+		var chart = svg.append("g");
 		
 		// Retrieve data and lay out chart
 		d3.json(dataUrl, function(error, data) {
@@ -58,38 +59,42 @@ var ev = {
 			ev._data = data;
 			
 			// Initialize height and y-axis variables and attributes
-			var height = ev.trackHeight * data.length + ev.margin.top + ev.margin.bottom;
-			var chartHeight = height - ev.margin.top - ev.margin.bottom;
+			var chartHeight = 0;
+			for (var i = 0; i < data.length; i++) {
+				var trackHeight = ev._trackHeight(data[i]);
+				ev._trackY[i] = chartHeight + trackHeight / 2;
+				chartHeight += trackHeight;
+				if (i < data.length - 1) {
+					chartHeight += ev.padding;
+				}
+			}
+			var height = chartHeight + ev.margin.top + ev.margin.bottom + ev.xAxisHeight;
 			svg.attr("height", height);
-			var y = d3.scale.ordinal()
-				.rangeRoundBands([0, chartHeight], 0.1)
-				.domain(data.map(function(data) {
-					return data.subject_id;
-				}));
 			
 			// Add vertically-stacked data "tracks" for subjects
 			ev._chartWidth = width - ev.margin.left - ev.margin.right;
 			var track = chart.selectAll("g")
 					.data(data)
 				.enter().append("g")
-					.attr("transform", function(data) {
-						  return "translate(0," + y(data.subject_id) + ")";
+					.attr("transform", function(subject, i) {
+						return "translate(" + ev.margin.left + ", " + ev._trackY[i] + ")";
 					});
 			track.append("line")
 				.attr("x1", 0)
-				.attr("y1", ev.trackHeight / 2)
+				.attr("y1", 0)
 				.attr("x2", ev._chartWidth)
-				.attr("y2", ev.trackHeight / 2);
+				.attr("y2", 0);
 			track.append("text")
 				.text(function(subjectData) {return subjectData.subject_id;})
-				.attr("x", 0)
-				.attr("y", ev.trackHeight / 2 - ev.boxSize / 2 - 2);
+				.attr("x", -ev.boxSize)
+				.attr("y", 5)
+				.attr("class", "subject-label");
 			
 			// Add data "points" for each visit to the tracks
 			var visit = track.selectAll("g")
 				.data(function(subjectData) {return subjectData.visits;})
 				.enter().append("g")
-				.attr("transform", "translate(0, " + (ev.trackHeight / 2 - ev.boxSize / 2) + ")")
+				.attr("transform", function(visit) {return "translate(0, " + (-ev.boxSize * visit.specimens.length / 2) + ")"})
 				.attr("class", "visit");
 			visit.selectAll("rect")
 				.data(function(visit) {return visit.specimens;})
@@ -104,11 +109,25 @@ var ev = {
 			ev._xAxis = d3.svg.axis().orient("bottom");
 			ev._xAxisGroup = svg.append("g")
 				.attr("class", "x axis")
-				.attr("transform", "translate(" + ev.margin.left + ", " + (chartHeight + ev.trackHeight / 2) + ")");
+				.attr("transform", "translate(" + ev.margin.left + ", " + (chartHeight + ev.xAxisHeight / 2) + ")");
 		
 			// Layout data along the x-axis
 			ev._layoutX();
 		});
+	},
+	
+	/*
+	 * Computes how many pixels required to create a track for the given subject.
+	 */
+	_trackHeight(subject) {
+		var maxStackedPoints = 1;
+		for (var i = 0; i < subject.visits.length; i++) {
+			var visit = subject.visits[i];
+			if (visit.specimens.length > maxStackedPoints) {
+				maxStackedPoints = visit.specimens.length;
+			}
+		}
+		return maxStackedPoints * ev.boxSize + ev.padding * 2;
 	},
 	
 	/*
@@ -121,14 +140,14 @@ var ev = {
 		if (this._anchor == "date") {
 			rects.attr("transform", function(data) {
 				var x = ev._x(ev._parser.parse(data.date)) - ev.boxSize / 2;
-				var y = ev.trackHeight / 2 - ev.boxSize * data.specimens.length / 2;
+				var y = -ev.boxSize * data.specimens.length / 2;
 				return "translate(" + x + ", " + y + ")";
 			});
 		}
 		else {
 			rects.attr("transform", function(data) {
 				var x = ev._x(data.daysSinceAnchorVisit) - ev.boxSize / 2;
-				var y = ev.trackHeight / 2 - ev.boxSize * data.specimens.length / 2;
+				var y = -ev.boxSize * data.specimens.length / 2;
 				return "translate(" + x + ", " + y + ")";
 			});
 		}
