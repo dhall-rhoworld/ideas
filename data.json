@@ -6,13 +6,18 @@
 				"id": "1", 
 				"type": "labs", 
 				"date": "1/25/2015",
-				"specimens": ["blood", "RNA"]
+				"specimens": [
+					{"id": "1", "type": "blood"},
+					{"id": "2", "type": "RNA"}
+				]
 			},
             {
 				"id": "2", 
 				"type": "surgery", 
 				"date": "2/5/2015",
-				"specimens": ["biopsy"]
+				"specimens": [
+					{"id": "3", "type": "biopsy"}
+				]
 			}
         ]
     },
@@ -23,25 +28,35 @@
 				"id": "3", 
 				"type": "labs", 
 				"date": "3/30/2015",
-				"specimens": ["blood"]
+				"specimens": [
+					{"id": "4", "type": "blood"}
+				]
 			},
             {
 				"id": "4", 
 				"type": "surgery", 
 				"date": "5/30/2015",
-				"specimens": ["biopsy"]
+				"specimens": [
+					{"id": "5", "type": "biopsy"}
+				]
 			},
             {
 				"id": "5", 
 				"type": "labs", 
 				"date": "6/8/2015",
-				"specimens": ["blood", "RNA"]
+				"specimens": [
+					{"id": "6", "type": "blood"},
+					{"id": "7", "type": "RNA"}
+				]
 			},
             {
 				"id": "6", 
 				"type": "labs", 
 				"date": "7/1/2015",
-				"specimens": ["blood", "RNA"]
+				"specimens": [
+					{"id": "8", "type": "blood"},
+					{"id": "9", "type": "RNA"}
+				]
 			}
         ]
     },
@@ -52,19 +67,27 @@
 				"id": "7", 
 				"type": "labs", 
 				"date": "2/12/2015",
-				"specimens": ["blood", "RNA"]
+				"specimens": [
+					{"id": "10", "type": "blood"},
+					{"id": "11", "type": "RNA"}
+				]
 			},
             {
 				"id": "8", 
 				"type": "surgery", 
 				"date": "4/16/2015",
-				"specimens": ["biopsy"]
+				"specimens": [
+					{"id": "12", "type": "biopsy"}
+				]
 			},
             {
 				"id": "9", 
 				"type": "labs", 
 				"date": "6/30/2015",
-				"specimens": ["blood", "RNA"]
+				"specimens": [
+					{"id": "13", "type": "blood"},
+					{"id": "14", "type": "RNA"}
+				]
 			}
         ]
     }
