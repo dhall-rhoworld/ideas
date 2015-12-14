@@ -19,6 +19,10 @@ rect.RNA {
     fill: green;
 }
 
+rect.DNA {
+	fill: orange;
+}
+
 rect.biopsy {
 	fill: blue;
 }

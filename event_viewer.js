@@ -86,14 +86,19 @@ var ev = {
 				.attr("y", ev.trackHeight / 2 - ev.boxSize / 2 - 2);
 			
 			// Add data "points" for each visit to the tracks
-			track.selectAll("g")
+			var visit = track.selectAll("g")
 				.data(function(subjectData) {return subjectData.visits;})
+				.enter().append("g")
+				.attr("transform", "translate(0, " + (ev.trackHeight / 2 - ev.boxSize / 2) + ")")
+				.attr("class", "visit");
+			visit.selectAll("rect")
+				.data(function(visit) {return visit.specimens;})
 				.enter().append("rect")
 				.attr("x", 0)
-				.attr("y", ev.trackHeight / 2 - ev.boxSize / 2)
+				.attr("y", function(specimen, i) {return i * ev.boxSize;})
 				.attr("height", ev.boxSize)
 				.attr("width", ev.boxSize)
-				.attr("class", function(visit) {return visit.type;});
+				.attr("class", function(specimen) {return specimen.type;});
 			
 			// Add x-axis
 			ev._xAxis = d3.svg.axis().orient("bottom");
@@ -110,18 +115,22 @@ var ev = {
 	 * Update x-coordinate of data points.
 	 */
 	_update: function() {
-		var rects = d3.selectAll(("rect"))
+		var rects = d3.selectAll((".visit"))
 			.transition()
 			.duration(500);
 		if (this._anchor == "date") {
-			rects.attr("x", function(data) {
-				return ev._x(ev._parser.parse(data.date)) - ev.boxSize / 2;}
-			);
+			rects.attr("transform", function(data) {
+				var x = ev._x(ev._parser.parse(data.date)) - ev.boxSize / 2;
+				var y = ev.trackHeight / 2 - ev.boxSize * data.specimens.length / 2;
+				return "translate(" + x + ", " + y + ")";
+			});
 		}
 		else {
-			rects.attr("x", function(data) {
-				return ev._x(data.daysSinceAnchorVisit) - ev.boxSize / 2;}
-			);
+			rects.attr("transform", function(data) {
+				var x = ev._x(data.daysSinceAnchorVisit) - ev.boxSize / 2;
+				var y = ev.trackHeight / 2 - ev.boxSize * data.specimens.length / 2;
+				return "translate(" + x + ", " + y + ")";
+			});
 		}
 	},
 
