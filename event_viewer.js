@@ -5,6 +5,7 @@ var ev = {
 	margin: {top: 20, right: 30, bottom: 30, left: 60},
 	padding: 5,
 	xAxisHeight: 20,
+	boxPadding: 3,
 	
 	// Private attributes
 	_anchor: "date",
@@ -100,9 +101,10 @@ var ev = {
 				.data(function(visit) {return visit.specimens;})
 				.enter().append("rect")
 				.attr("x", 0)
-				.attr("y", function(specimen, i) {return i * ev.boxSize;})
+				.attr("y", function(specimen, i) {return i * (ev.boxSize + ev.boxPadding);})
 				.attr("height", ev.boxSize)
 				.attr("width", ev.boxSize)
+				.on("click", function() {ev._toggleSelected(this);})
 				.attr("class", function(specimen) {return specimen.type;});
 			
 			// Add x-axis
@@ -116,10 +118,31 @@ var ev = {
 		});
 	},
 	
+	_toggleSelected: function(element) {
+		var specimen = d3.select(element).datum();
+		var selected = specimen.selected;
+		if (selected === undefined) {
+			selected = true;
+		}
+		else {
+			selected = !selected;
+		}
+		specimen.selected = selected;
+		var style = element.getAttribute("class");
+		var i = style.search("-selected");
+		if (i < 0) {
+			style = style + "-selected";
+		}
+		else {
+			style = style.substring(0, i);
+		}
+		element.setAttribute("class", style);
+	},
+	
 	/*
 	 * Computes how many pixels required to create a track for the given subject.
 	 */
-	_trackHeight(subject) {
+	_trackHeight: function(subject) {
 		var maxStackedPoints = 1;
 		for (var i = 0; i < subject.visits.length; i++) {
 			var visit = subject.visits[i];
@@ -134,20 +157,20 @@ var ev = {
 	 * Update x-coordinate of data points.
 	 */
 	_update: function() {
-		var rects = d3.selectAll((".visit"))
+		var visits = d3.selectAll((".visit"))
 			.transition()
 			.duration(500);
 		if (this._anchor == "date") {
-			rects.attr("transform", function(data) {
+			visits.attr("transform", function(data) {
 				var x = ev._x(ev._parser.parse(data.date)) - ev.boxSize / 2;
-				var y = -ev.boxSize * data.specimens.length / 2;
+				var y = -(ev.boxSize * data.specimens.length + ev.boxPadding * (data.specimens.length - 1)) / 2;
 				return "translate(" + x + ", " + y + ")";
 			});
 		}
 		else {
-			rects.attr("transform", function(data) {
+			visits.attr("transform", function(data) {
 				var x = ev._x(data.daysSinceAnchorVisit) - ev.boxSize / 2;
-				var y = -ev.boxSize * data.specimens.length / 2;
+				var y = -(ev.boxSize * data.specimens.length + ev.boxPadding * (data.specimens.length - 1)) / 2;
 				return "translate(" + x + ", " + y + ")";
 			});
 		}

@@ -7,28 +7,52 @@ line {
     stroke-width: 2;
 }
 
-rect.surgery {
-    fill: blue;
+rect.blood {
+	fill: white;
+    stroke: red;
+    stroke-width: 2;
 }
 
-rect.blood {
-    fill: red;
+rect.blood-selected {
+	fill: red;
+    stroke: red;
+    stroke-width: 2;
 }
 
 rect.RNA {
-    fill: green;
+	fill: white;
+    stroke: green;
+    stroke-width: 2;
+}
+
+rect.RNA-selected {
+	fill: green;
+    stroke: green;
+    stroke-width: 2;
 }
 
 rect.DNA {
+	fill: white;
+	stroke: orange;
+	stroke-width: 2;
+}
+
+rect.DNA-selected {
 	fill: orange;
+	stroke: orange;
+	stroke-width: 2;
 }
 
 rect.biopsy {
-	fill: blue;
+	fill: white;
+	stroke: blue;
+	stroke-width: 2;
 }
 
-rect.labs {
-    fill: red;
+rect.biopsy-selected {
+	fill: blue;
+	stroke: blue;
+	stroke-width: 2;
 }
 
 text.subject-label {
