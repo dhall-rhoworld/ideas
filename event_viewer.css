@@ -60,6 +60,10 @@ text.subject-label {
 	text-anchor: end;
 }
 
+text.legend {
+	font-size: 11pt;
+}
+
 .axis text {
     font: 10px sans-serif;
 }

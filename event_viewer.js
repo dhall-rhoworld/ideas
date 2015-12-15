@@ -6,6 +6,8 @@ var ev = {
 	padding: 5,
 	xAxisHeight: 20,
 	boxPadding: 3,
+	legendHeight: 35,
+	legendColWidth: 80,
 	
 	// Private attributes
 	_anchor: "date",
@@ -69,7 +71,7 @@ var ev = {
 					chartHeight += ev.padding;
 				}
 			}
-			var height = chartHeight + ev.margin.top + ev.margin.bottom + ev.xAxisHeight;
+			var height = chartHeight + ev.margin.top + ev.margin.bottom + ev.xAxisHeight + ev.legendHeight;
 			svg.attr("height", height);
 			
 			// Add vertically-stacked data "tracks" for subjects
@@ -112,12 +114,47 @@ var ev = {
 			ev._xAxisGroup = svg.append("g")
 				.attr("class", "x axis")
 				.attr("transform", "translate(" + ev.margin.left + ", " + (chartHeight + ev.xAxisHeight / 2) + ")");
+				
+			// Add legend
+			specimenTypesDict = [];
+			for (var i = 0; i < data.length; i++) {
+				var subject = data[i];
+				for (var j = 0; j < subject.visits.length; j++) {
+					var visit = subject.visits[j];
+					for (var k = 0; k < visit.specimens.length; k++) {
+						var specimen = visit.specimens[k];
+						specimenTypesDict[specimen.type] = "";
+					}
+				}
+			}
+			var specimenTypes = Object.keys(specimenTypesDict);
+			var legendItems = svg.append("g")
+				.attr("transform", "translate(" + (ev.margin.left + 150) + ", " + (chartHeight + ev.xAxisHeight + ev.legendHeight) + ")")
+				.selectAll("g")
+				.data(specimenTypes)
+				.enter()
+				.append("g")
+				.attr("transform", function(d, i) {return "translate(" + (i * (ev.boxSize + ev.legendColWidth)) + ", 0)";});
+			legendItems.append("rect")
+				.attr("class", function(d) {return d;})
+				.attr("x", 0)
+				.attr("y", 0)
+				.attr("width", ev.boxSize)
+				.attr("height", ev.boxSize);
+			legendItems.append("text")
+				.text(function(d) {return d;})
+				.attr("class", "legend")
+				.attr("x", ev.boxSize + 5)
+				.attr("y", 11);
 		
 			// Layout data along the x-axis
 			ev._layoutX();
 		});
 	},
 	
+	/*
+	 * Toggle whether a given specimen data point is selected.
+	 */
 	_toggleSelected: function(element) {
 		var specimen = d3.select(element).datum();
 		var selected = specimen.selected;
