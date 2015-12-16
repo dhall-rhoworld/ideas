@@ -27,6 +27,26 @@ var ev = {
 		this._anchor = visitType;
 		this._layoutX();
 	},
+	
+	/**
+	 * Get selected specimens.
+	 */
+	getSelections: function() {
+		var selections = [];
+		for (var i = 0; i < ev._data.length; i++) {
+			var subject = ev._data[i];
+			for (var j = 0; j < subject.visits.length; j++) {
+				var visit = subject.visits[j];
+				for (var k = 0; k < visit.specimens.length; k++) {
+					var specimen = visit.specimens[k];
+					if (specimen.selected) {
+						selections.push(specimen.id);
+					}
+				}
+			}
+		}
+		return selections;
+	},
 
 	/**
 	 * Render an event viewer.

@@ -14,12 +14,25 @@
                 <option value="date">Calendar Date</option>
                 <option value="surgery">Date of first transplant</option>
             </select>
+			<button id="ok">OK</button>
         </div>
+		<p id="results"></p>
     </body>
     <script charset="utf-8">
         d3.select("#anchor").on("input", function() {
             ev.setAnchor(this.value);
         });
+		d3.select("#ok").on("click", function() {
+			d3.select("#results ul").remove();
+			d3.select("#results h3").remove();
+			d3.select("#results").append("h3").text("You selected:");
+			var list = d3.select("#results")
+				.append("ul");
+			var selections = ev.getSelections();
+			for (var i = 0; i < selections.length; i++) {
+				list.append("li").text(selections[i]);
+			}
+		});
         ev.render(chart, "data.json", 800, "date");
     </script>
 </html>
