@@ -75,6 +75,10 @@ text.legend {
     shape-rendering: crispEdges;
 }
 
+.axis-label {
+	font-size: 11pt;
+}
+
 text.errorMsg {
 	font: 14px sans-serif;
 	fill: red;

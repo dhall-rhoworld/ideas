@@ -4,9 +4,9 @@ var ev = {
 	boxSize: 14,
 	margin: {top: 20, right: 30, bottom: 30, left: 60},
 	padding: 5,
-	xAxisHeight: 20,
+	xAxisHeight: 40,
 	boxPadding: 3,
-	legendHeight: 35,
+	legendHeight: 45,
 	legendColWidth: 80,
 	
 	// Private attributes
@@ -114,6 +114,12 @@ var ev = {
 			ev._xAxisGroup = svg.append("g")
 				.attr("class", "x axis")
 				.attr("transform", "translate(" + ev.margin.left + ", " + (chartHeight + ev.xAxisHeight / 2) + ")");
+			svg.append("text")
+				.attr("class", "axis-label")
+				.attr("id", "axis-label")
+				.attr("x", (ev.margin.left + ev._chartWidth / 2))
+				.attr("y", (ev.margin.top + chartHeight + ev.xAxisHeight))
+				.attr("text-anchor", "middle");
 				
 			// Add legend
 			specimenTypesDict = [];
@@ -217,7 +223,9 @@ var ev = {
 	 * Lay out x-range and x-axis.
 	 */
 	_layoutX: function() {
+		var axisLabel = ""
 		if (this._anchor == "date") {
+			axisLabel = "Date"
 			var minDate = d3.min(this._data, function(d) {
 				return d3.min(d.visits, function(visit) {
 					return ev._parser.parse(visit.date);
@@ -233,6 +241,7 @@ var ev = {
 				.domain([minDate, maxDate]);
 		}
 		else {
+			axisLabel = "Day relative to " + this._anchor;
 			this._setDaysSinceAnchorVisit();
 			var minDay = d3.min(this._data, function(d) {
 				return d3.min(d.visits, function(visit) {
@@ -250,6 +259,7 @@ var ev = {
 		}
 		this._xAxis.scale(this._x);
 		this._xAxisGroup.call(this._xAxis);
+		d3.select("#axis-label").text(axisLabel);
 		this._update();
 	},
 
