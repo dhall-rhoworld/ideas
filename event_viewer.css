@@ -60,6 +60,12 @@ text.subject-label {
 	text-anchor: end;
 }
 
+.legend-border {
+	stroke: black;
+	stroke-width: 1;
+	fill: none;
+}
+
 text.legend {
 	font-size: 11pt;
 }

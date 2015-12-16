@@ -6,7 +6,7 @@ var ev = {
 	padding: 5,
 	xAxisHeight: 40,
 	boxPadding: 3,
-	legendHeight: 45,
+	legendHeight: 55,
 	legendColWidth: 80,
 	
 	// Private attributes
@@ -154,9 +154,15 @@ var ev = {
 				}
 			}
 			var specimenTypes = Object.keys(specimenTypesDict);
-			var legendItems = svg.append("g")
-				.attr("transform", "translate(" + (ev.margin.left + 150) + ", " + (chartHeight + ev.xAxisHeight + ev.legendHeight) + ")")
-				.selectAll("g")
+			var legendGroup = svg.append("g")
+				.attr("transform", "translate(" + (ev.margin.left + 150) + ", " + (chartHeight + ev.xAxisHeight + ev.legendHeight) + ")");
+			legendGroup.append("rect")
+				.attr("class", "legend-border")
+				.attr("x", -ev.boxSize * 1.5)
+				.attr("y", -ev.boxSize)
+				.attr("width", specimenTypes.length * (ev.boxSize + ev.legendColWidth))
+				.attr("height", ev.boxSize * 3);
+			var legendItems = legendGroup.selectAll("g")
 				.data(specimenTypes)
 				.enter()
 				.append("g")
