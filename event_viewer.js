@@ -128,6 +128,12 @@ var ev = {
 				.attr("width", ev.boxSize)
 				.on("click", function() {ev._toggleSelected(this);})
 				.attr("class", function(specimen) {return specimen.type;});
+			track.selectAll("g").data(function(visit) {return visit.type == "surgery";})
+				.append("text")
+					.text("T")
+					.attr("class", "visit-label")
+					.attr("x", (ev.boxSize / 2))
+					.attr("y", function(visit) {return visit.specimens.length * (ev.boxSize + ev.boxPadding) + 8;});
 			
 			// Add x-axis
 			ev._xAxis = d3.svg.axis().orient("bottom");

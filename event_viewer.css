@@ -60,6 +60,11 @@ text.subject-label {
 	text-anchor: end;
 }
 
+text.visit-label {
+    font-size: 10pt;
+	text-anchor: middle;
+}
+
 .legend-border {
 	stroke: black;
 	stroke-width: 1;
