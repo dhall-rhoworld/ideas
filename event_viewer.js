@@ -140,7 +140,7 @@ var ev = {
 				.attr("y", 0)
 				.attr("width", ev.smallBoxSize)
 				.attr("height", ev.smallBoxSize)
-				.on("click", function() {ev._toggleTrack(track, this);})
+				.on("click", function() {ev._toggleTrack(this);})
 				.attr("class", function(d) {return d;});
 			
 			// Add data "points" for each visit to the tracks
@@ -211,8 +211,8 @@ var ev = {
 	/*
 	 * Toggle whether a given specimen data point is selected.
 	 */
-	_toggleSelected: function(element) {
-		var specimen = d3.select(element).datum();
+	_toggleSelected: function(rect) {
+		var specimen = d3.select(rect).datum();
 		var selected = specimen.selected;
 		if (selected === undefined) {
 			selected = true;
@@ -221,7 +221,7 @@ var ev = {
 			selected = !selected;
 		}
 		specimen.selected = selected;
-		var style = element.getAttribute("class");
+		var style = rect.getAttribute("class");
 		var i = style.search("-selected");
 		if (i < 0) {
 			style = style + "-selected";
@@ -229,10 +229,14 @@ var ev = {
 		else {
 			style = style.substring(0, i);
 		}
-		element.setAttribute("class", style);
+		rect.setAttribute("class", style);
 	},
 	
-	_toggleTrack: function(track, rect) {
+	/*
+	 * Toggles selection of all data points of a given specimen type
+	 * for an entire track.
+	 */
+	_toggleTrack: function(rect) {
 		var oldClass = d3.select(rect).attr("class");
 		var i = oldClass.search("-selected");
 		var newClass = "";
@@ -248,7 +252,7 @@ var ev = {
 		d3.select(rect).attr("class", newClass);
 		d3.select(rect.parentNode.parentNode).selectAll(".visit rect." + oldClass)
 			.attr("class", newClass)
-			.datum().selected = selected;
+			.each(function(d) {d.selected = selected});
 	},
 	
 	/*
