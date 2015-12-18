@@ -1,7 +1,8 @@
 var ev = {
 
 	// Attributes
-	boxSize: 14,
+	boxSize: 10,
+	smallBoxSize: 10,
 	margin: {top: 20, right: 30, bottom: 30, left: 60},
 	padding: 5,
 	xAxisHeight: 40,
@@ -101,7 +102,8 @@ var ev = {
 				.enter().append("g")
 					.attr("transform", function(subject, i) {
 						return "translate(" + ev.margin.left + ", " + ev._trackY[i] + ")";
-					});
+					})
+					.attr("id", function(subject) {return "track-" + subject.subject_id;});
 			track.append("line")
 				.attr("x1", 0)
 				.attr("y1", 0)
@@ -112,9 +114,37 @@ var ev = {
 				.attr("x", -ev.boxSize)
 				.attr("y", 5)
 				.attr("class", "subject-label");
+				
+			// Add select-all boxes for each specimen type
+			specimenTypesDict = [];
+			for (var i = 0; i < data.length; i++) {
+				var subject = data[i];
+				for (var j = 0; j < subject.visits.length; j++) {
+					var visit = subject.visits[j];
+					for (var k = 0; k < visit.specimens.length; k++) {
+						var specimen = visit.specimens[k];
+						specimenTypesDict[specimen.type] = "";
+					}
+				}
+			}
+			var specimenTypes = Object.keys(specimenTypesDict);
+			selectAllGroup = track.append("g")
+				.attr("transform", "translate(" + (-specimenTypes.length * (ev.smallBoxSize + ev.boxPadding)) + ", 10)")
+				.attr("class", "select-all")
+				.attr("id", "select-all-" + track.datum().subject_id);
+			selectAllGroup.selectAll("rect")
+				.data(specimenTypes)
+				.enter()
+				.append("rect")
+				.attr("x", function(d, i) {return i * (ev.smallBoxSize + ev.boxPadding);})
+				.attr("y", 0)
+				.attr("width", ev.smallBoxSize)
+				.attr("height", ev.smallBoxSize)
+				.on("click", function() {ev._toggleTrack(track, this);})
+				.attr("class", function(d) {return d;});
 			
 			// Add data "points" for each visit to the tracks
-			var visit = track.selectAll("g")
+			var visit = track.selectAll("g.visit")
 				.data(function(subjectData) {return subjectData.visits;})
 				.enter().append("g")
 				.attr("transform", function(visit) {return "translate(0, " + (-ev.boxSize * visit.specimens.length / 2) + ")"})
@@ -148,18 +178,6 @@ var ev = {
 				.attr("text-anchor", "middle");
 				
 			// Add legend
-			specimenTypesDict = [];
-			for (var i = 0; i < data.length; i++) {
-				var subject = data[i];
-				for (var j = 0; j < subject.visits.length; j++) {
-					var visit = subject.visits[j];
-					for (var k = 0; k < visit.specimens.length; k++) {
-						var specimen = visit.specimens[k];
-						specimenTypesDict[specimen.type] = "";
-					}
-				}
-			}
-			var specimenTypes = Object.keys(specimenTypesDict);
 			var legendGroup = svg.append("g")
 				.attr("transform", "translate(" + (ev.margin.left + 150) + ", " + (chartHeight + ev.xAxisHeight + ev.legendHeight) + ")");
 			legendGroup.append("rect")
@@ -212,6 +230,25 @@ var ev = {
 			style = style.substring(0, i);
 		}
 		element.setAttribute("class", style);
+	},
+	
+	_toggleTrack: function(track, rect) {
+		var oldClass = d3.select(rect).attr("class");
+		var i = oldClass.search("-selected");
+		var newClass = "";
+		var selected;
+		if (i < 0) {
+			newClass = oldClass + "-selected"
+			selected = true;
+		}
+		else {
+			newClass = oldClass.substring(0, i);
+			selected = false;
+		}
+		d3.select(rect).attr("class", newClass);
+		d3.select(rect.parentNode.parentNode).selectAll(".visit rect." + oldClass)
+			.attr("class", newClass)
+			.datum().selected = selected;
 	},
 	
 	/*
