@@ -158,7 +158,7 @@ var ev = {
 				.attr("width", ev.boxSize)
 				.on("click", function() {ev._toggleSelected(this);})
 				.attr("class", function(specimen) {return specimen.type;});
-			track.selectAll("g").data(function(visit) {return visit.type == "surgery";})
+			track.selectAll("g.visit").filter(function(visit) {return visit.type == "surgery";})
 				.append("text")
 					.text("T")
 					.attr("class", "visit-label")
