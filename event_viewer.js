@@ -200,6 +200,7 @@ var ev = {
 				.attr("transform", function(d, i) {return "translate(" + (i * (ev.boxSize + ev.legendColWidth)) + ", 0)";});
 			legendItems.append("rect")
 				.attr("class", function(d) {return d;})
+				.on("click", function() {ev._toggleLegend(this);})
 				.attr("x", 0)
 				.attr("y", 0)
 				.attr("width", ev.boxSize)
@@ -284,6 +285,24 @@ var ev = {
 				.attr("class", newClass)
 				.each(function(d) {d.selected = selected});
 		}
+	},
+	
+	_toggleLegend: function(rect) {
+		var oldClass = d3.select(rect).attr("class");
+		var i = oldClass.search("-selected");
+		var newClass = "";
+		var selected;
+		if (i < 0) {
+			newClass = oldClass + "-selected"
+			selected = true;
+		}
+		else {
+			newClass = oldClass.substring(0, i);
+			selected = false;
+		}
+		d3.select(rect).attr("class", newClass);
+		d3.selectAll("g.select-all rect." + oldClass)
+			.each(function() {ev._toggleTrack(this);});
 	},
 	
 	/*
