@@ -7,6 +7,12 @@ line {
     stroke-width: 2;
 }
 
+.time-interval-line {
+	stroke: red;
+	stroke-width: 1;
+	stroke-dasharray: 10,10;
+}
+
 rect.blood {
 	fill: white;
     stroke: red;

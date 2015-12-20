@@ -13,6 +13,7 @@ var ev = {
 	// Private attributes
 	_anchor: "date",
 	_chartWidth: 0,
+	_chartHeight: 0,
 	_data: {},
 	_x: {},
 	_xAxis: {},
@@ -27,6 +28,18 @@ var ev = {
 	setAnchor: function(visitType) {
 		this._anchor = visitType;
 		this._layoutX();
+	},
+	
+	activateTimeIntervalSelect: function(activate) {
+		d3.select("svg").append("line")
+			.attr("class", "time-interval-line")
+			.attr("x1", 100)
+			.attr("y1", 0)
+			.attr("x2", 100)
+			.attr("y2", ev.margin.top + ev._chartHeight);
+		ev._selectTimeInterval = function() {
+			return;
+		}
 	},
 	
 	/**
@@ -83,16 +96,15 @@ var ev = {
 			ev._data = data;
 			
 			// Initialize height and y-axis variables and attributes
-			var chartHeight = 0;
 			for (var i = 0; i < data.length; i++) {
 				var trackHeight = ev._trackHeight(data[i]);
-				ev._trackY[i] = chartHeight + trackHeight / 2;
-				chartHeight += trackHeight;
+				ev._trackY[i] = ev._chartHeight + trackHeight / 2;
+				ev._chartHeight += trackHeight;
 				if (i < data.length - 1) {
-					chartHeight += ev.padding;
+					ev._chartHeight += ev.padding;
 				}
 			}
-			var height = chartHeight + ev.margin.top + ev.margin.bottom + ev.xAxisHeight + ev.legendHeight;
+			var height = ev._chartHeight + ev.margin.top + ev.margin.bottom + ev.xAxisHeight + ev.legendHeight;
 			svg.attr("height", height);
 			
 			// Add vertically-stacked data "tracks" for subjects
@@ -176,17 +188,17 @@ var ev = {
 			ev._xAxis = d3.svg.axis().orient("bottom");
 			ev._xAxisGroup = svg.append("g")
 				.attr("class", "x axis")
-				.attr("transform", "translate(" + ev.margin.left + ", " + (chartHeight + ev.xAxisHeight / 2) + ")");
+				.attr("transform", "translate(" + ev.margin.left + ", " + (ev._chartHeight + ev.xAxisHeight / 2) + ")");
 			svg.append("text")
 				.attr("class", "axis-label")
 				.attr("id", "axis-label")
 				.attr("x", (ev.margin.left + ev._chartWidth / 2))
-				.attr("y", (ev.margin.top + chartHeight + ev.xAxisHeight))
+				.attr("y", (ev.margin.top + ev._chartHeight + ev.xAxisHeight))
 				.attr("text-anchor", "middle");
 				
 			// Add legend
 			var legendGroup = svg.append("g")
-				.attr("transform", "translate(" + (ev.margin.left + 150) + ", " + (chartHeight + ev.xAxisHeight + ev.legendHeight) + ")");
+				.attr("transform", "translate(" + (ev.margin.left + 150) + ", " + (ev._chartHeight + ev.xAxisHeight + ev.legendHeight) + ")");
 			legendGroup.append("rect")
 				.attr("class", "legend-border")
 				.attr("x", -ev.boxSize * 1.5)
