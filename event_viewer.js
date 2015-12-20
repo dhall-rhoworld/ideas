@@ -3,7 +3,7 @@ var ev = {
 	// Attributes
 	boxSize: 10,
 	smallBoxSize: 10,
-	margin: {top: 20, right: 30, bottom: 30, left: 60},
+	margin: {top: 20, right: 30, bottom: 30, left: 80},
 	padding: 5,
 	xAxisHeight: 40,
 	boxPadding: 3,
@@ -115,7 +115,7 @@ var ev = {
 				.attr("y", 5)
 				.attr("class", "subject-label");
 				
-			// Add select-all boxes for each specimen type
+			// Add select-all boxes for each specimen type and for all specimen types
 			specimenTypesDict = [];
 			for (var i = 0; i < data.length; i++) {
 				var subject = data[i];
@@ -128,8 +128,15 @@ var ev = {
 				}
 			}
 			var specimenTypes = Object.keys(specimenTypesDict);
+			track.append("rect")
+				.attr("x", ((-specimenTypes.length - 1) * (ev.smallBoxSize + ev.boxPadding) - ev.boxSize / 2))
+				.attr("y", 10)
+				.attr("width", ev.smallBoxSize)
+				.attr("height", ev.smallBoxSize)
+				.on("click", function() {ev._toggleTrack(this);})
+				.attr("class", "all-specimen-types");
 			selectAllGroup = track.append("g")
-				.attr("transform", "translate(" + (-specimenTypes.length * (ev.smallBoxSize + ev.boxPadding)) + ", 10)")
+				.attr("transform", "translate(" + ((-specimenTypes.length) * (ev.smallBoxSize + ev.boxPadding) - ev.boxSize / 2) + ", 10)")
 				.attr("class", "select-all")
 				.attr("id", "select-all-" + track.datum().subject_id);
 			selectAllGroup.selectAll("rect")
@@ -250,9 +257,33 @@ var ev = {
 			selected = false;
 		}
 		d3.select(rect).attr("class", newClass);
-		d3.select(rect.parentNode.parentNode).selectAll(".visit rect." + oldClass)
-			.attr("class", newClass)
-			.each(function(d) {d.selected = selected});
+		if (oldClass.search("all-specimen-types") >= 0) {
+			d3.select(rect.parentNode)
+				.selectAll(".visit rect")
+				.filter(function(specimen) {return specimen.selected != selected;})
+				.attr("class", function(specimen) {
+					var c = specimen.type;
+					if (selected) {
+						c = c + "-selected";
+					}
+					return c;
+				})
+				.each(function(specimen) {specimen.selected = selected});
+			d3.select(rect.parentNode)
+				.selectAll(".select-all rect")
+				.attr("class", function(specimenType) {
+					var c = specimenType;
+					if (selected) {
+						c = specimenType + "-selected";
+					}
+					return c;
+				});
+		}
+		else {
+			d3.select(rect.parentNode.parentNode).selectAll(".visit rect." + oldClass)
+				.attr("class", newClass)
+				.each(function(d) {d.selected = selected});
+		}
 	},
 	
 	/*
