@@ -4,9 +4,10 @@ var sp = {
 	margin: {top: 20, right: 30, bottom: 30, left: 80},
 	size: {dataPoint: 10, selectBox: 10},
 	padding: {track: 5, selectBox: 3},
-	xAxisHeight: 40,
-	legendHeight: 55,
-	legendColWidth: 80,
+	section: {
+		xAxis: {height: 40},
+		legend: {height: 55, colWidth: 80}
+	},
 	
 	// Private attributes
 	_anchor: "date",
@@ -69,26 +70,23 @@ var sp = {
 	 */
 	render: function(divId, dataUrl, width, anchor) {
 		sp._anchor = anchor;
-	
-		// Create SVG canvas
-		var svg = d3.select(divId)
-			.append("svg")
-				.attr("width", width);
-	
-		// Create SVG group for the chart
-		var chart = svg.append("g");
 		
 		// Retrieve data and lay out chart
 		d3.json(dataUrl, function(error, data) {
 	
 			// Handle error
 			if (error) {
-				console.log("Error: " + error);
-				chart.append("text")
-					.text(error)
-					.attr("class", "errorMsg");
+				sp._showErrorMessage(divId, error);
 				return;
 			}
+			
+			// Create SVG canvas
+			var svg = d3.select(divId)
+				.append("svg")
+					.attr("width", width);
+	
+			// Create SVG group for the chart
+			var chart = svg.append("g");
 			
 			// Save data for later
 			sp._data = data;
@@ -102,7 +100,7 @@ var sp = {
 					sp._chartHeight += sp.padding.track;
 				}
 			}
-			var height = sp._chartHeight + sp.margin.top + sp.margin.bottom + sp.xAxisHeight + sp.legendHeight;
+			var height = sp._chartHeight + sp.margin.top + sp.margin.bottom + sp.section.xAxis.height + sp.section.legend.height;
 			svg.attr("height", height);
 			
 			// Add vertically-stacked data "tracks" for subjects
@@ -186,28 +184,28 @@ var sp = {
 			sp._xAxis = d3.svg.axis().orient("bottom");
 			sp._xAxisGroup = svg.append("g")
 				.attr("class", "x axis")
-				.attr("transform", "translate(" + sp.margin.left + ", " + (sp._chartHeight + sp.xAxisHeight / 2) + ")");
+				.attr("transform", "translate(" + sp.margin.left + ", " + (sp._chartHeight + sp.section.xAxis.height / 2) + ")");
 			svg.append("text")
 				.attr("class", "axis-label")
 				.attr("id", "axis-label")
 				.attr("x", (sp.margin.left + sp._chartWidth / 2))
-				.attr("y", (sp.margin.top + sp._chartHeight + sp.xAxisHeight))
+				.attr("y", (sp.margin.top + sp._chartHeight + sp.section.xAxis.height))
 				.attr("text-anchor", "middle");
 				
 			// Add legend
 			var legendGroup = svg.append("g")
-				.attr("transform", "translate(" + (sp.margin.left + 150) + ", " + (sp._chartHeight + sp.xAxisHeight + sp.legendHeight) + ")");
+				.attr("transform", "translate(" + (sp.margin.left + 150) + ", " + (sp._chartHeight + sp.section.xAxis.height + sp.section.legend.height) + ")");
 			legendGroup.append("rect")
 				.attr("class", "legend-border")
 				.attr("x", -sp.size.dataPoint * 1.5)
 				.attr("y", -sp.size.dataPoint)
-				.attr("width", specimenTypes.length * (sp.size.dataPoint + sp.legendColWidth))
+				.attr("width", specimenTypes.length * (sp.size.dataPoint + sp.section.legend.colWidth))
 				.attr("height", sp.size.dataPoint * 3);
 			var legendItems = legendGroup.selectAll("g")
 				.data(specimenTypes)
 				.enter()
 				.append("g")
-				.attr("transform", function(d, i) {return "translate(" + (i * (sp.size.dataPoint + sp.legendColWidth)) + ", 0)";});
+				.attr("transform", function(d, i) {return "translate(" + (i * (sp.size.dataPoint + sp.section.legend.colWidth)) + ", 0)";});
 			legendItems.append("rect")
 				.attr("class", function(d) {return d;})
 				.on("click", function() {sp._toggleLegend(this);})
@@ -224,6 +222,22 @@ var sp = {
 			// Layout data along the x-axis
 			sp._layoutX();
 		});
+	},
+	
+	_showErrorMessage: function(divId, error) {
+		var message = "";
+		if (error.message) {
+			message = error.message;
+		}
+		else if (error.statusText) {
+			message = error.statusText;
+		}
+		console.log("Error: " + message);
+		d3.select(divId).append("h3")
+			.text("Error retrieving data")
+			.attr("class", "error-msg");
+		d3.select(divId).append("p")
+			.text("Cause: " + message);
 	},
 	
 	/*

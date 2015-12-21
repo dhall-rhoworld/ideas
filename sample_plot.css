@@ -108,7 +108,6 @@ text.legend {
 	font-size: 11pt;
 }
 
-text.errorMsg {
-	font: 14px sans-serif;
-	fill: red;
+.error-msg {
+	color: red;
 }
