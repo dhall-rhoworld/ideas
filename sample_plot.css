@@ -111,3 +111,8 @@ text.legend {
 .error-msg {
 	color: red;
 }
+
+.section-background {
+	fill: #00aa00;
+	fill-opacity: 0.5;
+}

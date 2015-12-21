@@ -11,8 +11,9 @@ var sp = {
 	
 	// Private attributes
 	_anchor: "date",
-	_chartWidth: 0,
-	_chartHeight: 0,
+	_dim: {
+		chart: {width: 0, height: 0}
+	},
 	_data: {},
 	_x: {},
 	_xAxis: {},
@@ -35,7 +36,7 @@ var sp = {
 			.attr("x1", 100)
 			.attr("y1", 0)
 			.attr("x2", 100)
-			.attr("y2", sp.margin.top + sp._chartHeight);
+			.attr("y2", sp.margin.top + sp._dim.chart.height);
 		sp._selectTimeInterval = function() {
 			return;
 		}
@@ -80,6 +81,9 @@ var sp = {
 				return;
 			}
 			
+			// Save data for later
+			sp._data = data;
+			
 			// Create SVG canvas
 			var svg = d3.select(divId)
 				.append("svg")
@@ -88,23 +92,47 @@ var sp = {
 			// Create SVG group for the chart
 			var chart = svg.append("g");
 			
-			// Save data for later
-			sp._data = data;
-			
 			// Initialize height and y-axis variables and attributes
 			for (var i = 0; i < data.length; i++) {
 				var trackHeight = sp._trackHeight(data[i]);
-				sp._trackY[i] = sp._chartHeight + trackHeight / 2;
-				sp._chartHeight += trackHeight;
+				sp._trackY[i] = sp._dim.chart.height + trackHeight / 2;
+				sp._dim.chart.height += trackHeight;
 				if (i < data.length - 1) {
-					sp._chartHeight += sp.padding.track;
+					sp._dim.chart.height += sp.padding.track;
 				}
 			}
-			var height = sp._chartHeight + sp.margin.top + sp.margin.bottom + sp.section.xAxis.height + sp.section.legend.height;
+			var height = sp._dim.chart.height + sp.margin.top + sp.margin.bottom + sp.section.xAxis.height + sp.section.legend.height;
 			svg.attr("height", height);
 			
+			// *** Remove this ***
+			svg.append("rect")
+				.attr("x", 0)
+				.attr("y", 0)
+				.attr("width", sp.margin.left)
+				.attr("height", height)
+				.attr("class", "section-background");
+			svg.append("rect")
+				.attr("x", 0)
+				.attr("y", 0)
+				.attr("width", width)
+				.attr("height", sp.margin.top)
+				.attr("class", "section-background");
+			svg.append("rect")
+				.attr("x", width - sp.margin.right)
+				.attr("y", 0)
+				.attr("width", sp.margin.right)
+				.attr("height", height)
+				.attr("class", "section-background");
+			svg.append("rect")
+				.attr("x", 0)
+				.attr("y", height - sp.margin.bottom)
+				.attr("width", width)
+				.attr("height", sp.margin.bottom)
+				.attr("class", "section-background");
+			// *** Remove above ***
+			
 			// Add vertically-stacked data "tracks" for subjects
-			sp._chartWidth = width - sp.margin.left - sp.margin.right;
+			sp._dim.chart.width = width - sp.margin.left - sp.margin.right;
 			var track = chart.selectAll("g")
 					.data(data)
 				.enter().append("g")
@@ -115,7 +143,7 @@ var sp = {
 			track.append("line")
 				.attr("x1", 0)
 				.attr("y1", 0)
-				.attr("x2", sp._chartWidth)
+				.attr("x2", sp._dim.chart.width)
 				.attr("y2", 0);
 			track.append("text")
 				.text(function(subjectData) {return subjectData.subject_id;})
@@ -184,17 +212,17 @@ var sp = {
 			sp._xAxis = d3.svg.axis().orient("bottom");
 			sp._xAxisGroup = svg.append("g")
 				.attr("class", "x axis")
-				.attr("transform", "translate(" + sp.margin.left + ", " + (sp._chartHeight + sp.section.xAxis.height / 2) + ")");
+				.attr("transform", "translate(" + sp.margin.left + ", " + (sp._dim.chart.height + sp.section.xAxis.height / 2) + ")");
 			svg.append("text")
 				.attr("class", "axis-label")
 				.attr("id", "axis-label")
-				.attr("x", (sp.margin.left + sp._chartWidth / 2))
-				.attr("y", (sp.margin.top + sp._chartHeight + sp.section.xAxis.height))
+				.attr("x", (sp.margin.left + sp._dim.chart.width / 2))
+				.attr("y", (sp.margin.top + sp._dim.chart.height + sp.section.xAxis.height))
 				.attr("text-anchor", "middle");
 				
 			// Add legend
 			var legendGroup = svg.append("g")
-				.attr("transform", "translate(" + (sp.margin.left + 150) + ", " + (sp._chartHeight + sp.section.xAxis.height + sp.section.legend.height) + ")");
+				.attr("transform", "translate(" + (sp.margin.left + 150) + ", " + (sp._dim.chart.height + sp.section.xAxis.height + sp.section.legend.height) + ")");
 			legendGroup.append("rect")
 				.attr("class", "legend-border")
 				.attr("x", -sp.size.dataPoint * 1.5)
@@ -224,6 +252,9 @@ var sp = {
 		});
 	},
 	
+	/*
+	 * Print an error message to the page.
+	 */
 	_showErrorMessage: function(divId, error) {
 		var message = "";
 		if (error.message) {
@@ -384,7 +415,7 @@ var sp = {
 				});
 			});
 			sp._x = d3.time.scale()
-				.range([0, sp._chartWidth])
+				.range([0, sp._dim.chart.width])
 				.domain([minDate, maxDate]);
 		}
 		else {
@@ -401,7 +432,7 @@ var sp = {
 				});
 			});
 			sp._x = d3.scale.linear()
-				.range([0, sp._chartWidth])
+				.range([0, sp._dim.chart.width])
 				.domain([minDay, maxDay]);
 		}
 		sp._xAxis.scale(sp._x);
