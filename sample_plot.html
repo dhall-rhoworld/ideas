@@ -37,7 +37,7 @@
 		
 			// Toggle whether specimens are plotted by collection date or
 			// days relative to transplant surgery
-            ev.setAnchor(this.value);
+            sp.setAnchor(this.value);
         });
 		
 		// Add event handler to OK button
@@ -53,7 +53,7 @@
 				.append("ul");
 				
 			// Retrieve selected specimens
-			var selections = ev.getSelections();
+			var selections = sp.getSelections();
 			
 			// Add selected specimens to list
 			for (var i = 0; i < selections.length; i++) {
@@ -62,6 +62,6 @@
 		});
 
 		// Render chart
-        ev.render(chart, "data2.json", 800, "date");
+        sp.render(chart, "data2.json", 800, "date");
     </script>
 </html>

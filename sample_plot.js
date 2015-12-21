@@ -1,4 +1,4 @@
-var ev = {
+var sp = {
 
 	// Attributes
 	boxSize: 10,
@@ -36,8 +36,8 @@ var ev = {
 			.attr("x1", 100)
 			.attr("y1", 0)
 			.attr("x2", 100)
-			.attr("y2", ev.margin.top + ev._chartHeight);
-		ev._selectTimeInterval = function() {
+			.attr("y2", sp.margin.top + sp._chartHeight);
+		sp._selectTimeInterval = function() {
 			return;
 		}
 	},
@@ -47,8 +47,8 @@ var ev = {
 	 */
 	getSelections: function() {
 		var selections = [];
-		for (var i = 0; i < ev._data.length; i++) {
-			var subject = ev._data[i];
+		for (var i = 0; i < sp._data.length; i++) {
+			var subject = sp._data[i];
 			for (var j = 0; j < subject.visits.length; j++) {
 				var visit = subject.visits[j];
 				for (var k = 0; k < visit.specimens.length; k++) {
@@ -93,37 +93,37 @@ var ev = {
 			}
 			
 			// Save data for later
-			ev._data = data;
+			sp._data = data;
 			
 			// Initialize height and y-axis variables and attributes
 			for (var i = 0; i < data.length; i++) {
-				var trackHeight = ev._trackHeight(data[i]);
-				ev._trackY[i] = ev._chartHeight + trackHeight / 2;
-				ev._chartHeight += trackHeight;
+				var trackHeight = sp._trackHeight(data[i]);
+				sp._trackY[i] = sp._chartHeight + trackHeight / 2;
+				sp._chartHeight += trackHeight;
 				if (i < data.length - 1) {
-					ev._chartHeight += ev.trackPadding;
+					sp._chartHeight += sp.trackPadding;
 				}
 			}
-			var height = ev._chartHeight + ev.margin.top + ev.margin.bottom + ev.xAxisHeight + ev.legendHeight;
+			var height = sp._chartHeight + sp.margin.top + sp.margin.bottom + sp.xAxisHeight + sp.legendHeight;
 			svg.attr("height", height);
 			
 			// Add vertically-stacked data "tracks" for subjects
-			ev._chartWidth = width - ev.margin.left - ev.margin.right;
+			sp._chartWidth = width - sp.margin.left - sp.margin.right;
 			var track = chart.selectAll("g")
 					.data(data)
 				.enter().append("g")
 					.attr("transform", function(subject, i) {
-						return "translate(" + ev.margin.left + ", " + ev._trackY[i] + ")";
+						return "translate(" + sp.margin.left + ", " + sp._trackY[i] + ")";
 					})
 					.attr("id", function(subject) {return "track-" + subject.subject_id;});
 			track.append("line")
 				.attr("x1", 0)
 				.attr("y1", 0)
-				.attr("x2", ev._chartWidth)
+				.attr("x2", sp._chartWidth)
 				.attr("y2", 0);
 			track.append("text")
 				.text(function(subjectData) {return subjectData.subject_id;})
-				.attr("x", -ev.boxSize)
+				.attr("x", -sp.boxSize)
 				.attr("y", 5)
 				.attr("class", "subject-label");
 				
@@ -141,90 +141,90 @@ var ev = {
 			}
 			var specimenTypes = Object.keys(specimenTypesDict);
 			track.append("rect")
-				.attr("x", ((-specimenTypes.length - 1) * (ev.selectAllBoxSize + ev.boxPadding) - ev.boxSize / 2))
+				.attr("x", ((-specimenTypes.length - 1) * (sp.selectAllBoxSize + sp.boxPadding) - sp.boxSize / 2))
 				.attr("y", 10)
-				.attr("width", ev.selectAllBoxSize)
-				.attr("height", ev.selectAllBoxSize)
-				.on("click", function() {ev._toggleTrack(this);})
+				.attr("width", sp.selectAllBoxSize)
+				.attr("height", sp.selectAllBoxSize)
+				.on("click", function() {sp._toggleTrack(this);})
 				.attr("class", "all-specimen-types");
 			selectAllGroup = track.append("g")
-				.attr("transform", "translate(" + ((-specimenTypes.length) * (ev.selectAllBoxSize + ev.boxPadding) - ev.boxSize / 2) + ", 10)")
+				.attr("transform", "translate(" + ((-specimenTypes.length) * (sp.selectAllBoxSize + sp.boxPadding) - sp.boxSize / 2) + ", 10)")
 				.attr("class", "select-all")
 				.attr("id", "select-all-" + track.datum().subject_id);
 			selectAllGroup.selectAll("rect")
 				.data(specimenTypes)
 				.enter()
 				.append("rect")
-				.attr("x", function(d, i) {return i * (ev.selectAllBoxSize + ev.boxPadding);})
+				.attr("x", function(d, i) {return i * (sp.selectAllBoxSize + sp.boxPadding);})
 				.attr("y", 0)
-				.attr("width", ev.selectAllBoxSize)
-				.attr("height", ev.selectAllBoxSize)
-				.on("click", function() {ev._toggleTrack(this);})
+				.attr("width", sp.selectAllBoxSize)
+				.attr("height", sp.selectAllBoxSize)
+				.on("click", function() {sp._toggleTrack(this);})
 				.attr("class", function(d) {return d;});
 			
 			// Add data "points" for each visit to the tracks
 			var visit = track.selectAll("g.visit")
 				.data(function(subjectData) {return subjectData.visits;})
 				.enter().append("g")
-				.attr("transform", function(visit) {return "translate(0, " + (-ev.boxSize * visit.specimens.length / 2) + ")"})
+				.attr("transform", function(visit) {return "translate(0, " + (-sp.boxSize * visit.specimens.length / 2) + ")"})
 				.attr("class", "visit");
 			visit.selectAll("rect")
 				.data(function(visit) {return visit.specimens;})
 				.enter().append("rect")
 				.attr("x", 0)
-				.attr("y", function(specimen, i) {return i * (ev.boxSize + ev.boxPadding);})
-				.attr("height", ev.boxSize)
-				.attr("width", ev.boxSize)
-				.on("click", function() {ev._toggleSelected(this);})
+				.attr("y", function(specimen, i) {return i * (sp.boxSize + sp.boxPadding);})
+				.attr("height", sp.boxSize)
+				.attr("width", sp.boxSize)
+				.on("click", function() {sp._toggleSelected(this);})
 				.attr("class", function(specimen) {return specimen.type;});
 			track.selectAll("g.visit").filter(function(visit) {return visit.type == "surgery";})
 				.append("text")
 					.text("T")
 					.attr("class", "visit-label")
-					.attr("x", (ev.boxSize / 2))
-					.attr("y", function(visit) {return visit.specimens.length * (ev.boxSize + ev.boxPadding) + 8;});
+					.attr("x", (sp.boxSize / 2))
+					.attr("y", function(visit) {return visit.specimens.length * (sp.boxSize + sp.boxPadding) + 8;});
 			
 			// Add x-axis
-			ev._xAxis = d3.svg.axis().orient("bottom");
-			ev._xAxisGroup = svg.append("g")
+			sp._xAxis = d3.svg.axis().orient("bottom");
+			sp._xAxisGroup = svg.append("g")
 				.attr("class", "x axis")
-				.attr("transform", "translate(" + ev.margin.left + ", " + (ev._chartHeight + ev.xAxisHeight / 2) + ")");
+				.attr("transform", "translate(" + sp.margin.left + ", " + (sp._chartHeight + sp.xAxisHeight / 2) + ")");
 			svg.append("text")
 				.attr("class", "axis-label")
 				.attr("id", "axis-label")
-				.attr("x", (ev.margin.left + ev._chartWidth / 2))
-				.attr("y", (ev.margin.top + ev._chartHeight + ev.xAxisHeight))
+				.attr("x", (sp.margin.left + sp._chartWidth / 2))
+				.attr("y", (sp.margin.top + sp._chartHeight + sp.xAxisHeight))
 				.attr("text-anchor", "middle");
 				
 			// Add legend
 			var legendGroup = svg.append("g")
-				.attr("transform", "translate(" + (ev.margin.left + 150) + ", " + (ev._chartHeight + ev.xAxisHeight + ev.legendHeight) + ")");
+				.attr("transform", "translate(" + (sp.margin.left + 150) + ", " + (sp._chartHeight + sp.xAxisHeight + sp.legendHeight) + ")");
 			legendGroup.append("rect")
 				.attr("class", "legend-border")
-				.attr("x", -ev.boxSize * 1.5)
-				.attr("y", -ev.boxSize)
-				.attr("width", specimenTypes.length * (ev.boxSize + ev.legendColWidth))
-				.attr("height", ev.boxSize * 3);
+				.attr("x", -sp.boxSize * 1.5)
+				.attr("y", -sp.boxSize)
+				.attr("width", specimenTypes.length * (sp.boxSize + sp.legendColWidth))
+				.attr("height", sp.boxSize * 3);
 			var legendItems = legendGroup.selectAll("g")
 				.data(specimenTypes)
 				.enter()
 				.append("g")
-				.attr("transform", function(d, i) {return "translate(" + (i * (ev.boxSize + ev.legendColWidth)) + ", 0)";});
+				.attr("transform", function(d, i) {return "translate(" + (i * (sp.boxSize + sp.legendColWidth)) + ", 0)";});
 			legendItems.append("rect")
 				.attr("class", function(d) {return d;})
-				.on("click", function() {ev._toggleLegend(this);})
+				.on("click", function() {sp._toggleLegend(this);})
 				.attr("x", 0)
 				.attr("y", 0)
-				.attr("width", ev.boxSize)
-				.attr("height", ev.boxSize);
+				.attr("width", sp.boxSize)
+				.attr("height", sp.boxSize);
 			legendItems.append("text")
 				.text(function(d) {return d;})
 				.attr("class", "legend")
-				.attr("x", ev.boxSize + 5)
+				.attr("x", sp.boxSize + 5)
 				.attr("y", 11);
 		
 			// Layout data along the x-axis
-			ev._layoutX();
+			sp._layoutX();
 		});
 	},
 	
@@ -314,7 +314,7 @@ var ev = {
 		}
 		d3.select(rect).attr("class", newClass);
 		d3.selectAll("g.select-all rect." + oldClass)
-			.each(function() {ev._toggleTrack(this);});
+			.each(function() {sp._toggleTrack(this);});
 	},
 	
 	/*
@@ -328,7 +328,7 @@ var ev = {
 				maxStackedPoints = visit.specimens.length;
 			}
 		}
-		return maxStackedPoints * ev.boxSize + ev.trackPadding * 2;
+		return maxStackedPoints * sp.boxSize + sp.trackPadding * 2;
 	},
 	
 	/*
@@ -340,15 +340,15 @@ var ev = {
 			.duration(500);
 		if (this._anchor == "date") {
 			visits.attr("transform", function(data) {
-				var x = ev._x(ev._parser.parse(data.date)) - ev.boxSize / 2;
-				var y = -(ev.boxSize * data.specimens.length + ev.boxPadding * (data.specimens.length - 1)) / 2;
+				var x = sp._x(sp._parser.parse(data.date)) - sp.boxSize / 2;
+				var y = -(sp.boxSize * data.specimens.length + sp.boxPadding * (data.specimens.length - 1)) / 2;
 				return "translate(" + x + ", " + y + ")";
 			});
 		}
 		else {
 			visits.attr("transform", function(data) {
-				var x = ev._x(data.daysSinceAnchorVisit) - ev.boxSize / 2;
-				var y = -(ev.boxSize * data.specimens.length + ev.boxPadding * (data.specimens.length - 1)) / 2;
+				var x = sp._x(data.daysSinceAnchorVisit) - sp.boxSize / 2;
+				var y = -(sp.boxSize * data.specimens.length + sp.boxPadding * (data.specimens.length - 1)) / 2;
 				return "translate(" + x + ", " + y + ")";
 			});
 		}
@@ -363,12 +363,12 @@ var ev = {
 			axisLabel = "Date"
 			var minDate = d3.min(this._data, function(d) {
 				return d3.min(d.visits, function(visit) {
-					return ev._parser.parse(visit.date);
+					return sp._parser.parse(visit.date);
 				});
 			});
 			var maxDate = d3.max(this._data, function(d) {
 				return d3.max(d.visits, function(visit) {
-					return ev._parser.parse(visit.date);
+					return sp._parser.parse(visit.date);
 				});
 			});
 			this._x = d3.time.scale()
