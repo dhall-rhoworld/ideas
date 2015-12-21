@@ -1,9 +1,8 @@
 var sp = {
 
 	// Attributes
-	boxSize: 10,
-	selectAllBoxSize: 10,
 	margin: {top: 20, right: 30, bottom: 30, left: 80},
+	size: {dataPoint: 10, selectBox: 10},
 	trackPadding: 5,
 	xAxisHeight: 40,
 	boxPadding: 3,
@@ -123,7 +122,7 @@ var sp = {
 				.attr("y2", 0);
 			track.append("text")
 				.text(function(subjectData) {return subjectData.subject_id;})
-				.attr("x", -sp.boxSize)
+				.attr("x", -sp.size.dataPoint)
 				.attr("y", 5)
 				.attr("class", "subject-label");
 				
@@ -141,24 +140,24 @@ var sp = {
 			}
 			var specimenTypes = Object.keys(specimenTypesDict);
 			track.append("rect")
-				.attr("x", ((-specimenTypes.length - 1) * (sp.selectAllBoxSize + sp.boxPadding) - sp.boxSize / 2))
+				.attr("x", ((-specimenTypes.length - 1) * (sp.size.selectBox + sp.boxPadding) - sp.size.dataPoint / 2))
 				.attr("y", 10)
-				.attr("width", sp.selectAllBoxSize)
-				.attr("height", sp.selectAllBoxSize)
+				.attr("width", sp.size.selectBox)
+				.attr("height", sp.size.selectBox)
 				.on("click", function() {sp._toggleTrack(this);})
 				.attr("class", "all-specimen-types");
 			selectAllGroup = track.append("g")
-				.attr("transform", "translate(" + ((-specimenTypes.length) * (sp.selectAllBoxSize + sp.boxPadding) - sp.boxSize / 2) + ", 10)")
+				.attr("transform", "translate(" + ((-specimenTypes.length) * (sp.size.selectBox + sp.boxPadding) - sp.size.dataPoint / 2) + ", 10)")
 				.attr("class", "select-all")
 				.attr("id", "select-all-" + track.datum().subject_id);
 			selectAllGroup.selectAll("rect")
 				.data(specimenTypes)
 				.enter()
 				.append("rect")
-				.attr("x", function(d, i) {return i * (sp.selectAllBoxSize + sp.boxPadding);})
+				.attr("x", function(d, i) {return i * (sp.size.selectBox + sp.boxPadding);})
 				.attr("y", 0)
-				.attr("width", sp.selectAllBoxSize)
-				.attr("height", sp.selectAllBoxSize)
+				.attr("width", sp.size.selectBox)
+				.attr("height", sp.size.selectBox)
 				.on("click", function() {sp._toggleTrack(this);})
 				.attr("class", function(d) {return d;});
 			
@@ -166,23 +165,23 @@ var sp = {
 			var visit = track.selectAll("g.visit")
 				.data(function(subjectData) {return subjectData.visits;})
 				.enter().append("g")
-				.attr("transform", function(visit) {return "translate(0, " + (-sp.boxSize * visit.specimens.length / 2) + ")"})
+				.attr("transform", function(visit) {return "translate(0, " + (-sp.size.dataPoint * visit.specimens.length / 2) + ")"})
 				.attr("class", "visit");
 			visit.selectAll("rect")
 				.data(function(visit) {return visit.specimens;})
 				.enter().append("rect")
 				.attr("x", 0)
-				.attr("y", function(specimen, i) {return i * (sp.boxSize + sp.boxPadding);})
-				.attr("height", sp.boxSize)
-				.attr("width", sp.boxSize)
+				.attr("y", function(specimen, i) {return i * (sp.size.dataPoint + sp.boxPadding);})
+				.attr("height", sp.size.dataPoint)
+				.attr("width", sp.size.dataPoint)
 				.on("click", function() {sp._toggleSelected(this);})
 				.attr("class", function(specimen) {return specimen.type;});
 			track.selectAll("g.visit").filter(function(visit) {return visit.type == "surgery";})
 				.append("text")
 					.text("T")
 					.attr("class", "visit-label")
-					.attr("x", (sp.boxSize / 2))
-					.attr("y", function(visit) {return visit.specimens.length * (sp.boxSize + sp.boxPadding) + 8;});
+					.attr("x", (sp.size.dataPoint / 2))
+					.attr("y", function(visit) {return visit.specimens.length * (sp.size.dataPoint + sp.boxPadding) + 8;});
 			
 			// Add x-axis
 			sp._xAxis = d3.svg.axis().orient("bottom");
@@ -201,26 +200,26 @@ var sp = {
 				.attr("transform", "translate(" + (sp.margin.left + 150) + ", " + (sp._chartHeight + sp.xAxisHeight + sp.legendHeight) + ")");
 			legendGroup.append("rect")
 				.attr("class", "legend-border")
-				.attr("x", -sp.boxSize * 1.5)
-				.attr("y", -sp.boxSize)
-				.attr("width", specimenTypes.length * (sp.boxSize + sp.legendColWidth))
-				.attr("height", sp.boxSize * 3);
+				.attr("x", -sp.size.dataPoint * 1.5)
+				.attr("y", -sp.size.dataPoint)
+				.attr("width", specimenTypes.length * (sp.size.dataPoint + sp.legendColWidth))
+				.attr("height", sp.size.dataPoint * 3);
 			var legendItems = legendGroup.selectAll("g")
 				.data(specimenTypes)
 				.enter()
 				.append("g")
-				.attr("transform", function(d, i) {return "translate(" + (i * (sp.boxSize + sp.legendColWidth)) + ", 0)";});
+				.attr("transform", function(d, i) {return "translate(" + (i * (sp.size.dataPoint + sp.legendColWidth)) + ", 0)";});
 			legendItems.append("rect")
 				.attr("class", function(d) {return d;})
 				.on("click", function() {sp._toggleLegend(this);})
 				.attr("x", 0)
 				.attr("y", 0)
-				.attr("width", sp.boxSize)
-				.attr("height", sp.boxSize);
+				.attr("width", sp.size.dataPoint)
+				.attr("height", sp.size.dataPoint);
 			legendItems.append("text")
 				.text(function(d) {return d;})
 				.attr("class", "legend")
-				.attr("x", sp.boxSize + 5)
+				.attr("x", sp.size.dataPoint + 5)
 				.attr("y", 11);
 		
 			// Layout data along the x-axis
@@ -328,7 +327,7 @@ var sp = {
 				maxStackedPoints = visit.specimens.length;
 			}
 		}
-		return maxStackedPoints * sp.boxSize + sp.trackPadding * 2;
+		return maxStackedPoints * sp.size.dataPoint + sp.trackPadding * 2;
 	},
 	
 	/*
@@ -340,15 +339,15 @@ var sp = {
 			.duration(500);
 		if (sp._anchor == "date") {
 			visits.attr("transform", function(data) {
-				var x = sp._x(sp._parser.parse(data.date)) - sp.boxSize / 2;
-				var y = -(sp.boxSize * data.specimens.length + sp.boxPadding * (data.specimens.length - 1)) / 2;
+				var x = sp._x(sp._parser.parse(data.date)) - sp.size.dataPoint / 2;
+				var y = -(sp.size.dataPoint * data.specimens.length + sp.boxPadding * (data.specimens.length - 1)) / 2;
 				return "translate(" + x + ", " + y + ")";
 			});
 		}
 		else {
 			visits.attr("transform", function(data) {
-				var x = sp._x(data.daysSinceAnchorVisit) - sp.boxSize / 2;
-				var y = -(sp.boxSize * data.specimens.length + sp.boxPadding * (data.specimens.length - 1)) / 2;
+				var x = sp._x(data.daysSinceAnchorVisit) - sp.size.dataPoint / 2;
+				var y = -(sp.size.dataPoint * data.specimens.length + sp.boxPadding * (data.specimens.length - 1)) / 2;
 				return "translate(" + x + ", " + y + ")";
 			});
 		}
