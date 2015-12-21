@@ -26,8 +26,8 @@ var sp = {
 	 * @param {string} visitType - A visit type. 
 	 */
 	setAnchor: function(visitType) {
-		this._anchor = visitType;
-		this._layoutX();
+		sp._anchor = visitType;
+		sp._layoutX();
 	},
 	
 	activateTimeIntervalSelect: function(activate) {
@@ -70,7 +70,7 @@ var sp = {
 	 * @param {string} anchor - The string "date" or a visit type to anchor timeline.
 	 */
 	render: function(divId, dataUrl, width, anchor) {
-		this._anchor = anchor;
+		sp._anchor = anchor;
 	
 		// Create SVG canvas
 		var svg = d3.select(divId)
@@ -338,7 +338,7 @@ var sp = {
 		var visits = d3.selectAll((".visit"))
 			.transition()
 			.duration(500);
-		if (this._anchor == "date") {
+		if (sp._anchor == "date") {
 			visits.attr("transform", function(data) {
 				var x = sp._x(sp._parser.parse(data.date)) - sp.boxSize / 2;
 				var y = -(sp.boxSize * data.specimens.length + sp.boxPadding * (data.specimens.length - 1)) / 2;
@@ -359,43 +359,43 @@ var sp = {
 	 */
 	_layoutX: function() {
 		var axisLabel = ""
-		if (this._anchor == "date") {
+		if (sp._anchor == "date") {
 			axisLabel = "Date"
-			var minDate = d3.min(this._data, function(d) {
+			var minDate = d3.min(sp._data, function(d) {
 				return d3.min(d.visits, function(visit) {
 					return sp._parser.parse(visit.date);
 				});
 			});
-			var maxDate = d3.max(this._data, function(d) {
+			var maxDate = d3.max(sp._data, function(d) {
 				return d3.max(d.visits, function(visit) {
 					return sp._parser.parse(visit.date);
 				});
 			});
-			this._x = d3.time.scale()
-				.range([0, this._chartWidth])
+			sp._x = d3.time.scale()
+				.range([0, sp._chartWidth])
 				.domain([minDate, maxDate]);
 		}
 		else {
-			axisLabel = "Day relative to " + this._anchor;
-			this._setDaysSinceAnchorVisit();
-			var minDay = d3.min(this._data, function(d) {
+			axisLabel = "Day relative to " + sp._anchor;
+			sp._setDaysSinceAnchorVisit();
+			var minDay = d3.min(sp._data, function(d) {
 				return d3.min(d.visits, function(visit) {
 					return visit.daysSinceAnchorVisit;
 				});
 			});
-			var maxDay = d3.max(this._data, function(d) {
+			var maxDay = d3.max(sp._data, function(d) {
 				return d3.max(d.visits, function(visit) {
 					return visit.daysSinceAnchorVisit;
 				});
 			});
-			this._x = d3.scale.linear()
-				.range([0, this._chartWidth])
+			sp._x = d3.scale.linear()
+				.range([0, sp._chartWidth])
 				.domain([minDay, maxDay]);
 		}
-		this._xAxis.scale(this._x);
-		this._xAxisGroup.call(this._xAxis);
+		sp._xAxis.scale(sp._x);
+		sp._xAxisGroup.call(sp._xAxis);
 		d3.select("#axis-label").text(axisLabel);
-		this._update();
+		sp._update();
 	},
 
 	/*
@@ -403,19 +403,19 @@ var sp = {
 	 */
 	_setDaysSinceAnchorVisit: function() {
 		var msecInDay = 1000 * 60 * 60 * 24;
-		for (var i = 0; i < this._data.length; i++) {
-			var subjectRec = this._data[i];
+		for (var i = 0; i < sp._data.length; i++) {
+			var subjectRec = sp._data[i];
 			var refDate = null;
 			for (var j = 0; j < subjectRec.visits.length; j++) {
 				var visit = subjectRec.visits[j];
-				if (visit.type == this._anchor) {
-					refDate = this._parser.parse(visit.date);
+				if (visit.type == sp._anchor) {
+					refDate = sp._parser.parse(visit.date);
 					break;
 				}
 			}
 			for (var j = 0; j < subjectRec.visits.length; j++) {
 				var visit = subjectRec.visits[j];
-				var visitDate = this._parser.parse(visit.date);
+				var visitDate = sp._parser.parse(visit.date);
 				visit.daysSinceAnchorVisit = Math.round((visitDate.getTime() - refDate.getTime()) / msecInDay);
 			}
 		}
