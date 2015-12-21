@@ -10,35 +10,58 @@
     	<p align="center">
     		<button id="time">Select Time Interval</button>
     	</p>
+		
+		<!-- Plot is rendered here -->
         <div id="chart"></div>
         <div>
             Anchor timeline by:
+			
+			<!-- Enables the user to toggle between plotting specimens by collection date or
+				 days relative to transplant surgery -->
             <select id="anchor">
                 <option value="date">Calendar Date</option>
                 <option value="surgery">Date of first transplant</option>
             </select>
+			
+			<!-- Displays selected specimen IDs in a <p/> below -->
 			<button id="ok">OK</button>
         </div>
+		
+		<!-- Paragraph where selected specimen IDs are displayed -->
 		<p id="results"></p>
     </body>
     <script charset="utf-8">
+	
+		// Add event handler to select
         d3.select("#anchor").on("input", function() {
+		
+			// Toggle whether specimens are plotted by collection date or
+			// days relative to transplant surgery
             ev.setAnchor(this.value);
         });
+		
+		// Add event handler to OK button
 		d3.select("#ok").on("click", function() {
+		
+			// Remove text from previous button click
 			d3.select("#results ul").remove();
 			d3.select("#results h3").remove();
+			
+			// Add heading and list elements to <p/> where selected specimens will be displayed
 			d3.select("#results").append("h3").text("You selected:");
 			var list = d3.select("#results")
 				.append("ul");
+				
+			// Retrieve selected specimens
 			var selections = ev.getSelections();
+			
+			// Add selected specimens to list
 			for (var i = 0; i < selections.length; i++) {
 				list.append("li").text(selections[i]);
 			}
 		});
-		d3.select("#time").on("click", function() {
-			ev.activateTimeIntervalSelect(true);
-		});
+
+		// Render chart
         ev.render(chart, "data2.json", 800, "date");
     </script>
 </html>

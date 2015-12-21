@@ -2,9 +2,9 @@ var ev = {
 
 	// Attributes
 	boxSize: 10,
-	smallBoxSize: 10,
+	selectAllBoxSize: 10,
 	margin: {top: 20, right: 30, bottom: 30, left: 80},
-	padding: 5,
+	trackPadding: 5,
 	xAxisHeight: 40,
 	boxPadding: 3,
 	legendHeight: 55,
@@ -101,7 +101,7 @@ var ev = {
 				ev._trackY[i] = ev._chartHeight + trackHeight / 2;
 				ev._chartHeight += trackHeight;
 				if (i < data.length - 1) {
-					ev._chartHeight += ev.padding;
+					ev._chartHeight += ev.trackPadding;
 				}
 			}
 			var height = ev._chartHeight + ev.margin.top + ev.margin.bottom + ev.xAxisHeight + ev.legendHeight;
@@ -141,24 +141,24 @@ var ev = {
 			}
 			var specimenTypes = Object.keys(specimenTypesDict);
 			track.append("rect")
-				.attr("x", ((-specimenTypes.length - 1) * (ev.smallBoxSize + ev.boxPadding) - ev.boxSize / 2))
+				.attr("x", ((-specimenTypes.length - 1) * (ev.selectAllBoxSize + ev.boxPadding) - ev.boxSize / 2))
 				.attr("y", 10)
-				.attr("width", ev.smallBoxSize)
-				.attr("height", ev.smallBoxSize)
+				.attr("width", ev.selectAllBoxSize)
+				.attr("height", ev.selectAllBoxSize)
 				.on("click", function() {ev._toggleTrack(this);})
 				.attr("class", "all-specimen-types");
 			selectAllGroup = track.append("g")
-				.attr("transform", "translate(" + ((-specimenTypes.length) * (ev.smallBoxSize + ev.boxPadding) - ev.boxSize / 2) + ", 10)")
+				.attr("transform", "translate(" + ((-specimenTypes.length) * (ev.selectAllBoxSize + ev.boxPadding) - ev.boxSize / 2) + ", 10)")
 				.attr("class", "select-all")
 				.attr("id", "select-all-" + track.datum().subject_id);
 			selectAllGroup.selectAll("rect")
 				.data(specimenTypes)
 				.enter()
 				.append("rect")
-				.attr("x", function(d, i) {return i * (ev.smallBoxSize + ev.boxPadding);})
+				.attr("x", function(d, i) {return i * (ev.selectAllBoxSize + ev.boxPadding);})
 				.attr("y", 0)
-				.attr("width", ev.smallBoxSize)
-				.attr("height", ev.smallBoxSize)
+				.attr("width", ev.selectAllBoxSize)
+				.attr("height", ev.selectAllBoxSize)
 				.on("click", function() {ev._toggleTrack(this);})
 				.attr("class", function(d) {return d;});
 			
@@ -328,7 +328,7 @@ var ev = {
 				maxStackedPoints = visit.specimens.length;
 			}
 		}
-		return maxStackedPoints * ev.boxSize + ev.padding * 2;
+		return maxStackedPoints * ev.boxSize + ev.trackPadding * 2;
 	},
 	
 	/*
