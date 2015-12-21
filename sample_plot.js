@@ -1,9 +1,10 @@
 var sp = {
 
 	// Attributes
-	margin: {top: 20, right: 30, bottom: 30, left: 80},
+	margin: {top: 20, right: 20, bottom: 20, left: 20},
+	border: 5,
 	size: {dataPoint: 10, selectBox: 10},
-	padding: {track: 5, selectBox: 3},
+	padding: {track: 5, selectBox: 3, dataPoint: 3},
 	section: {
 		xAxis: {height: 40},
 		legend: {height: 55, colWidth: 80}
@@ -11,9 +12,11 @@ var sp = {
 	
 	// Private attributes
 	_anchor: "date",
-	_dim: {
-		chart: {width: 0, height: 0}
-	},
+	_chartWidth: 0,
+	_chartHeight: 0,
+	_plotWidth: 0,
+	_trackY: [],
+	_trackHeight: [],
 	_data: {},
 	_x: {},
 	_xAxis: {},
@@ -36,7 +39,7 @@ var sp = {
 			.attr("x1", 100)
 			.attr("y1", 0)
 			.attr("x2", 100)
-			.attr("y2", sp.margin.top + sp._dim.chart.height);
+			.attr("y2", sp.margin.top + sp._chartHeight);
 		sp._selectTimeInterval = function() {
 			return;
 		}
@@ -88,20 +91,116 @@ var sp = {
 			var svg = d3.select(divId)
 				.append("svg")
 					.attr("width", width);
+					
+			// Compute bounding boxes so text can be laid out
+			var visitLabelBBox = sp._getBBox("T", "visit-label");
+			var visitLabelWidth = visitLabelBBox.width;
+			var visitLabelHeight = visitLabelBBox.height;
+			var trackLabelWidth = 0;
+			var trackLabelHeight = 0;
+			for (var i = 0; i < data.length; i++) {
+				var bbox = sp._getBBox(data[i].subject_id, "subject-label");
+				if (bbox.width > trackLabelWidth) {
+					trackLabelWidth = bbox.width;
+				}
+				if (bbox.height > trackLabelHeight) {
+					trackLabelHeight = bbox.height;
+				}
+			}
+			
+			// Compute height and width of track label containers
+			var specimenTypes = sp._uniqueSpecimenTypes(data);
+			var labelContainerHeight = visitLabelHeight + sp.size.selectBox
+				+ sp.padding.track * 2 + sp.padding.selectBox;
+			var labelContainerWidth = specimenTypes.length * sp.size.selectBox +
+				(specimenTypes.length - 1) * sp.padding.selectBox;
+			if (visitLabelWidth > labelContainerWidth) {
+				labelContainerWidth = visitLabelWidth;
+			}
 	
-			// Create SVG group for the chart
-			var chart = svg.append("g");
+			// Create overall container for chart
+			var chart = svg.append("g")
+				.attr("id", "chart-container")
+				.attr("transform", "translate(" + (sp.margin.left + sp.border) + ", "
+					+ (sp.margin.top + sp.border) + ")");
+				
+			// Compute dimensions of plotting section as well as track origins
+			sp._plotWidth = width - sp.margin.left - sp.margin.right - 2 * sp.border;
+			sp._plotHeight = 0;
+			for (var i = 0; i < data.length; i++) {
+				if (i > 0) {
+					sp._plotHeight += sp.border;
+				}
+				sp._trackY.push(sp._plotHeight);
+				var height = sp._computeTrackHeight(data[i], visitLabelHeight, labelContainerHeight);
+				sp._trackHeight.push(height);
+				sp._plotHeight += height;
+			}
+			
+			// Add container for plotting section
+			var plot = chart.append("g")
+				.attr("id", "plot-container")
+				.attr("transform", "translate(0, 0)");
+			
+			// Add background to plotting section
+			plot.append("rect")
+				.attr("class", "plot-bg")
+				.attr("x", 0)
+				.attr("y", 0)
+				.attr("width", sp._plotWidth)
+				.attr("height", sp._plotHeight);
+				
+			// Add track containers
+			var tracks = plot.selectAll("g.track-container")
+				.data(data)
+				.enter()
+				.append("g")
+				.attr("id", function(subject) {return "track-" + subject.subject_id;})
+				.attr("class", "track-container")
+				.attr("transform", function(subject, i) {
+					return "translate(0, " + sp._trackY[i] + ")";
+				});
+				
+			// Draw track backgrounds
+			tracks.append("rect")
+				.attr("class", "track-bg")
+				.attr("x", 0)
+				.attr("y", 0)
+				.attr("width", sp._plotWidth)
+				.attr("height", function(subject, i) {return sp._trackHeight[i];});
+				
+			// Add track labels and multi-selects
+			var labelContainers = tracks.append("g")
+				.attr("class", "label-container")
+				.attr("transform", function(visit, i) {
+					return "translate(" + sp.padding.track + ","
+						+ (sp._trackHeight[i] / 2 - labelContainerHeight / 2) + ")";
+				});
+			labelContainers.append("text")
+				.text(function(subject) {return subject.subject_id;})
+				.attr("class", "subject-label")
+				.attr("y", trackLabelHeight);
+				/*
+			var multiSelectContainers = labelContainers.append("g")
+				.attr("class", "multi-select-containers")
+				.attr("transform", "translate(0, 0");  // Will update after text height and width computed
+			multiSelectContainers.selectAll("rect")
+				.data(specimenTypes)
+				.enter()
+				.append("rect")
+				.attr("*/
+			
 			
 			// Initialize height and y-axis variables and attributes
 			for (var i = 0; i < data.length; i++) {
-				var trackHeight = sp._trackHeight(data[i]);
-				sp._trackY[i] = sp._dim.chart.height + trackHeight / 2;
-				sp._dim.chart.height += trackHeight;
+				var trackHeight = sp._computeTrackHeight(data[i], visitLabelHeight, labelContainerHeight);
+				sp._trackY[i] = sp._chartHeight + trackHeight / 2;
+				sp._chartHeight += trackHeight;
 				if (i < data.length - 1) {
-					sp._dim.chart.height += sp.padding.track;
+					sp._chartHeight += sp.padding.track;
 				}
 			}
-			var height = sp._dim.chart.height + sp.margin.top + sp.margin.bottom + sp.section.xAxis.height + sp.section.legend.height;
+			var height = sp._chartHeight + sp.margin.top + sp.margin.bottom + sp.section.xAxis.height + sp.section.legend.height;
 			svg.attr("height", height);
 			
 			// *** Remove this ***
@@ -132,7 +231,7 @@ var sp = {
 			// *** Remove above ***
 			
 			// Add vertically-stacked data "tracks" for subjects
-			sp._dim.chart.width = width - sp.margin.left - sp.margin.right;
+			sp._chartWidth = width - sp.margin.left - sp.margin.right;
 			var track = chart.selectAll("g")
 					.data(data)
 				.enter().append("g")
@@ -143,7 +242,7 @@ var sp = {
 			track.append("line")
 				.attr("x1", 0)
 				.attr("y1", 0)
-				.attr("x2", sp._dim.chart.width)
+				.attr("x2", sp._chartWidth)
 				.attr("y2", 0);
 			track.append("text")
 				.text(function(subjectData) {return subjectData.subject_id;})
@@ -152,18 +251,6 @@ var sp = {
 				.attr("class", "subject-label");
 				
 			// Add select-all boxes for each specimen type and for all specimen types
-			specimenTypesDict = [];
-			for (var i = 0; i < data.length; i++) {
-				var subject = data[i];
-				for (var j = 0; j < subject.visits.length; j++) {
-					var visit = subject.visits[j];
-					for (var k = 0; k < visit.specimens.length; k++) {
-						var specimen = visit.specimens[k];
-						specimenTypesDict[specimen.type] = "";
-					}
-				}
-			}
-			var specimenTypes = Object.keys(specimenTypesDict);
 			track.append("rect")
 				.attr("x", ((-specimenTypes.length - 1) * (sp.size.selectBox + sp.padding.selectBox) - sp.size.dataPoint / 2))
 				.attr("y", 10)
@@ -212,17 +299,17 @@ var sp = {
 			sp._xAxis = d3.svg.axis().orient("bottom");
 			sp._xAxisGroup = svg.append("g")
 				.attr("class", "x axis")
-				.attr("transform", "translate(" + sp.margin.left + ", " + (sp._dim.chart.height + sp.section.xAxis.height / 2) + ")");
+				.attr("transform", "translate(" + sp.margin.left + ", " + (sp._chartHeight + sp.section.xAxis.height / 2) + ")");
 			svg.append("text")
 				.attr("class", "axis-label")
 				.attr("id", "axis-label")
-				.attr("x", (sp.margin.left + sp._dim.chart.width / 2))
-				.attr("y", (sp.margin.top + sp._dim.chart.height + sp.section.xAxis.height))
+				.attr("x", (sp.margin.left + sp._chartWidth / 2))
+				.attr("y", (sp.margin.top + sp._chartHeight + sp.section.xAxis.height))
 				.attr("text-anchor", "middle");
 				
 			// Add legend
 			var legendGroup = svg.append("g")
-				.attr("transform", "translate(" + (sp.margin.left + 150) + ", " + (sp._dim.chart.height + sp.section.xAxis.height + sp.section.legend.height) + ")");
+				.attr("transform", "translate(" + (sp.margin.left + 150) + ", " + (sp._chartHeight + sp.section.xAxis.height + sp.section.legend.height) + ")");
 			legendGroup.append("rect")
 				.attr("class", "legend-border")
 				.attr("x", -sp.size.dataPoint * 1.5)
@@ -269,6 +356,21 @@ var sp = {
 			.attr("class", "error-msg");
 		d3.select(divId).append("p")
 			.text("Cause: " + message);
+	},
+	
+	/*
+	 * Compute bounding box for text.
+	 */
+	_getBBox: function(text, cssStyle) {
+		var textElement = d3.select("svg")
+			.append("text")
+			.text(text)
+			.attr("class", cssStyle)
+			.attr("x", 0)
+			.attr("y", 0);
+		var bbox = textElement.node().getBBox();
+		textElement.remove();
+		return bbox;
 	},
 	
 	/*
@@ -363,7 +465,7 @@ var sp = {
 	/*
 	 * Computes how many pixels required to create a track for the given subject.
 	 */
-	_trackHeight: function(subject) {
+	_computeTrackHeight: function(subject, visitLabelHeight, labelContainerHeight) {
 		var maxStackedPoints = 1;
 		for (var i = 0; i < subject.visits.length; i++) {
 			var visit = subject.visits[i];
@@ -371,7 +473,30 @@ var sp = {
 				maxStackedPoints = visit.specimens.length;
 			}
 		}
-		return maxStackedPoints * sp.size.dataPoint + sp.padding.track * 2;
+		var height = maxStackedPoints * (sp.size.dataPoint + sp.padding.dataPoint)
+			+ visitLabelHeight + sp.padding.track * 2;
+		if (labelContainerHeight > height) {
+			height = labelContainerHeight;
+		}
+		return height;
+	},
+	
+	/*
+	 * Extract unique specimen types from input data.
+	 */
+	_uniqueSpecimenTypes: function(data) {
+		specimenTypesDict = [];
+		for (var i = 0; i < data.length; i++) {
+			var subject = data[i];
+			for (var j = 0; j < subject.visits.length; j++) {
+				var visit = subject.visits[j];
+				for (var k = 0; k < visit.specimens.length; k++) {
+					var specimen = visit.specimens[k];
+					specimenTypesDict[specimen.type] = "";
+				}
+			}
+		}
+		return Object.keys(specimenTypesDict);	
 	},
 	
 	/*
@@ -415,7 +540,7 @@ var sp = {
 				});
 			});
 			sp._x = d3.time.scale()
-				.range([0, sp._dim.chart.width])
+				.range([0, sp._chartWidth])
 				.domain([minDate, maxDate]);
 		}
 		else {
@@ -432,7 +557,7 @@ var sp = {
 				});
 			});
 			sp._x = d3.scale.linear()
-				.range([0, sp._dim.chart.width])
+				.range([0, sp._chartWidth])
 				.domain([minDay, maxDay]);
 		}
 		sp._xAxis.scale(sp._x);

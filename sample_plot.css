@@ -1,5 +1,9 @@
-.dataPoint {
-    fill: steelBlue;
+.plot-bg {
+	fill: #dddddd;
+}
+
+.track-bg {
+	fill: white;
 }
 
 line {
@@ -75,7 +79,6 @@ rect.biopsy-selected {
 
 text.subject-label {
     font-size: 10pt;
-	text-anchor: end;
 }
 
 text.visit-label {
