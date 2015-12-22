@@ -144,117 +144,8 @@ var sp = {
 				sp._plotHeight += height;
 			}
 			
-			// Add container for plotting section
-			var plot = chart.append("g")
-				.attr("id", "plot-container")
-				.attr("transform", "translate(0, 0)");
+			sp._layoutPlot(chart, labelContainerHeight, trackLabelHeight, visitLabelHeight, specimenTypes);
 			
-			// Add background to plotting section
-			plot.append("rect")
-				.attr("class", "plot-bg")
-				.attr("x", 0)
-				.attr("y", 0)
-				.attr("width", sp._plotWidth)
-				.attr("height", sp._plotHeight);
-				
-			// Add track containers
-			var tracks = plot.selectAll("g.track-container")
-				.data(data)
-				.enter()
-				.append("g")
-				.attr("id", function(subject) {return "track-" + subject.subject_id;})
-				.attr("class", "track-container")
-				.attr("transform", function(subject, i) {
-					return "translate(0, " + sp._trackY[i] + ")";
-				});
-				
-			// Draw track backgrounds
-			tracks.append("rect")
-				.attr("class", "track-bg")
-				.attr("x", 0)
-				.attr("y", 0)
-				.attr("width", sp._plotWidth)
-				.attr("height", function(subject, i) {return sp._trackHeight[i];});
-				
-			// Add track labels and multi-selects
-			var labelContainers = tracks.append("g")
-				.attr("class", "label-container")
-				.attr("transform", function(visit, i) {
-					return "translate(" + sp.padding.track + ","
-						+ (sp._trackHeight[i] / 2 - labelContainerHeight / 2) + ")";
-				});
-			labelContainers.append("text")
-				.text(function(subject) {return subject.subject_id;})
-				.attr("class", "subject-label")
-				.attr("y", trackLabelHeight);
-			labelContainers.append("rect")
-				.attr("class", "all-specimen-types")
-				.attr("x", 0)
-				.attr("y", trackLabelHeight + sp.padding.selectBox)
-				.attr("width", sp.size.selectBox)
-				.attr("height", sp.size.selectBox);
-			var multiSelectContainers = labelContainers.append("g")
-				.attr("class", "multi-select-container")
-				.attr("transform", "translate(" + (sp.size.selectBox + sp.padding.selectBox)
-					+ ", " + (trackLabelHeight + sp.padding.selectBox) + ")");
-			multiSelectContainers.selectAll("rect")
-				.data(specimenTypes)
-				.enter()
-				.append("rect")
-				.attr("class", function(specimenType) {return specimenType;})
-				.attr("x", function(specimenType, i) {return i * (sp.size.selectBox + sp.padding.selectBox);})
-				.attr("y", 0)
-				.attr("width", sp.size.selectBox)
-				.attr("height", sp.size.selectBox);
-				
-			// Add container for data points
-			var dataContainer = tracks.append("g")
-				.attr("class", "data-container")
-				.attr("transform", "translate(" + sp._xAxisX + ", " + sp.padding.track + ")");
-				
-			// Add containers for visit data points group
-			var visitContainer = dataContainer.selectAll("g.visit-container")
-				.data(function(subject, i) {
-					return subject.visits;
-					
-					// Hack to keep track of track index
-					sp._trackNo = i;
-				})
-				.enter()
-				.append("g")
-				.attr("class", "visit-container")
-				.attr("transform", function(visit) {
-					var n = visit.specimens.length;
-					var stackHeight = n * sp.size.dataPoint + (n - 1) * sp.padding.dataPoint;
-					if (visit.type == "surgery") {
-						stackHeight += visitLabelHeight + sp.padding.dataPoint;
-					}
-					return "translate(0, " + (sp._trackHeight[sp._trackNo] / 2
-						- stackHeight / 2) + ")";
-				});
-				
-			// Add data points
-			visitContainer.selectAll("rect")
-				.data(function(visit) {return visit.specimens;})
-				.enter()
-				.append("rect")
-				.attr("class", function(specimen) {return specimen.type;})
-				.attr("x", 0)
-				.attr("y", function(specimen, i) {return i * (sp.size.dataPoint + sp.padding.dataPoint);})
-				.attr("width", sp.size.dataPoint)
-				.attr("height", sp.size.dataPoint);
-				
-			// Add visit label
-			dataContainer.selectAll("g.visit-container")
-				.filter(function(visit) {return visit.type == "surgery";})
-				.append("text")
-				.text("T")
-				.attr("class", "visit-label")
-				.attr("x", sp.size.dataPoint / 2)
-				.attr("y", function(visit, i) {
-					return visit.specimens.length * (sp.size.dataPoint
-						+ sp.padding.dataPoint) + visitLabelHeight;
-				});
 			
 			
 			// Initialize height and y-axis variables and attributes
@@ -437,6 +328,121 @@ var sp = {
 		var bbox = textElement.node().getBBox();
 		textElement.remove();
 		return bbox;
+	},
+	
+	_layoutPlot: function(chart, labelContainerHeight, trackLabelHeight, visitLabelHeight, specimenTypes) {
+
+		// Add container for plotting section
+		var plot = chart.append("g")
+			.attr("id", "plot-container")
+			.attr("transform", "translate(0, 0)");
+		
+		// Add background to plotting section
+		plot.append("rect")
+			.attr("class", "plot-bg")
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("width", sp._plotWidth)
+			.attr("height", sp._plotHeight);
+			
+		// Add track containers
+		var tracks = plot.selectAll("g.track-container")
+			.data(sp._data)
+			.enter()
+			.append("g")
+			.attr("id", function(subject) {return "track-" + subject.subject_id;})
+			.attr("class", "track-container")
+			.attr("transform", function(subject, i) {
+				return "translate(0, " + sp._trackY[i] + ")";
+			});
+			
+		// Draw track backgrounds
+		tracks.append("rect")
+			.attr("class", "track-bg")
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("width", sp._plotWidth)
+			.attr("height", function(subject, i) {return sp._trackHeight[i];});
+			
+		// Add track labels and multi-selects
+		var labelContainers = tracks.append("g")
+			.attr("class", "label-container")
+			.attr("transform", function(visit, i) {
+				return "translate(" + sp.padding.track + ","
+					+ (sp._trackHeight[i] / 2 - labelContainerHeight / 2) + ")";
+			});
+		labelContainers.append("text")
+			.text(function(subject) {return subject.subject_id;})
+			.attr("class", "subject-label")
+			.attr("y", trackLabelHeight);
+		labelContainers.append("rect")
+			.attr("class", "all-specimen-types")
+			.attr("x", 0)
+			.attr("y", trackLabelHeight + sp.padding.selectBox)
+			.attr("width", sp.size.selectBox)
+			.attr("height", sp.size.selectBox);
+		var multiSelectContainers = labelContainers.append("g")
+			.attr("class", "multi-select-container")
+			.attr("transform", "translate(" + (sp.size.selectBox + sp.padding.selectBox)
+				+ ", " + (trackLabelHeight + sp.padding.selectBox) + ")");
+		multiSelectContainers.selectAll("rect")
+			.data(specimenTypes)
+			.enter()
+			.append("rect")
+			.attr("class", function(specimenType) {return specimenType;})
+			.attr("x", function(specimenType, i) {return i * (sp.size.selectBox + sp.padding.selectBox);})
+			.attr("y", 0)
+			.attr("width", sp.size.selectBox)
+			.attr("height", sp.size.selectBox);
+			
+		// Add container for data points
+		var dataContainer = tracks.append("g")
+			.attr("class", "data-container")
+			.attr("transform", "translate(" + sp._xAxisX + ", " + sp.padding.track + ")");
+			
+		// Add containers for visit data points group
+		var visitContainer = dataContainer.selectAll("g.visit-container")
+			.data(function(subject, i) {
+				return subject.visits;
+				
+				// Hack to keep track of track index
+				sp._trackNo = i;
+			})
+			.enter()
+			.append("g")
+			.attr("class", "visit-container")
+			.attr("transform", function(visit) {
+				var n = visit.specimens.length;
+				var stackHeight = n * sp.size.dataPoint + (n - 1) * sp.padding.dataPoint;
+				if (visit.type == "surgery") {
+					stackHeight += visitLabelHeight + sp.padding.dataPoint;
+				}
+				return "translate(0, " + (sp._trackHeight[sp._trackNo] / 2
+					- stackHeight / 2) + ")";
+			});
+			
+		// Add data points
+		visitContainer.selectAll("rect")
+			.data(function(visit) {return visit.specimens;})
+			.enter()
+			.append("rect")
+			.attr("class", function(specimen) {return specimen.type;})
+			.attr("x", 0)
+			.attr("y", function(specimen, i) {return i * (sp.size.dataPoint + sp.padding.dataPoint);})
+			.attr("width", sp.size.dataPoint)
+			.attr("height", sp.size.dataPoint);
+			
+		// Add visit label
+		dataContainer.selectAll("g.visit-container")
+			.filter(function(visit) {return visit.type == "surgery";})
+			.append("text")
+			.text("T")
+			.attr("class", "visit-label")
+			.attr("x", sp.size.dataPoint / 2)
+			.attr("y", function(visit, i) {
+				return visit.specimens.length * (sp.size.dataPoint
+					+ sp.padding.dataPoint) + visitLabelHeight;
+			});	
 	},
 	
 	/*
