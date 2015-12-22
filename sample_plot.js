@@ -32,7 +32,7 @@ var sp = {
 	 */
 	setAnchor: function(visitType) {
 		sp._anchor = visitType;
-		sp._layoutX();
+		sp._updateXAxis();
 	},
 	
 	activateTimeIntervalSelect: function(activate) {
@@ -111,7 +111,7 @@ var sp = {
 				sp._trackHeight.push(height);
 				sp._plotHeight += height;
 			}
-			sp._xAxisX = sp.padding.track * 2 + tempCoords.labelContainerWidth;
+			sp._xAxisX = sp.padding.track * 2 + tempCoords.labelContainerWidth + sp.size.dataPoint;
 			sp._xAxisWidth = sp._plotWidth - sp._xAxisX - sp.padding.track;
 			
 			// Create overall container for chart
@@ -300,9 +300,9 @@ var sp = {
 		// Add background to plotting section
 		plot.append("rect")
 			.attr("class", "plot-bg")
-			.attr("x", 0)
+			.attr("x", sp._xAxisX)
 			.attr("y", 0)
-			.attr("width", sp._plotWidth)
+			.attr("width", sp._plotWidth - sp._xAxisX)
 			.attr("height", sp._plotHeight);
 			
 		// Layout tracks
@@ -374,16 +374,13 @@ var sp = {
 		// Add container for data points
 		var dataContainer = tracks.append("g")
 			.attr("class", "data-container")
-			.attr("transform", "translate(" + sp._xAxisX + ", " + sp.padding.track + ")");
+			.attr("transform", function(track, i) {
+				return "translate(" + sp._xAxisX + "," + (sp._trackHeight[i] / 2) + ")";
+			});
 			
 		// Add containers for visit data points group
 		var visitContainer = dataContainer.selectAll("g.visit-container")
-			.data(function(subject, i) {
-				return subject.visits;
-				
-				// Hack to keep track of track index
-				sp._trackNo = i;
-			})
+			.data(function(subject, i) {return subject.visits;})
 			.enter()
 			.append("g")
 			.attr("class", "visit-container")
@@ -393,8 +390,8 @@ var sp = {
 				if (visit.type == "surgery") {
 					stackHeight += tempCoords.visitLabelHeight + sp.padding.dataPoint;
 				}
-				return "translate(0, " + (sp._trackHeight[sp._trackNo] / 2
-					- stackHeight / 2) + ")";
+				visit.y = -stackHeight / 2;
+				return "translate(0, " + visit.y + ")";
 			});
 			
 		// Add data points
@@ -622,18 +619,14 @@ var sp = {
 			.duration(500);
 		if (sp._anchor == "date") {
 			visits.attr("transform", function(visit) {
-				var oldXForm = this.parentNode.getAttribute("transform");
-				console.log("Old transform: " + oldXForm);
 				var x = sp._x(sp._parser.parse(visit.date)) - sp.size.dataPoint / 2;
-				var newXForm = oldXForm.replace(/\([0-9]+,/, "(" + x + ",");
-				return newXForm;
+				return "translate(" + x + ", " + visit.y + ")";
 			});
 		}
 		else {
-			visits.attr("transform", function(data) {
-				var x = sp._x(data.daysSinceAnchorVisit) - sp.size.dataPoint / 2;
-				var y = -(sp.size.dataPoint * data.specimens.length + sp.padding.selectBox * (data.specimens.length - 1)) / 2;
-				return "translate(" + x + ", " + y + ")";
+			visits.attr("transform", function(visit) {
+				var x = sp._x(visit.daysSinceAnchorVisit) - sp.size.dataPoint / 2;
+				return "translate(" + x + ", " + visit.y + ")";
 			});
 		}
 	},
