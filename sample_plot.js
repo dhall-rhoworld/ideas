@@ -121,7 +121,7 @@ var sp = {
 				labelContainerWidth = visitLabelWidth;
 			}
 			
-			// Compute x-axis drawing coordinates (relative to plot x-coordinate)
+			// Compute axis drawing coordinates (relative to plot x-coordinate)
 			sp._xAxisX = sp.padding.track * 2 + labelContainerWidth;
 			sp._xAxisWidth = sp._plotWidth - sp._xAxisX - sp.padding.track;
 	
@@ -223,10 +223,15 @@ var sp = {
 				.enter()
 				.append("g")
 				.attr("class", "visit-container")
-				.attr("transform", function(visit) {return "translate(0, "
-					+ ((sp._trackHeight[sp._trackNo] / 2)
-					- ((visit.specimens.length * (sp.size.dataPoint + sp.padding.dataPoint) + visitLabelHeight) / 2))
-					+ ")";});
+				.attr("transform", function(visit) {
+					var n = visit.specimens.length;
+					var stackHeight = n * sp.size.dataPoint + (n - 1) * sp.padding.dataPoint;
+					if (visit.type == "surgery") {
+						stackHeight += visitLabelHeight + sp.padding.dataPoint;
+					}
+					return "translate(0, " + (sp._trackHeight[sp._trackNo] / 2
+						- stackHeight / 2) + ")";
+				});
 				
 			// Add data points
 			visitContainer.selectAll("rect")
@@ -238,6 +243,18 @@ var sp = {
 				.attr("y", function(specimen, i) {return i * (sp.size.dataPoint + sp.padding.dataPoint);})
 				.attr("width", sp.size.dataPoint)
 				.attr("height", sp.size.dataPoint);
+				
+			// Add visit label
+			dataContainer.selectAll("g.visit-container")
+				.filter(function(visit) {return visit.type == "surgery";})
+				.append("text")
+				.text("T")
+				.attr("class", "visit-label")
+				.attr("x", sp.size.dataPoint / 2)
+				.attr("y", function(visit, i) {
+					return visit.specimens.length * (sp.size.dataPoint
+						+ sp.padding.dataPoint) + visitLabelHeight;
+				});
 			
 			
 			// Initialize height and y-axis variables and attributes
@@ -515,20 +532,24 @@ var sp = {
 	 * Computes how many pixels required to create a track for the given subject.
 	 */
 	_computeTrackHeight: function(subject, visitLabelHeight, labelContainerHeight) {
-		var maxStackedPoints = 1;
+		var maxHeight = 0;
 		for (var i = 0; i < subject.visits.length; i++) {
 			var visit = subject.visits[i];
-			if (visit.specimens.length > maxStackedPoints) {
-				maxStackedPoints = visit.specimens.length;
+			var n = visit.specimens.length;
+			var height = n * sp.size.dataPoint + (n - 1) * sp.padding.dataPoint;
+			if (visit.type == "surgery") {
+				height += visitLabelHeight + sp.padding.dataPoint;
+			}
+			if (height > maxHeight) {
+				maxHeight = height;
 			}
 		}
-		var height = maxStackedPoints * (sp.size.dataPoint + sp.padding.dataPoint)
-			+ visitLabelHeight + sp.padding.track * 2;
-		if (labelContainerHeight > height) {
-			height = labelContainerHeight;
+		if (labelContainerHeight > maxHeight) {
+			maxHeight = labelContainerHeight;
 		}
-		return height;
+		return maxHeight + 2 * sp.padding.track;
 	},
+	
 	
 	/*
 	 * Extract unique specimen types from input data.
