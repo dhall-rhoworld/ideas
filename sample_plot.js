@@ -567,29 +567,6 @@ var sp = {
 		}
 		return Object.keys(specimenTypesDict);	
 	},
-	
-	/*
-	 * Update x-coordinate of data points.
-	 */
-	_update: function() {
-		var visits = d3.selectAll((".visit"))
-			.transition()
-			.duration(500);
-		if (sp._anchor == "date") {
-			visits.attr("transform", function(data) {
-				var x = sp._x(sp._parser.parse(data.date)) - sp.size.dataPoint / 2;
-				var y = -(sp.size.dataPoint * data.specimens.length + sp.padding.selectBox * (data.specimens.length - 1)) / 2;
-				return "translate(" + x + ", " + y + ")";
-			});
-		}
-		else {
-			visits.attr("transform", function(data) {
-				var x = sp._x(data.daysSinceAnchorVisit) - sp.size.dataPoint / 2;
-				var y = -(sp.size.dataPoint * data.specimens.length + sp.padding.selectBox * (data.specimens.length - 1)) / 2;
-				return "translate(" + x + ", " + y + ")";
-			});
-		}
-	},
 
 	/*
 	 * Lay out x-range and x-axis.
@@ -632,7 +609,33 @@ var sp = {
 		sp._xAxis.scale(sp._x);
 		sp._xAxisGroup.call(sp._xAxis);
 		sp._xAxisLabel.text(axisLabel);
-		//sp._update();
+		sp._updateDataPoints();
+	},
+	
+
+	/*
+	 * Update x-coordinate of data points.
+	 */
+	_updateDataPoints: function() {
+		var visits = d3.selectAll(("g.visit-container"))
+			.transition()
+			.duration(500);
+		if (sp._anchor == "date") {
+			visits.attr("transform", function(visit) {
+				var oldXForm = this.parentNode.getAttribute("transform");
+				console.log("Old transform: " + oldXForm);
+				var x = sp._x(sp._parser.parse(visit.date)) - sp.size.dataPoint / 2;
+				var newXForm = oldXForm.replace(/\([0-9]+,/, "(" + x + ",");
+				return newXForm;
+			});
+		}
+		else {
+			visits.attr("transform", function(data) {
+				var x = sp._x(data.daysSinceAnchorVisit) - sp.size.dataPoint / 2;
+				var y = -(sp.size.dataPoint * data.specimens.length + sp.padding.selectBox * (data.specimens.length - 1)) / 2;
+				return "translate(" + x + ", " + y + ")";
+			});
+		}
 	},
 
 	/*
