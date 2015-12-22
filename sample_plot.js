@@ -23,6 +23,8 @@ var sp = {
 	_xAxisGroup: {},
 	_parser: d3.time.format("%m/%d/%Y"),
 	_trackY: [],
+	_xAxisX: 0,
+	_xAxisWidth: 0,
 	
 	/**
 	 * Set the visit type that will anchor the timeline.
@@ -110,13 +112,18 @@ var sp = {
 			
 			// Compute height and width of track label containers
 			var specimenTypes = sp._uniqueSpecimenTypes(data);
-			var labelContainerHeight = visitLabelHeight + sp.size.selectBox
+			var labelContainerHeight = trackLabelHeight + sp.size.selectBox
 				+ sp.padding.track * 2 + sp.padding.selectBox;
-			var labelContainerWidth = specimenTypes.length * sp.size.selectBox +
-				(specimenTypes.length - 1) * sp.padding.selectBox;
+			var multiSelectContainerWidth = (specimenTypes.length + 1) * sp.size.selectBox +
+				specimenTypes.length * sp.padding.selectBox;
+			var labelContainerWidth = multiSelectContainerWidth;
 			if (visitLabelWidth > labelContainerWidth) {
 				labelContainerWidth = visitLabelWidth;
 			}
+			
+			// Compute x-axis drawing coordinates (relative to plot x-coordinate)
+			sp._xAxisX = sp.padding.track * 2 + labelContainerWidth;
+			sp._xAxisWidth = sp._plotWidth - sp._xAxisX - sp.padding.track;
 	
 			// Create overall container for chart
 			var chart = svg.append("g")
@@ -180,15 +187,30 @@ var sp = {
 				.text(function(subject) {return subject.subject_id;})
 				.attr("class", "subject-label")
 				.attr("y", trackLabelHeight);
-				/*
+			labelContainers.append("rect")
+				.attr("class", "all-specimen-types")
+				.attr("x", 0)
+				.attr("y", trackLabelHeight + sp.padding.selectBox)
+				.attr("width", sp.size.selectBox)
+				.attr("height", sp.size.selectBox);
 			var multiSelectContainers = labelContainers.append("g")
-				.attr("class", "multi-select-containers")
-				.attr("transform", "translate(0, 0");  // Will update after text height and width computed
+				.attr("class", "multi-select-container")
+				.attr("transform", "translate(" + (sp.size.selectBox + sp.padding.selectBox)
+					+ ", " + (trackLabelHeight + sp.padding.selectBox) + ")");
 			multiSelectContainers.selectAll("rect")
 				.data(specimenTypes)
 				.enter()
 				.append("rect")
-				.attr("*/
+				.attr("class", function(specimenType) {return specimenType;})
+				.attr("x", function(specimenType, i) {return i * (sp.size.selectBox + sp.padding.selectBox);})
+				.attr("y", 0)
+				.attr("width", sp.size.selectBox)
+				.attr("height", sp.size.selectBox);
+				
+			// Add container for data points
+			var dataContainer = tracks.append("g")
+				.attr("class", "data-container")
+				.attr("transform", "translate(" + sp._xAxisX + ", " + sp.padding.track + ")");
 			
 			
 			// Initialize height and y-axis variables and attributes
