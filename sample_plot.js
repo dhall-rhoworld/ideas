@@ -211,6 +211,33 @@ var sp = {
 			var dataContainer = tracks.append("g")
 				.attr("class", "data-container")
 				.attr("transform", "translate(" + sp._xAxisX + ", " + sp.padding.track + ")");
+				
+			// Add containers for visit data points group
+			var visitContainer = dataContainer.selectAll("g.visit-container")
+				.data(function(subject, i) {
+					return subject.visits;
+					
+					// Hack to keep track of track index
+					sp._trackNo = i;
+				})
+				.enter()
+				.append("g")
+				.attr("class", "visit-container")
+				.attr("transform", function(visit) {return "translate(0, "
+					+ ((sp._trackHeight[sp._trackNo] / 2)
+					- ((visit.specimens.length * (sp.size.dataPoint + sp.padding.dataPoint) + visitLabelHeight) / 2))
+					+ ")";});
+				
+			// Add data points
+			visitContainer.selectAll("rect")
+				.data(function(visit) {return visit.specimens;})
+				.enter()
+				.append("rect")
+				.attr("class", function(specimen) {return specimen.type;})
+				.attr("x", 0)
+				.attr("y", function(specimen, i) {return i * (sp.size.dataPoint + sp.padding.dataPoint);})
+				.attr("width", sp.size.dataPoint)
+				.attr("height", sp.size.dataPoint);
 			
 			
 			// Initialize height and y-axis variables and attributes
