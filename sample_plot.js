@@ -345,6 +345,12 @@ var sp = {
 			.attr("width", sp._plotWidth)
 			.attr("height", sp._plotHeight);
 			
+		// Layout tracks
+		sp._layoutTracks(plot, labelContainerHeight, trackLabelHeight, visitLabelHeight, specimenTypes);
+	},
+	
+	_layoutTracks: function(plot, labelContainerHeight, trackLabelHeight, visitLabelHeight, specimenTypes) {
+			
 		// Add track containers
 		var tracks = plot.selectAll("g.track-container")
 			.data(sp._data)
@@ -364,7 +370,14 @@ var sp = {
 			.attr("width", sp._plotWidth)
 			.attr("height", function(subject, i) {return sp._trackHeight[i];});
 			
-		// Add track labels and multi-selects
+		// Add track label sections
+		sp._layoutTrackLabelSections(tracks, labelContainerHeight, trackLabelHeight, specimenTypes);
+		
+		// Add track data sections
+		sp._layoutTrackDataSections(tracks, visitLabelHeight);
+	},
+	
+	_layoutTrackLabelSections: function(tracks, labelContainerHeight, trackLabelHeight, specimenTypes) {
 		var labelContainers = tracks.append("g")
 			.attr("class", "label-container")
 			.attr("transform", function(visit, i) {
@@ -394,6 +407,9 @@ var sp = {
 			.attr("y", 0)
 			.attr("width", sp.size.selectBox)
 			.attr("height", sp.size.selectBox);
+	},
+	
+	_layoutTrackDataSections: function(tracks, visitLabelHeight) {
 			
 		// Add container for data points
 		var dataContainer = tracks.append("g")
