@@ -4,7 +4,7 @@ var sp = {
 	margin: {top: 20, right: 20, bottom: 20, left: 20},
 	border: 5,
 	size: {dataPoint: 10, selectBox: 10},
-	padding: {track: 5, selectBox: 3, dataPoint: 3},
+	padding: {track: 5, selectBox: 3, dataPoint: 3, axis: 15},
 	section: {
 		xAxis: {height: 40},
 		legend: {height: 55, colWidth: 80}
@@ -94,9 +94,8 @@ var sp = {
 				.append("svg")
 					.attr("width", width);
 			
-			var specimenTypes = sp._uniqueSpecimenTypes(data);
-			
 			// Compute coordinates only needed for initial layout
+			var specimenTypes = sp._uniqueSpecimenTypes(data);
 			var tempCoords = sp._computeTempCoordinates(specimenTypes);
 					
 			// Compute coordinates that we will need for initial layout and updates
@@ -125,12 +124,24 @@ var sp = {
 			sp._layoutPlot(chart, tempCoords, specimenTypes);
 			
 			// Add x-axis section
+			sp._layoutXAxis(chart, tempCoords);
 			
 			// Add legend section
 			
+			// Layout data along the x-axis
+			sp._updateXAxis();
 			
 			// *** Review
-			var height = sp._plotHeight + sp.margin.top + sp.margin.bottom + sp.section.xAxis.height + sp.section.legend.height;
+			var height = 
+				sp.margin.top
+				+ sp.border
+				+ sp._plotHeight
+				+ sp.border
+				+ tempCoords.xAxisSectionHeight
+				+ sp.border
+				+ tempCoords.legendHeight
+				+ sp.border
+				+ sp.margin.bottom;
 			svg.attr("height", height);
 			
 			// *** Remove this ***
@@ -158,23 +169,16 @@ var sp = {
 				.attr("width", width)
 				.attr("height", sp.margin.bottom)
 				.attr("class", "section-background");
+			chart.append("rect")
+				.attr("x", 0)
+				.attr("y", sp._plotHeight)
+				.attr("width", sp._plotWidth)
+				.attr("height", sp.border)
+				.attr("class", "section-background");
 			// *** Remove above ***
 			
-
-			
-			// Add x-axis
-			sp._xAxis = d3.svg.axis().orient("bottom");
-			sp._xAxisGroup = svg.append("g")
-				.attr("class", "x axis")
-				.attr("transform", "translate(" + sp.margin.left + ", " + (sp._chartHeight + sp.section.xAxis.height / 2) + ")");
-			svg.append("text")
-				.attr("class", "axis-label")
-				.attr("id", "axis-label")
-				.attr("x", (sp.margin.left + sp._chartWidth / 2))
-				.attr("y", (sp.margin.top + sp._chartHeight + sp.section.xAxis.height))
-				.attr("text-anchor", "middle");
-				
 			// Add legend
+			/*
 			var legendGroup = svg.append("g")
 				.attr("transform", "translate(" + (sp.margin.left + 150) + ", " + (sp._chartHeight + sp.section.xAxis.height + sp.section.legend.height) + ")");
 			legendGroup.append("rect")
@@ -200,9 +204,7 @@ var sp = {
 				.attr("class", "legend")
 				.attr("x", sp.size.dataPoint + 5)
 				.attr("y", 11);
-		
-			// Layout data along the x-axis
-			sp._layoutX();
+			*/
 		});
 	},
 	
@@ -236,7 +238,11 @@ var sp = {
 			trackLabelWidth: 0,
 			trackLabelHeight: 0,
 			labelContainerWidth: 0,
-			labelContainerHeight: 0
+			labelContainerHeight: 0,
+			xAxisLabelHeight: sp._getBBox("Date", "axis-label").height,
+			xAxisHeight: 0,
+			xAxisSectionHeight: 0,
+			legendHeight: 0
 		};
 		for (var i = 0; i < sp._data.length; i++) {
 			var bbox = sp._getBBox(sp._data[i].subject_id, "subject-label");
@@ -255,6 +261,17 @@ var sp = {
 		if (coords.visitLabelWidth > coords.labelContainerWidth) {
 			coords.labelContainerWidth = coords.visitLabelWidth;
 		}
+
+		// Axis
+		var x = d3.scale.linear()
+			.domain([0, 10])
+			.range([0, sp._xAxisWidth]);
+		var axis = d3.svg.axis().orient("bottom").scale(x);
+		var group = d3.select("svg").append("g");
+		group.call(axis);
+		coords.xAxisHeight = group.node().getBBox().height;
+		coords.xAxisSectionHeight =  + coords.xAxisHeight + coords.xAxisLabelHeight
+			+ 3 * sp.padding.axis;
 		return coords;
 	},
 	
@@ -402,6 +419,23 @@ var sp = {
 				return visit.specimens.length * (sp.size.dataPoint
 					+ sp.padding.dataPoint) + tempCoords.visitLabelHeight;
 			});	
+	},
+	
+	_layoutXAxis: function(chart, tempCoords) {
+		console.log(tempCoords.xAxisHeight);
+		var axisContainer = chart.append("g")
+			.attr("id", "axis-container")
+			.attr("transform", "translate(" + sp._xAxisX + ", " + (sp._plotHeight + sp.border) + ")");
+		sp._xAxis = d3.svg.axis().orient("bottom");
+		sp._xAxisGroup = axisContainer.append("g")
+			.attr("class", "x axis")
+			.attr("transform", "translate(0, " + sp.padding.axis + ")");
+		sp._xAxisLabel = axisContainer.append("text")
+			.attr("id", "axis-label")
+			.attr("class", "axis-label")
+			.attr("x", sp._xAxisWidth / 2)
+			.attr("y", 2 * sp.padding.axis + tempCoords.xAxisHeight + tempCoords.xAxisLabelHeight)
+			.attr("text-anchor", "middle");
 	},
 	
 	/*
@@ -560,7 +594,7 @@ var sp = {
 	/*
 	 * Lay out x-range and x-axis.
 	 */
-	_layoutX: function() {
+	_updateXAxis: function() {
 		var axisLabel = ""
 		if (sp._anchor == "date") {
 			axisLabel = "Date"
@@ -575,7 +609,7 @@ var sp = {
 				});
 			});
 			sp._x = d3.time.scale()
-				.range([0, sp._chartWidth])
+				.range([0, sp._xAxisWidth])
 				.domain([minDate, maxDate]);
 		}
 		else {
@@ -592,13 +626,13 @@ var sp = {
 				});
 			});
 			sp._x = d3.scale.linear()
-				.range([0, sp._chartWidth])
+				.range([0, sp._xAxisWidth])
 				.domain([minDay, maxDay]);
 		}
 		sp._xAxis.scale(sp._x);
 		sp._xAxisGroup.call(sp._xAxis);
-		d3.select("#axis-label").text(axisLabel);
-		sp._update();
+		sp._xAxisLabel.text(axisLabel);
+		//sp._update();
 	},
 
 	/*
