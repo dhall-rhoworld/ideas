@@ -290,6 +290,9 @@ var sp = {
 		return bbox;
 	},
 	
+	/*
+	 * Layout plotting area of chart.
+	 */
 	_layoutPlot: function(chart, tempCoords, specimenTypes) {
 
 		// Add container for plotting section
@@ -309,6 +312,9 @@ var sp = {
 		sp._layoutTracks(plot, tempCoords, specimenTypes);
 	},
 	
+	/*
+	 * Lay out individual data tracks, one per subject.
+	 */
 	_layoutTracks: function(plot, tempCoords, specimenTypes) {
 			
 		// Add track containers
@@ -337,27 +343,40 @@ var sp = {
 		sp._layoutTrackDataSections(tracks, tempCoords);
 	},
 	
+	/*
+	 * Layout left-most track area containing subject names and multi-select boxes.
+	 */
 	_layoutTrackLabelSections: function(tracks, tempCoords, specimenTypes) {
+	
+		// Overall container
 		var labelContainers = tracks.append("g")
 			.attr("class", "label-container")
 			.attr("transform", function(visit, i) {
 				return "translate(" + sp.padding.track + ","
 					+ (sp._trackHeight[i] / 2 - tempCoords.labelContainerHeight / 2) + ")";
 			});
+			
+		// Subject name
 		labelContainers.append("text")
 			.text(function(subject) {return subject.subject_id;})
 			.attr("class", "subject-label")
 			.attr("y", tempCoords.trackLabelHeight);
+			
+		// Select for all specimens on track
 		labelContainers.append("rect")
 			.attr("class", "all-specimen-types")
 			.attr("x", 0)
 			.attr("y", tempCoords.trackLabelHeight + sp.padding.selectBox)
 			.attr("width", sp.size.selectBox)
 			.attr("height", sp.size.selectBox);
+			
+		// Container for specimen type-specific multi-selectors
 		var multiSelectContainers = labelContainers.append("g")
 			.attr("class", "multi-select-container")
 			.attr("transform", "translate(" + (sp.size.selectBox + sp.padding.selectBox)
 				+ ", " + (tempCoords.trackLabelHeight + sp.padding.selectBox) + ")");
+				
+		// Specimen type-specific multi-selectors
 		multiSelectContainers.selectAll("rect")
 			.data(specimenTypes)
 			.enter()
@@ -369,6 +388,9 @@ var sp = {
 			.attr("height", sp.size.selectBox);
 	},
 	
+	/*
+	 * Lay out data section of tracks.
+	 */
 	_layoutTrackDataSections: function(tracks, tempCoords) {
 			
 		// Add container for data points
@@ -403,7 +425,8 @@ var sp = {
 			.attr("x", 0)
 			.attr("y", function(specimen, i) {return i * (sp.size.dataPoint + sp.padding.dataPoint);})
 			.attr("width", sp.size.dataPoint)
-			.attr("height", sp.size.dataPoint);
+			.attr("height", sp.size.dataPoint)
+			.on("click", function(specimen) {sp._toggleSelected(specimen, this);});
 			
 		// Add visit label
 		dataContainer.selectAll("g.visit-container")
@@ -418,15 +441,25 @@ var sp = {
 			});	
 	},
 	
+	/*
+	 * Lay out x-axis components.
+	 */
 	_layoutXAxis: function(chart, tempCoords) {
-		console.log(tempCoords.xAxisHeight);
+		
+		// Overall container
 		var axisContainer = chart.append("g")
 			.attr("id", "axis-container")
 			.attr("transform", "translate(" + sp._xAxisX + ", " + (sp._plotHeight + sp.border) + ")");
+			
+		// Axis
 		sp._xAxis = d3.svg.axis().orient("bottom");
+		
+		// Container for axis pieces
 		sp._xAxisGroup = axisContainer.append("g")
 			.attr("class", "x axis")
 			.attr("transform", "translate(0, " + sp.padding.axis + ")");
+			
+		// Axis label
 		sp._xAxisLabel = axisContainer.append("text")
 			.attr("id", "axis-label")
 			.attr("class", "axis-label")
@@ -438,23 +471,16 @@ var sp = {
 	/*
 	 * Toggle whether a given specimen data point is selected.
 	 */
-	_toggleSelected: function(rect) {
-		var specimen = d3.select(rect).datum();
-		var selected = specimen.selected;
-		if (selected === undefined) {
-			selected = true;
+	_toggleSelected: function(specimen, rect) {
+		if (specimen.selected === undefined) {
+			specimen.selected = true;
 		}
 		else {
-			selected = !selected;
+			specimen.selected = !specimen.selected;
 		}
-		specimen.selected = selected;
-		var style = rect.getAttribute("class");
-		var i = style.search("-selected");
-		if (i < 0) {
-			style = style + "-selected";
-		}
-		else {
-			style = style.substring(0, i);
+		var style = specimen.type;
+		if (specimen.selected) {
+			style += "-selected";
 		}
 		rect.setAttribute("class", style);
 	},
