@@ -3,12 +3,9 @@ var sp = {
 	// Attributes
 	margin: {top: 20, right: 20, bottom: 20, left: 20},
 	border: 5,
-	size: {dataPoint: 10, selectBox: 10},
-	padding: {track: 5, selectBox: 3, dataPoint: 3, axis: 15},
-	section: {
-		xAxis: {height: 40},
-		legend: {height: 55, colWidth: 80}
-	},
+	size: {dataPoint: 10, multiSelectBox: 10, legendSelectBox: 15},
+	padding: {track: 5, multiSelectBox: 3, dataPoint: 3, axis: 10, legend: 15,
+		legendSelectBox_left: 20, legendSelectBox_right: 5},
 	
 	// Private attributes
 	_anchor: "date",
@@ -96,7 +93,7 @@ var sp = {
 			sp._layoutXAxis(chart, tempCoords);
 			
 			// Add legend section
-			sp._layoutLegend(chart, tempCoords);
+			sp._layoutLegend(chart, specimenTypes, tempCoords);
 			
 			// Layout data along the x-axis
 			sp._updateXAxis();
@@ -188,6 +185,7 @@ var sp = {
 			xAxisLabelHeight: sp._getBBox("Date", "axis-label").height,
 			xAxisHeight: 0,
 			xAxisSectionHeight: 0,
+			legendTextHeight: 0,
 			legendHeight: 0
 		};
 		
@@ -203,12 +201,12 @@ var sp = {
 		}
 		
 		// Track label container
-		coords.labelContainerHeight = coords.trackLabelHeight + sp.size.selectBox
-			+ sp.padding.track * 2 + sp.padding.selectBox;
+		coords.labelContainerHeight = coords.trackLabelHeight + sp.size.multiSelectBox
+			+ sp.padding.track * 2 + sp.padding.multiSelectBox;
 		
 		// x-axis
-		var multiSelectContainerWidth = (specimenTypes.length + 1) * sp.size.selectBox +
-			specimenTypes.length * sp.padding.selectBox;
+		var multiSelectContainerWidth = (specimenTypes.length + 1) * sp.size.multiSelectBox +
+			specimenTypes.length * sp.padding.multiSelectBox;
 		var trackLabelContainerWidth = multiSelectContainerWidth;
 		if (coords.visitLabelWidth > trackLabelContainerWidth) {
 			trackLabelContainerWidth = coords.visitLabelWidth;
@@ -238,6 +236,14 @@ var sp = {
 		coords.xAxisHeight = group.node().getBBox().height;
 		coords.xAxisSectionHeight =  + coords.xAxisHeight + coords.xAxisLabelHeight
 			+ 3 * sp.padding.axis;
+			
+		// Legend
+		coords.legendTextHeight = sp._getBBox("DNA", "legend").height;
+		coords.legendHeight = coords.legendTextHeight;
+		if (sp.size.legendSelectBox > coords.legendHeight) {
+			coords.legendHeight = sp.size.legendSelectBox;
+		}
+		coords.legendHeight += 2 * sp.padding.legend;
 		return coords;
 	},
 	
@@ -332,16 +338,16 @@ var sp = {
 		labelContainers.append("g").append("rect")
 			.attr("class", "all-specimen-types")
 			.attr("x", 0)
-			.attr("y", tempCoords.trackLabelHeight + sp.padding.selectBox)
-			.attr("width", sp.size.selectBox)
-			.attr("height", sp.size.selectBox)
+			.attr("y", tempCoords.trackLabelHeight + sp.padding.multiSelectBox)
+			.attr("width", sp.size.multiSelectBox)
+			.attr("height", sp.size.multiSelectBox)
 			.on("click", function() {sp._toggleTrack("all-specimen-types", this);});
 			
 		// Container for specimen type-specific multi-selectors
 		var multiSelectContainers = labelContainers.append("g")
 			.attr("class", "multi-select-container")
-			.attr("transform", "translate(" + (sp.size.selectBox + sp.padding.selectBox)
-				+ ", " + (tempCoords.trackLabelHeight + sp.padding.selectBox) + ")");
+			.attr("transform", "translate(" + (sp.size.multiSelectBox + sp.padding.multiSelectBox)
+				+ ", " + (tempCoords.trackLabelHeight + sp.padding.multiSelectBox) + ")");
 				
 		// Specimen type-specific multi-selectors
 		multiSelectContainers.selectAll("rect")
@@ -349,10 +355,10 @@ var sp = {
 			.enter()
 			.append("rect")
 			.attr("class", function(specimenType) {return specimenType;})
-			.attr("x", function(specimenType, i) {return i * (sp.size.selectBox + sp.padding.selectBox);})
+			.attr("x", function(specimenType, i) {return i * (sp.size.multiSelectBox + sp.padding.multiSelectBox);})
 			.attr("y", 0)
-			.attr("width", sp.size.selectBox)
-			.attr("height", sp.size.selectBox)
+			.attr("width", sp.size.multiSelectBox)
+			.attr("height", sp.size.multiSelectBox)
 			.on("click", function(specimenType) {sp._toggleTrack(specimenType, this);});
 	},
 	
@@ -439,14 +445,63 @@ var sp = {
 	/*
 	 * Lay out legend components.
 	 */
-	_layoutLegend: function(chart, tempCoords) {
+	_layoutLegend: function(chart, specimenTypes, tempCoords) {
+		
+		// Compute legend width and placement of select boxes
+		var boxX = [];
+		var width = sp.padding.legend;
+		for (var i = 0; i < specimenTypes.length; i++) {
+			if (i > 0) {
+				width += sp.padding.legendSelectBox_left;
+			}
+			boxX.push(width);
+			width += sp.size.legendSelectBox + sp.padding.legendSelectBox_right +
+				sp._getBBox(specimenTypes[i], "legend").width;
+		}
+		width += sp.padding.legend;
 		
 		// Add overall container for legend
-		var x = tempCoords.plotHeight + sp.border + tempCoords.xAxisSectionHeight + sp.border;
-		console.log("x: " + x);
+		var x = tempCoords.xAxisX + sp._xAxisWidth / 2 - width / 2;
+		var y = tempCoords.plotHeight + sp.border + tempCoords.xAxisSectionHeight + sp.border;
 		var legendContainer = chart.append("g")
 			.attr("id", "legend-container")
-			.attr("transform", "translate(0, " + x + ")");
+			.attr("transform", "translate(" + x + ", " + y + ")");
+		
+		// Draw rect around legend
+		legendContainer.append("rect")
+			.attr("class", "legend-border")
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("width", width)
+			.attr("height", tempCoords.legendHeight);
+			
+		// Add contains for select boxes and text
+		var selectContainers = legendContainer.selectAll("g.legend-select-container")
+			.data(specimenTypes)
+			.enter()
+			.append("g")
+			.attr("class", "legend-select-container")
+			.attr("transform", function(specimenType, i) {
+				var y = tempCoords.legendHeight / 2;
+				var translate = "translate(" + boxX[i] + ", " + y + ")";
+				console.log(translate);
+				return translate;
+			});
+			
+		// Add select boxes
+		selectContainers.append("rect")
+			.attr("class", function(specimenType) {return specimenType;})
+			.attr("x", 0)
+			.attr("y", -sp.size.legendSelectBox / 2)
+			.attr("width", sp.size.legendSelectBox)
+			.attr("height", sp.size.legendSelectBox);
+			
+		// Add text
+		selectContainers.append("text")
+			.text(function(specimenType){return specimenType;})
+			.attr("class", "legend")
+			.attr("x", sp.size.legendSelectBox + sp.padding.legendSelectBox_right)
+			.attr("y", tempCoords.legendTextHeight / 2);
 
 			// Add legend
 			/*
