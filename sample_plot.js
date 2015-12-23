@@ -12,18 +12,11 @@ var sp = {
 	
 	// Private attributes
 	_anchor: "date",
-	_chartWidth: 0,
-	_chartHeight: 0,
-	_plotWidth: 0,
-	_trackY: [],
-	_trackHeight: [],
 	_data: {},
 	_x: {},
 	_xAxis: {},
 	_xAxisGroup: {},
 	_parser: d3.time.format("%m/%d/%Y"),
-	_trackY: [],
-	_xAxisX: 0,
 	_xAxisWidth: 0,
 	
 	/**
@@ -33,18 +26,6 @@ var sp = {
 	setAnchor: function(visitType) {
 		sp._anchor = visitType;
 		sp._updateXAxis();
-	},
-	
-	activateTimeIntervalSelect: function(activate) {
-		d3.select("svg").append("line")
-			.attr("class", "time-interval-line")
-			.attr("x1", 100)
-			.attr("y1", 0)
-			.attr("x2", 100)
-			.attr("y2", sp.margin.top + sp._chartHeight);
-		sp._selectTimeInterval = function() {
-			return;
-		}
 	},
 	
 	/**
@@ -92,27 +73,15 @@ var sp = {
 			// Create SVG canvas
 			var svg = d3.select(divId)
 				.append("svg")
-					.attr("width", width);
+				.attr("id", "svgMain")
+				.attr("width", width);
 			
 			// Compute coordinates only needed for initial layout
 			var specimenTypes = sp._uniqueSpecimenTypes(data);
 			var tempCoords = sp._computeTempCoordinates(specimenTypes);
 					
 			// Compute coordinates that we will need for initial layout and updates
-			sp._plotWidth = width - sp.margin.left - sp.margin.right - 2 * sp.border;
-			sp._plotHeight = 0;
-			for (var i = 0; i < data.length; i++) {
-				if (i > 0) {
-					sp._plotHeight += sp.border;
-				}
-				sp._trackY.push(sp._plotHeight);
-				var height = sp._computeTrackHeight(data[i], tempCoords.visitLabelHeight,
-					tempCoords.labelContainerHeight);
-				sp._trackHeight.push(height);
-				sp._plotHeight += height;
-			}
-			sp._xAxisX = sp.padding.track * 2 + tempCoords.labelContainerWidth + sp.size.dataPoint;
-			sp._xAxisWidth = sp._plotWidth - sp._xAxisX - sp.padding.track;
+			sp._xAxisWidth = tempCoords.plotWidth - tempCoords.xAxisX - sp.padding.track;
 			
 			// Create overall container for chart
 			var chart = svg.append("g")
@@ -127,6 +96,7 @@ var sp = {
 			sp._layoutXAxis(chart, tempCoords);
 			
 			// Add legend section
+			sp._layoutLegend(chart, tempCoords);
 			
 			// Layout data along the x-axis
 			sp._updateXAxis();
@@ -135,7 +105,7 @@ var sp = {
 			var height = 
 				sp.margin.top
 				+ sp.border
-				+ sp._plotHeight
+				+ tempCoords.plotHeight
 				+ sp.border
 				+ tempCoords.xAxisSectionHeight
 				+ sp.border
@@ -171,40 +141,11 @@ var sp = {
 				.attr("class", "section-background");
 			chart.append("rect")
 				.attr("x", 0)
-				.attr("y", sp._plotHeight)
-				.attr("width", sp._plotWidth)
+				.attr("y", tempCoords.plotHeight)
+				.attr("width", tempCoords.plotWidth)
 				.attr("height", sp.border)
 				.attr("class", "section-background");
 			// *** Remove above ***
-			
-			// Add legend
-			/*
-			var legendGroup = svg.append("g")
-				.attr("transform", "translate(" + (sp.margin.left + 150) + ", " + (sp._chartHeight + sp.section.xAxis.height + sp.section.legend.height) + ")");
-			legendGroup.append("rect")
-				.attr("class", "legend-border")
-				.attr("x", -sp.size.dataPoint * 1.5)
-				.attr("y", -sp.size.dataPoint)
-				.attr("width", specimenTypes.length * (sp.size.dataPoint + sp.section.legend.colWidth))
-				.attr("height", sp.size.dataPoint * 3);
-			var legendItems = legendGroup.selectAll("g")
-				.data(specimenTypes)
-				.enter()
-				.append("g")
-				.attr("transform", function(d, i) {return "translate(" + (i * (sp.size.dataPoint + sp.section.legend.colWidth)) + ", 0)";});
-			legendItems.append("rect")
-				.attr("class", function(d) {return d;})
-				.on("click", function() {sp._toggleLegend(this);})
-				.attr("x", 0)
-				.attr("y", 0)
-				.attr("width", sp.size.dataPoint)
-				.attr("height", sp.size.dataPoint);
-			legendItems.append("text")
-				.text(function(d) {return d;})
-				.attr("class", "legend")
-				.attr("x", sp.size.dataPoint + 5)
-				.attr("y", 11);
-			*/
 		});
 	},
 	
@@ -233,17 +174,24 @@ var sp = {
 	_computeTempCoordinates: function(specimenTypes) {
 		var visitLabelBBox = sp._getBBox("T", "visit-label");
 		var coords = {
+			plotWidth: d3.select("#svgMain").attr("width") - sp.margin.left
+				- sp.margin.right - 2 * sp.border,
 			visitLabelWidth: visitLabelBBox.width,
 			visitLabelHeight: visitLabelBBox.height,
+			plotHeight: 0,
+			trackHeight: [],
+			trackY: [],
 			trackLabelWidth: 0,
 			trackLabelHeight: 0,
-			labelContainerWidth: 0,
 			labelContainerHeight: 0,
+			xAxisX: 0,
 			xAxisLabelHeight: sp._getBBox("Date", "axis-label").height,
 			xAxisHeight: 0,
 			xAxisSectionHeight: 0,
 			legendHeight: 0
 		};
+		
+		// Track label
 		for (var i = 0; i < sp._data.length; i++) {
 			var bbox = sp._getBBox(sp._data[i].subject_id, "subject-label");
 			if (bbox.width > coords.trackLabelWidth) {
@@ -253,13 +201,31 @@ var sp = {
 				coords.trackLabelHeight = bbox.height;
 			}
 		}
+		
+		// Track label container
 		coords.labelContainerHeight = coords.trackLabelHeight + sp.size.selectBox
 			+ sp.padding.track * 2 + sp.padding.selectBox;
+		
+		// x-axis
 		var multiSelectContainerWidth = (specimenTypes.length + 1) * sp.size.selectBox +
 			specimenTypes.length * sp.padding.selectBox;
-		coords.labelContainerWidth = multiSelectContainerWidth;
-		if (coords.visitLabelWidth > coords.labelContainerWidth) {
-			coords.labelContainerWidth = coords.visitLabelWidth;
+		var trackLabelContainerWidth = multiSelectContainerWidth;
+		if (coords.visitLabelWidth > trackLabelContainerWidth) {
+			trackLabelContainerWidth = coords.visitLabelWidth;
+		}
+		coords.xAxisX = sp.padding.track * 2 + trackLabelContainerWidth
+			+ sp.size.dataPoint;
+		
+		// Plot and tracks
+		for (var i = 0; i < sp._data.length; i++) {
+			if (i > 0) {
+				coords.plotHeight += sp.border;
+			}
+			coords.trackY.push(coords.plotHeight);
+			var height = sp._computeTrackHeight(sp._data[i], coords.visitLabelHeight,
+				coords.labelContainerHeight);
+			coords.trackHeight.push(height);
+			coords.plotHeight += height;
 		}
 
 		// Axis
@@ -303,10 +269,10 @@ var sp = {
 		// Add background to plotting section
 		plot.append("rect")
 			.attr("class", "plot-bg")
-			.attr("x", sp._xAxisX)
+			.attr("x", tempCoords.xAxisX)
 			.attr("y", 0)
-			.attr("width", sp._plotWidth - sp._xAxisX)
-			.attr("height", sp._plotHeight);
+			.attr("width", tempCoords.plotWidth - tempCoords.xAxisX)
+			.attr("height", tempCoords.plotHeight);
 			
 		// Layout tracks
 		sp._layoutTracks(plot, tempCoords, specimenTypes);
@@ -325,7 +291,7 @@ var sp = {
 			.attr("id", function(subject) {return "track-" + subject.subject_id;})
 			.attr("class", "track-container")
 			.attr("transform", function(subject, i) {
-				return "translate(0, " + sp._trackY[i] + ")";
+				return "translate(0, " + tempCoords.trackY[i] + ")";
 			});
 			
 		// Draw track backgrounds
@@ -333,8 +299,8 @@ var sp = {
 			.attr("class", "track-bg")
 			.attr("x", 0)
 			.attr("y", 0)
-			.attr("width", sp._plotWidth)
-			.attr("height", function(subject, i) {return sp._trackHeight[i];});
+			.attr("width", tempCoords.plotWidth)
+			.attr("height", function(subject, i) {return tempCoords.trackHeight[i];});
 			
 		// Add track label sections
 		sp._layoutTrackLabelSections(tracks, tempCoords, specimenTypes);
@@ -353,7 +319,7 @@ var sp = {
 			.attr("class", "label-container")
 			.attr("transform", function(visit, i) {
 				return "translate(" + sp.padding.track + ","
-					+ (sp._trackHeight[i] / 2 - tempCoords.labelContainerHeight / 2) + ")";
+					+ (tempCoords.trackHeight[i] / 2 - tempCoords.labelContainerHeight / 2) + ")";
 			});
 			
 		// Subject name
@@ -399,7 +365,7 @@ var sp = {
 		var dataContainer = tracks.append("g")
 			.attr("class", "data-container")
 			.attr("transform", function(track, i) {
-				return "translate(" + sp._xAxisX + "," + (sp._trackHeight[i] / 2) + ")";
+				return "translate(" + tempCoords.xAxisX + "," + (tempCoords.trackHeight[i] / 2) + ")";
 			});
 			
 		// Add containers for visit data points group
@@ -451,7 +417,7 @@ var sp = {
 		// Overall container
 		var axisContainer = chart.append("g")
 			.attr("id", "axis-container")
-			.attr("transform", "translate(" + sp._xAxisX + ", " + (sp._plotHeight + sp.border) + ")");
+			.attr("transform", "translate(" + tempCoords.xAxisX + ", " + (tempCoords.plotHeight + sp.border) + ")");
 			
 		// Axis
 		sp._xAxis = d3.svg.axis().orient("bottom");
@@ -468,6 +434,48 @@ var sp = {
 			.attr("x", sp._xAxisWidth / 2)
 			.attr("y", 2 * sp.padding.axis + tempCoords.xAxisHeight + tempCoords.xAxisLabelHeight)
 			.attr("text-anchor", "middle");
+	},
+	
+	/*
+	 * Lay out legend components.
+	 */
+	_layoutLegend: function(chart, tempCoords) {
+		
+		// Add overall container for legend
+		var x = tempCoords.plotHeight + sp.border + tempCoords.xAxisSectionHeight + sp.border;
+		console.log("x: " + x);
+		var legendContainer = chart.append("g")
+			.attr("id", "legend-container")
+			.attr("transform", "translate(0, " + x + ")");
+
+			// Add legend
+			/*
+			var legendGroup = svg.append("g")
+				.attr("transform", "translate(" + (sp.margin.left + 150) + ", " + (sp._chartHeight + sp.section.xAxis.height + sp.section.legend.height) + ")");
+			legendGroup.append("rect")
+				.attr("class", "legend-border")
+				.attr("x", -sp.size.dataPoint * 1.5)
+				.attr("y", -sp.size.dataPoint)
+				.attr("width", specimenTypes.length * (sp.size.dataPoint + sp.section.legend.colWidth))
+				.attr("height", sp.size.dataPoint * 3);
+			var legendItems = legendGroup.selectAll("g")
+				.data(specimenTypes)
+				.enter()
+				.append("g")
+				.attr("transform", function(d, i) {return "translate(" + (i * (sp.size.dataPoint + sp.section.legend.colWidth)) + ", 0)";});
+			legendItems.append("rect")
+				.attr("class", function(d) {return d;})
+				.on("click", function() {sp._toggleLegend(this);})
+				.attr("x", 0)
+				.attr("y", 0)
+				.attr("width", sp.size.dataPoint)
+				.attr("height", sp.size.dataPoint);
+			legendItems.append("text")
+				.text(function(d) {return d;})
+				.attr("class", "legend")
+				.attr("x", sp.size.dataPoint + 5)
+				.attr("y", 11);
+			*/
 	},
 	
 	/*
