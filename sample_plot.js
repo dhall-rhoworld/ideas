@@ -363,12 +363,13 @@ var sp = {
 			.attr("y", tempCoords.trackLabelHeight);
 			
 		// Select for all specimens on track
-		labelContainers.append("rect")
+		labelContainers.append("g").append("rect")
 			.attr("class", "all-specimen-types")
 			.attr("x", 0)
 			.attr("y", tempCoords.trackLabelHeight + sp.padding.selectBox)
 			.attr("width", sp.size.selectBox)
-			.attr("height", sp.size.selectBox);
+			.attr("height", sp.size.selectBox)
+			.on("click", function() {sp._toggleTrack("all-specimen-types", this);});
 			
 		// Container for specimen type-specific multi-selectors
 		var multiSelectContainers = labelContainers.append("g")
@@ -385,7 +386,8 @@ var sp = {
 			.attr("x", function(specimenType, i) {return i * (sp.size.selectBox + sp.padding.selectBox);})
 			.attr("y", 0)
 			.attr("width", sp.size.selectBox)
-			.attr("height", sp.size.selectBox);
+			.attr("height", sp.size.selectBox)
+			.on("click", function(specimenType) {sp._toggleTrack(specimenType, this);});
 	},
 	
 	/*
@@ -489,46 +491,31 @@ var sp = {
 	 * Toggles selection of all data points of a given specimen type
 	 * for an entire track.
 	 */
-	_toggleTrack: function(rect) {
-		var oldClass = d3.select(rect).attr("class");
-		var i = oldClass.search("-selected");
+	_toggleTrack: function(specimenType, rect) {
+	
+		// Change style of clicked rect
+		var oldClass = rect.getAttribute("class");
 		var newClass = "";
-		var selected;
-		if (i < 0) {
-			newClass = oldClass + "-selected"
-			selected = true;
+		var selected = oldClass.search(/-selected$/) < 0;
+		if (selected) {
+			newClass = specimenType + "-selected";
 		}
 		else {
-			newClass = oldClass.substring(0, i);
-			selected = false;
+			newClass = specimenType;
 		}
-		d3.select(rect).attr("class", newClass);
-		if (oldClass.search("all-specimen-types") >= 0) {
-			d3.select(rect.parentNode)
-				.selectAll(".visit rect")
+		rect.setAttribute("class", newClass);
+		
+		// Toggle data points
+		if (specimenType == "all-specimen-types") {
+			d3.select(rect.parentNode.parentNode.parentNode)
+				.selectAll(".visit-container rect")
 				.filter(function(specimen) {return specimen.selected != selected;})
-				.attr("class", function(specimen) {
-					var c = specimen.type;
-					if (selected) {
-						c = c + "-selected";
-					}
-					return c;
-				})
-				.each(function(specimen) {specimen.selected = selected});
-			d3.select(rect.parentNode)
-				.selectAll(".select-all rect")
-				.attr("class", function(specimenType) {
-					var c = specimenType;
-					if (selected) {
-						c = specimenType + "-selected";
-					}
-					return c;
-				});
+				.each(function(specimen) {sp._toggleSelected(specimen, this);});
 		}
 		else {
-			d3.select(rect.parentNode.parentNode).selectAll(".visit rect." + oldClass)
-				.attr("class", newClass)
-				.each(function(d) {d.selected = selected});
+			d3.select(rect.parentNode.parentNode.parentNode)
+				.selectAll(".visit-container ." + oldClass)
+				.each(function(specimen) {sp._toggleSelected(specimen, this);});
 		}
 	},
 	
