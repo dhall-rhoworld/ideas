@@ -67,17 +67,17 @@ var sp = {
 			
 			// Save data for later
 			sp._data = data;
-			
+
 			// Create SVG canvas
 			var svg = d3.select(divId)
 				.append("svg")
 				.attr("id", "svgMain")
 				.attr("width", width);
-			
+
 			// Compute coordinates only needed for initial layout
 			var specimenTypes = sp._uniqueSpecimenTypes(data);
 			var tempCoords = sp._computeTempCoordinates(specimenTypes);
-					
+
 			// Compute coordinates that we will need for initial layout and updates
 			sp._xAxisWidth = tempCoords.plotWidth - tempCoords.xAxisX - sp.padding.track;
 			
@@ -87,19 +87,15 @@ var sp = {
 				.attr("transform", "translate(" + (sp.margin.left + sp.border) + ", "
 					+ (sp.margin.top + sp.border) + ")");
 			
-			// Add plot section
+			// Add plot sections
 			sp._layoutPlot(chart, tempCoords, specimenTypes);
-			
-			// Add x-axis section
 			sp._layoutXAxis(chart, tempCoords);
-			
-			// Add legend section
 			sp._layoutLegend(chart, specimenTypes, tempCoords);
 			
-			// Layout data along the x-axis
+			// Initialize x-axis and position data points
 			sp._updateXAxis();
-			
-			// *** Review
+
+			// Set svg canvas height
 			var height = 
 				sp.margin.top
 				+ sp.border
@@ -111,39 +107,6 @@ var sp = {
 				+ sp.border
 				+ sp.margin.bottom;
 			svg.attr("height", height);
-			
-			// *** Remove this ***
-			svg.append("rect")
-				.attr("x", 0)
-				.attr("y", 0)
-				.attr("width", sp.margin.left)
-				.attr("height", height)
-				.attr("class", "section-background");
-			svg.append("rect")
-				.attr("x", 0)
-				.attr("y", 0)
-				.attr("width", width)
-				.attr("height", sp.margin.top)
-				.attr("class", "section-background");
-			svg.append("rect")
-				.attr("x", width - sp.margin.right)
-				.attr("y", 0)
-				.attr("width", sp.margin.right)
-				.attr("height", height)
-				.attr("class", "section-background");
-			svg.append("rect")
-				.attr("x", 0)
-				.attr("y", height - sp.margin.bottom)
-				.attr("width", width)
-				.attr("height", sp.margin.bottom)
-				.attr("class", "section-background");
-			chart.append("rect")
-				.attr("x", 0)
-				.attr("y", tempCoords.plotHeight)
-				.attr("width", tempCoords.plotWidth)
-				.attr("height", sp.border)
-				.attr("class", "section-background");
-			// *** Remove above ***
 		});
 	},
 	
@@ -237,6 +200,7 @@ var sp = {
 		coords.xAxisHeight = group.node().getBBox().height;
 		coords.xAxisSectionHeight =  + coords.xAxisHeight + coords.xAxisLabelHeight
 			+ 3 * sp.padding.axis;
+		group.remove();
 			
 		// Legend
 		coords.legendTextHeight = sp._getBBox("DNA", "legend").height;
@@ -257,7 +221,8 @@ var sp = {
 			.text(text)
 			.attr("class", cssStyle)
 			.attr("x", 0)
-			.attr("y", 0);
+			.attr("y", 0)
+			.attr("class", "invisible");
 		var bbox = textElement.node().getBBox();
 		textElement.remove();
 		return bbox;
@@ -522,6 +487,9 @@ var sp = {
 		rect.setAttribute("class", style);
 	},
 	
+	/*
+	 * Toggle selector that selects all specimens for a track.
+	 */
 	_toggleTrackAllMultiSelects: function(rect) {
 		var selected = rect.getAttribute("class") == "all-specimen-types";
 		if (selected) {
@@ -571,6 +539,10 @@ var sp = {
 		}
 	},
 	
+	/*
+	 * Toggle legend multi-select, which has the effect of selecting all specimens
+	 * of the given type.
+	 */
 	_toggleLegendMultiSelect: function(specimenType, rect) {
 	
 		// Change style of clicked rect

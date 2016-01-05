@@ -2,6 +2,10 @@
 	fill: #cccccc;
 }
 
+text.invisible {
+	color: white;
+}
+
 .track-bg {
 	fill: white;
 }
