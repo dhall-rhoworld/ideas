@@ -1,6 +1,6 @@
 var sp = {
 
-	// Attributes
+	// Public attributes
 	margin: {top: 20, right: 20, bottom: 20, left: 20},
 	border: 5,
 	size: {dataPoint: 10, multiSelectBox: 10, legendSelectBox: 15},
@@ -27,6 +27,7 @@ var sp = {
 	
 	/**
 	 * Get selected specimens.
+	 * @return {array} Selected specimen IDs.
 	 */
 	getSelections: function() {
 		var selections = [];
@@ -341,7 +342,7 @@ var sp = {
 			.attr("y", tempCoords.trackLabelHeight + sp.padding.multiSelectBox)
 			.attr("width", sp.size.multiSelectBox)
 			.attr("height", sp.size.multiSelectBox)
-			.on("click", function() {sp._toggleTrack("all-specimen-types", this);});
+			.on("click", function() {sp._toggleTrackAllMultiSelects(this);});
 			
 		// Container for specimen type-specific multi-selectors
 		var multiSelectContainers = labelContainers.append("g")
@@ -359,7 +360,7 @@ var sp = {
 			.attr("y", 0)
 			.attr("width", sp.size.multiSelectBox)
 			.attr("height", sp.size.multiSelectBox)
-			.on("click", function(specimenType) {sp._toggleTrack(specimenType, this);});
+			.on("click", function(specimenType) {sp._toggleTrackMultiSelect(specimenType, this);});
 	},
 	
 	/*
@@ -400,7 +401,7 @@ var sp = {
 			.attr("y", function(specimen, i) {return i * (sp.size.dataPoint + sp.padding.dataPoint);})
 			.attr("width", sp.size.dataPoint)
 			.attr("height", sp.size.dataPoint)
-			.on("click", function(specimen) {sp._toggleSelected(specimen, this);});
+			.on("click", function(specimen) {sp._toggleSpecimenSelection(specimen, this);});
 			
 		// Add visit label
 		dataContainer.selectAll("g.visit-container")
@@ -484,7 +485,6 @@ var sp = {
 			.attr("transform", function(specimenType, i) {
 				var y = tempCoords.legendHeight / 2;
 				var translate = "translate(" + boxX[i] + ", " + y + ")";
-				console.log(translate);
 				return translate;
 			});
 			
@@ -494,7 +494,8 @@ var sp = {
 			.attr("x", 0)
 			.attr("y", -sp.size.legendSelectBox / 2)
 			.attr("width", sp.size.legendSelectBox)
-			.attr("height", sp.size.legendSelectBox);
+			.attr("height", sp.size.legendSelectBox)
+			.on("click", function(specimenType) {sp._toggleLegendMultiSelect(specimenType, this);});
 			
 		// Add text
 		selectContainers.append("text")
@@ -502,41 +503,12 @@ var sp = {
 			.attr("class", "legend")
 			.attr("x", sp.size.legendSelectBox + sp.padding.legendSelectBox_right)
 			.attr("y", tempCoords.legendTextHeight / 2);
-
-			// Add legend
-			/*
-			var legendGroup = svg.append("g")
-				.attr("transform", "translate(" + (sp.margin.left + 150) + ", " + (sp._chartHeight + sp.section.xAxis.height + sp.section.legend.height) + ")");
-			legendGroup.append("rect")
-				.attr("class", "legend-border")
-				.attr("x", -sp.size.dataPoint * 1.5)
-				.attr("y", -sp.size.dataPoint)
-				.attr("width", specimenTypes.length * (sp.size.dataPoint + sp.section.legend.colWidth))
-				.attr("height", sp.size.dataPoint * 3);
-			var legendItems = legendGroup.selectAll("g")
-				.data(specimenTypes)
-				.enter()
-				.append("g")
-				.attr("transform", function(d, i) {return "translate(" + (i * (sp.size.dataPoint + sp.section.legend.colWidth)) + ", 0)";});
-			legendItems.append("rect")
-				.attr("class", function(d) {return d;})
-				.on("click", function() {sp._toggleLegend(this);})
-				.attr("x", 0)
-				.attr("y", 0)
-				.attr("width", sp.size.dataPoint)
-				.attr("height", sp.size.dataPoint);
-			legendItems.append("text")
-				.text(function(d) {return d;})
-				.attr("class", "legend")
-				.attr("x", sp.size.dataPoint + 5)
-				.attr("y", 11);
-			*/
 	},
 	
 	/*
 	 * Toggle whether a given specimen data point is selected.
 	 */
-	_toggleSelected: function(specimen, rect) {
+	_toggleSpecimenSelection: function(specimen, rect) {
 		if (specimen.selected === undefined) {
 			specimen.selected = true;
 		}
@@ -550,11 +522,35 @@ var sp = {
 		rect.setAttribute("class", style);
 	},
 	
+	_toggleTrackAllMultiSelects: function(rect) {
+		var selected = rect.getAttribute("class") == "all-specimen-types";
+		console.log("Selected: " + selected);
+		if (selected) {
+			rect.setAttribute("class", "all-specimen-types-selected");
+		}
+		else {
+			rect.setAttribute("class", "all-specimen-types");
+		}
+		d3.select(rect.parentNode)
+			.selectAll(".multi-select-container rect")
+			.attr("class", "all-specimen-types-selected");
+		/*
+		d3.select(rect.parentNode)
+			.selectAll(".multi-select-container rect")
+			.filter(function() {
+				var typeSelected = this.getAttribute("class").search(/-selected$/) < 0;
+				console.log("Type selected: " + typeSelected);
+				return typeSelected == selected;
+			})
+			.each(function(specimenType) {sp._toggleMultiSelect(specimenType, this);});
+		*/
+	},
+	
 	/*
 	 * Toggles selection of all data points of a given specimen type
 	 * for an entire track.
 	 */
-	_toggleTrack: function(specimenType, rect) {
+	_toggleTrackMultiSelect: function(specimenType, rect) {
 	
 		// Change style of clicked rect
 		var oldClass = rect.getAttribute("class");
@@ -573,16 +569,16 @@ var sp = {
 			d3.select(rect.parentNode.parentNode.parentNode)
 				.selectAll(".visit-container rect")
 				.filter(function(specimen) {return specimen.selected != selected;})
-				.each(function(specimen) {sp._toggleSelected(specimen, this);});
+				.each(function(specimen) {sp._toggleSpecimenSelection(specimen, this);});
 		}
 		else {
 			d3.select(rect.parentNode.parentNode.parentNode)
 				.selectAll(".visit-container ." + oldClass)
-				.each(function(specimen) {sp._toggleSelected(specimen, this);});
+				.each(function(specimen) {sp._toggleSpecimenSelection(specimen, this);});
 		}
 	},
 	
-	_toggleLegend: function(rect) {
+	_toggleLegendMultiSelect: function(specimenType, rect) {
 		var oldClass = d3.select(rect).attr("class");
 		var i = oldClass.search("-selected");
 		var newClass = "";
@@ -597,7 +593,7 @@ var sp = {
 		}
 		d3.select(rect).attr("class", newClass);
 		d3.selectAll("g.select-all rect." + oldClass)
-			.each(function() {sp._toggleTrack(this);});
+			.each(function() {sp._toggleTrackMultiSelect(this);});
 	},
 	
 	/*
