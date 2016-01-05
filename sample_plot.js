@@ -524,26 +524,19 @@ var sp = {
 	
 	_toggleTrackAllMultiSelects: function(rect) {
 		var selected = rect.getAttribute("class") == "all-specimen-types";
-		console.log("Selected: " + selected);
 		if (selected) {
 			rect.setAttribute("class", "all-specimen-types-selected");
 		}
 		else {
 			rect.setAttribute("class", "all-specimen-types");
 		}
-		d3.select(rect.parentNode)
-			.selectAll(".multi-select-container rect")
-			.attr("class", "all-specimen-types-selected");
-		/*
-		d3.select(rect.parentNode)
+		d3.select(rect.parentNode.parentNode)
 			.selectAll(".multi-select-container rect")
 			.filter(function() {
 				var typeSelected = this.getAttribute("class").search(/-selected$/) < 0;
-				console.log("Type selected: " + typeSelected);
 				return typeSelected == selected;
 			})
-			.each(function(specimenType) {sp._toggleMultiSelect(specimenType, this);});
-		*/
+			.each(function(specimenType) {sp._toggleTrackMultiSelect(specimenType, this);});
 	},
 	
 	/*
