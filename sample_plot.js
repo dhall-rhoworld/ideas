@@ -572,21 +572,23 @@ var sp = {
 	},
 	
 	_toggleLegendMultiSelect: function(specimenType, rect) {
-		var oldClass = d3.select(rect).attr("class");
-		var i = oldClass.search("-selected");
+	
+		// Change style of clicked rect
+		var oldClass = rect.getAttribute("class");
 		var newClass = "";
-		var selected;
-		if (i < 0) {
-			newClass = oldClass + "-selected"
-			selected = true;
+		var selected = oldClass.search(/-selected$/) < 0;
+		if (selected) {
+			newClass = specimenType + "-selected";
 		}
 		else {
-			newClass = oldClass.substring(0, i);
-			selected = false;
+			newClass = specimenType;
 		}
-		d3.select(rect).attr("class", newClass);
-		d3.selectAll("g.select-all rect." + oldClass)
-			.each(function() {sp._toggleTrackMultiSelect(this);});
+		rect.setAttribute("class", newClass);
+		
+		// Toggle individual track multi-selects
+		d3.selectAll(".multi-select-container rect")
+			.filter(function() {return this.getAttribute("class") == oldClass;})
+			.each(function(specimenType) {sp._toggleTrackMultiSelect(specimenType, this);});
 	},
 	
 	/*
