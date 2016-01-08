@@ -5,7 +5,7 @@ var sp = {
 	border: 5,
 	size: {dataPoint: 10, multiSelectBox: 10, legendSelectBox: 15},
 	padding: {track: 5, multiSelectBox: 3, dataPoint: 3, axis: 10, legend: 15,
-		legendSelectBox_left: 20, legendSelectBox_right: 5},
+		legendSelectBox_left: 20, legendSelectBox_right: 5, legendSelectBox_bottom: 5},
 	
 	// Private attributes
 	_anchor: "date",
@@ -204,11 +204,14 @@ var sp = {
 			
 		// Legend
 		coords.legendTextHeight = sp._getBBox("DNA", "legend").height;
-		coords.legendHeight = coords.legendTextHeight;
-		if (sp.size.legendSelectBox > coords.legendHeight) {
-			coords.legendHeight = sp.size.legendSelectBox;
+		coords.legendLinkHeight = sp._getBBox("hide", "legend-link").height;
+		coords.legendFirstLineHeight = coords.legendTextHeight;
+		if (sp.size.legendSelectBox > coords.legendFirstLineHeight) {
+			coords.legendFirstLineHeight = sp.size.legendSelectBox;
 		}
-		coords.legendHeight += 2 * sp.padding.legend;
+		coords.legendContentHeight = coords.legendFirstLineHeight
+			+ sp.padding.legendSelectBox_bottom + coords.legendLinkHeight;
+		coords.legendHeight = coords.legendContentHeight + 2 * sp.padding.legend;
 		return coords;
 	},
 	
@@ -468,6 +471,12 @@ var sp = {
 			.attr("class", "legend")
 			.attr("x", sp.size.legendSelectBox + sp.padding.legendSelectBox_right)
 			.attr("y", tempCoords.legendTextHeight / 2);
+			
+		selectContainers.append("text")
+			.text("hide")
+			.attr("class", "legend-link")
+			.attr("x", sp.size.legendSelectBox / 2)
+			.attr("y", tempCoords.legendHeight / 2 - 2);
 	},
 	
 	/*
