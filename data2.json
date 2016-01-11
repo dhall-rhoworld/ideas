@@ -102,8 +102,8 @@
 				"type": "labs", 
 				"date": "1/25/2015",
 				"specimens": [
-					{"id": "1", "type": "blood"},
-					{"id": "2", "type": "RNA"}
+					{"id": "17", "type": "blood"},
+					{"id": "18", "type": "RNA"}
 				]
 			},
             {
@@ -111,7 +111,7 @@
 				"type": "surgery", 
 				"date": "2/5/2015",
 				"specimens": [
-					{"id": "3", "type": "biopsy"}
+					{"id": "19", "type": "biopsy"}
 				]
 			}
         ]
@@ -124,7 +124,7 @@
 				"type": "labs", 
 				"date": "3/30/2015",
 				"specimens": [
-					{"id": "4", "type": "blood"}
+					{"id": "20", "type": "blood"}
 				]
 			},
             {
@@ -132,7 +132,7 @@
 				"type": "surgery", 
 				"date": "5/30/2015",
 				"specimens": [
-					{"id": "5", "type": "biopsy"}
+					{"id": "21", "type": "biopsy"}
 				]
 			},
             {
@@ -140,8 +140,8 @@
 				"type": "labs", 
 				"date": "6/8/2015",
 				"specimens": [
-					{"id": "6", "type": "blood"},
-					{"id": "7", "type": "RNA"}
+					{"id": "22", "type": "blood"},
+					{"id": "23", "type": "RNA"}
 				]
 			},
             {
@@ -149,8 +149,8 @@
 				"type": "labs", 
 				"date": "7/1/2015",
 				"specimens": [
-					{"id": "8", "type": "blood"},
-					{"id": "9", "type": "RNA"}
+					{"id": "24", "type": "blood"},
+					{"id": "25", "type": "RNA"}
 				]
 			}
         ]
@@ -163,8 +163,8 @@
 				"type": "labs", 
 				"date": "2/12/2015",
 				"specimens": [
-					{"id": "10", "type": "blood"},
-					{"id": "11", "type": "RNA"}
+					{"id": "26", "type": "blood"},
+					{"id": "27", "type": "RNA"}
 				]
 			},
             {
@@ -172,7 +172,7 @@
 				"type": "surgery", 
 				"date": "4/16/2015",
 				"specimens": [
-					{"id": "12", "type": "biopsy"}
+					{"id": "28", "type": "biopsy"}
 				]
 			},
             {
@@ -180,10 +180,10 @@
 				"type": "labs", 
 				"date": "6/30/2015",
 				"specimens": [
-					{"id": "13", "type": "blood"},
-					{"id": "14", "type": "RNA"},
-					{"id": "15", "type": "DNA"},
-					{"id": "16", "type": "biopsy"}
+					{"id": "29", "type": "blood"},
+					{"id": "30", "type": "RNA"},
+					{"id": "31", "type": "DNA"},
+					{"id": "32", "type": "biopsy"}
 				]
 			}
         ]

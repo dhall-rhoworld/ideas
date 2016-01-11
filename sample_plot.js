@@ -15,6 +15,7 @@ var sp = {
 	_xAxisGroup: {},
 	_parser: d3.time.format("%m/%d/%Y"),
 	_xAxisWidth: 0,
+	_hideList: {},
 	
 	/**
 	 * Set the visit type that will anchor the timeline.
@@ -150,6 +151,9 @@ var sp = {
 			xAxisHeight: 0,
 			xAxisSectionHeight: 0,
 			legendTextHeight: 0,
+			legendLinkHeight: 0,
+			legendFirstLineHeight: 0,
+			legendContentHeight: 0,
 			legendHeight: 0
 		};
 		
@@ -360,16 +364,7 @@ var sp = {
 			});
 			
 		// Add data points
-		visitContainer.selectAll("rect")
-			.data(function(visit) {return visit.specimens;})
-			.enter()
-			.append("rect")
-			.attr("class", function(specimen) {return specimen.type;})
-			.attr("x", 0)
-			.attr("y", function(specimen, i) {return i * (sp.size.dataPoint + sp.padding.dataPoint);})
-			.attr("width", sp.size.dataPoint)
-			.attr("height", sp.size.dataPoint)
-			.on("click", function(specimen) {sp._toggleSpecimenSelection(specimen, this);});
+		sp._layoutDataPoints(visitContainer);
 			
 		// Add visit label
 		dataContainer.selectAll("g.visit-container")
@@ -379,9 +374,44 @@ var sp = {
 			.attr("class", "visit-label")
 			.attr("x", sp.size.dataPoint / 2)
 			.attr("y", function(visit, i) {
-				return visit.specimens.length * (sp.size.dataPoint
-					+ sp.padding.dataPoint) + tempCoords.visitLabelHeight;
+				var y = tempCoords.visitLabelHeight;
+				for (var i = 0; i < visit.specimens.length; i++) {
+					if (!sp._hideList[visit.specimens[i].type]) {
+						y += sp.size.dataPoint + sp.padding.dataPoint;
+					}
+				}	
+				return y;
 			});
+	},
+	
+	/*
+	 * Lay out data points for each visit.
+	 */
+	_layoutDataPoints: function(visitContainer) {
+		var dataPoints = visitContainer.selectAll("rect")
+			.data(function(visit) {
+				var specimens = [];
+				for (var i = 0; i < visit.specimens.length; i++) {
+					if (!sp._hideList[visit.specimens[i].type]) {
+						specimens.push(visit.specimens[i]);
+					}
+				}
+				return specimens;
+			}, function(specimen) {return specimen.id;});
+		dataPoints.enter()
+			.append("rect")
+			.attr("class", function(specimen) {
+				var rectClass = specimen.type;
+				if (specimen.selected) {
+					rectClass += "-selected"
+				}
+				return rectClass;
+			})
+			.attr("y", function(specimen, i) {return i * (sp.size.dataPoint + sp.padding.dataPoint);})
+			.attr("width", sp.size.dataPoint)
+			.attr("height", sp.size.dataPoint)
+			.on("click", function(specimen) {sp._toggleSpecimenSelection(specimen, this);});
+		dataPoints.exit().remove();
 	},
 	
 	/*
@@ -586,8 +616,20 @@ var sp = {
 		var maxHeight = 0;
 		for (var i = 0; i < subject.visits.length; i++) {
 			var visit = subject.visits[i];
-			var n = visit.specimens.length;
-			var height = n * sp.size.dataPoint + (n - 1) * sp.padding.dataPoint;
+			var specimens = visit.specimens;
+			//var n = visit.specimens.length;
+			//var height = n * sp.size.dataPoint + (n - 1) * sp.padding.dataPoint;
+			var height = 0;
+			var count = 0;
+			for (var j = 0; j < specimens.length; j++) {
+				if (!sp._hideList[specimens[j].type]) {
+					count++;
+					if (count > 1) {
+						height += sp.padding.dataPoint;
+					}
+					height += sp.size.dataPoint;
+				}
+			}
 			if (visit.type == "surgery") {
 				height += visitLabelHeight + sp.padding.dataPoint;
 			}
@@ -696,6 +738,7 @@ var sp = {
 				.attr("class", "legend-select-inner-container-disabled");
 			d3.select(text.parentNode).select("rect")
 				.on("click", function() {});
+			sp._hideList[specimenType] = true;
 		}
 		else {
 			text.textContent = "hide";
@@ -703,7 +746,10 @@ var sp = {
 				.attr("class", "legend-select-inner-container");
 			d3.select(text.parentNode).select("rect")
 				.on("click", function(specimenType) {sp._toggleLegendMultiSelect(specimenType, this);});
+			sp._hideList[specimenType] = false;
 		}
+		var visitContainers = d3.selectAll("g.visit-container");
+		sp._layoutDataPoints(visitContainers);
 	},
 	
 	/*
