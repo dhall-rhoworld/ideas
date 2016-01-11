@@ -19,6 +19,7 @@ var sp = {
 	_visitLabelHeight: 0,
 	_labelContainerHeight: 0,
 	_specimenTypes: [],
+	_legendWidth: 0,
 	
 	/**
 	 * Set the visit type that will anchor the timeline.
@@ -250,7 +251,7 @@ var sp = {
 		
 		// Add background to plotting section
 		plot.append("rect")
-			.attr("class", "plot-bg")
+			.attr("id", "plot-bg")
 			.attr("x", tempCoords.xAxisX)
 			.attr("y", 0)
 			.attr("width", tempCoords.plotWidth - tempCoords.xAxisX)
@@ -451,19 +452,19 @@ var sp = {
 		
 		// Compute legend width and placement of select boxes
 		var boxX = [];
-		var width = sp.padding.legend;
+		sp._legendWidth = sp.padding.legend;
 		for (var i = 0; i < sp._specimenTypes.length; i++) {
 			if (i > 0) {
-				width += sp.padding.legendSelectBox_left;
+				sp._legendWidth += sp.padding.legendSelectBox_left;
 			}
-			boxX.push(width);
-			width += sp.size.legendSelectBox + sp.padding.legendSelectBox_right +
+			boxX.push(sp._legendWidth);
+			sp._legendWidth += sp.size.legendSelectBox + sp.padding.legendSelectBox_right +
 				sp._getBBox(sp._specimenTypes[i], "legend").width;
 		}
-		width += sp.padding.legend;
+		sp._legendWidth += sp.padding.legend;
 		
 		// Add overall container for legend
-		var x = tempCoords.xAxisX + sp._xAxisWidth / 2 - width / 2;
+		var x = tempCoords.xAxisX + sp._xAxisWidth / 2 - sp._legendWidth / 2;
 		var y = tempCoords.plotHeight + sp.border + tempCoords.xAxisSectionHeight + sp.border;
 		var legendContainer = chart.append("g")
 			.attr("id", "legend-container")
@@ -474,7 +475,7 @@ var sp = {
 			.attr("class", "legend-border")
 			.attr("x", 0)
 			.attr("y", 0)
-			.attr("width", width)
+			.attr("width", sp._legendWidth)
 			.attr("height", tempCoords.legendHeight);
 			
 		// Add out container for select boxes, text, and link
@@ -762,6 +763,40 @@ var sp = {
 	 */
 	_updateYCoords() {
 		var tempCoords = sp._computeTempCoordinates();
+		
+		// Plot background
+		d3.select("#plot-bg")
+			.transition()
+			.duration(500)
+			.attr("height", tempCoords.plotHeight);
+			
+		// Track Y-coordinates
+		d3.selectAll("g.track-container")
+			.transition()
+			.duration(500)
+			.attr("transform", function(subject, i) {
+				return "translate(0, " + tempCoords.trackY[i] + ")";
+			});
+				
+		// Track backgrounds
+		d3.selectAll("rect.track-bg")
+			.transition()
+			.duration(500)
+			.attr("height", function(subject, i) {return tempCoords.trackHeight[i];});
+			
+		// Y-axis
+		d3.select("#axis-container")
+			.transition()
+			.duration(500)
+			.attr("transform", "translate(" + tempCoords.xAxisX + ", " + (tempCoords.plotHeight + sp.border) + ")");
+	
+		// Legend
+		var x = tempCoords.xAxisX + sp._xAxisWidth / 2 - sp._legendWidth / 2;
+		var y = tempCoords.plotHeight + sp.border + tempCoords.xAxisSectionHeight + sp.border;
+		d3.select("#legend-container")
+			.transition()
+			.duration(500)
+			.attr("transform", "translate(" + x + ", " + y + ")");
 	},
 	
 	/*
