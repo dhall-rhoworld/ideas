@@ -411,11 +411,14 @@ var sp = {
 				}
 				return rectClass;
 			})
-			.attr("y", function(specimen, i) {return i * (sp.size.dataPoint + sp.padding.dataPoint);})
 			.attr("width", sp.size.dataPoint)
 			.attr("height", sp.size.dataPoint)
 			.on("click", function(specimen) {sp._toggleSpecimenSelection(specimen, this);});
 		dataPoints.exit().remove();
+		dataPoints = visitContainer.selectAll("rect")
+			.transition()
+			.duration(500)
+			.attr("y", function(specimen, i) {return i * (sp.size.dataPoint + sp.padding.dataPoint);})
 	},
 	
 	/*
