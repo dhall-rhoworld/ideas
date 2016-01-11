@@ -16,6 +16,9 @@ var sp = {
 	_parser: d3.time.format("%m/%d/%Y"),
 	_xAxisWidth: 0,
 	_hideList: {},
+	_visitLabelHeight: 0,
+	_labelContainerHeight: 0,
+	_specimenTypes: [],
 	
 	/**
 	 * Set the visit type that will anchor the timeline.
@@ -76,8 +79,8 @@ var sp = {
 				.attr("width", width);
 
 			// Compute coordinates only needed for initial layout
-			var specimenTypes = sp._uniqueSpecimenTypes(data);
-			var tempCoords = sp._computeTempCoordinates(specimenTypes);
+			sp._specimenTypes = sp._uniqueSpecimenTypes(data);
+			var tempCoords = sp._computeTempCoordinates();
 
 			// Compute coordinates that we will need for initial layout and updates
 			sp._xAxisWidth = tempCoords.plotWidth - tempCoords.xAxisX - sp.padding.track;
@@ -89,9 +92,9 @@ var sp = {
 					+ (sp.margin.top + sp.border) + ")");
 			
 			// Add plot sections
-			sp._layoutPlot(chart, tempCoords, specimenTypes);
+			sp._layoutPlot(chart, tempCoords);
 			sp._layoutXAxis(chart, tempCoords);
-			sp._layoutLegend(chart, specimenTypes, tempCoords);
+			sp._layoutLegend(chart, tempCoords);
 			
 			// Initialize x-axis and position data points
 			sp._updateXAxis();
@@ -133,19 +136,17 @@ var sp = {
 	/*
 	 * Compute "temporary" coordinates only needed for initial layout.
 	 */
-	_computeTempCoordinates: function(specimenTypes) {
+	_computeTempCoordinates: function() {
 		var visitLabelBBox = sp._getBBox("T", "visit-label");
 		var coords = {
 			plotWidth: d3.select("#svgMain").attr("width") - sp.margin.left
 				- sp.margin.right - 2 * sp.border,
 			visitLabelWidth: visitLabelBBox.width,
-			visitLabelHeight: visitLabelBBox.height,
 			plotHeight: 0,
 			trackHeight: [],
 			trackY: [],
 			trackLabelWidth: 0,
 			trackLabelHeight: 0,
-			labelContainerHeight: 0,
 			xAxisX: 0,
 			xAxisLabelHeight: sp._getBBox("Date", "axis-label").height,
 			xAxisHeight: 0,
@@ -156,6 +157,8 @@ var sp = {
 			legendContentHeight: 0,
 			legendHeight: 0
 		};
+		
+		sp._visitLabelHeight = visitLabelBBox.height;
 		
 		// Track label
 		for (var i = 0; i < sp._data.length; i++) {
@@ -169,12 +172,12 @@ var sp = {
 		}
 		
 		// Track label container
-		coords.labelContainerHeight = coords.trackLabelHeight + sp.size.multiSelectBox
+		sp._labelContainerHeight = coords.trackLabelHeight + sp.size.multiSelectBox
 			+ sp.padding.track * 2 + sp.padding.multiSelectBox;
 		
 		// x-axis
-		var multiSelectContainerWidth = (specimenTypes.length + 1) * sp.size.multiSelectBox +
-			specimenTypes.length * sp.padding.multiSelectBox;
+		var multiSelectContainerWidth = (sp._specimenTypes.length + 1) * sp.size.multiSelectBox +
+			sp._specimenTypes.length * sp.padding.multiSelectBox;
 		var trackLabelContainerWidth = multiSelectContainerWidth;
 		if (coords.visitLabelWidth > trackLabelContainerWidth) {
 			trackLabelContainerWidth = coords.visitLabelWidth;
@@ -188,8 +191,8 @@ var sp = {
 				coords.plotHeight += sp.border;
 			}
 			coords.trackY.push(coords.plotHeight);
-			var height = sp._computeTrackHeight(sp._data[i], coords.visitLabelHeight,
-				coords.labelContainerHeight);
+			var height = sp._computeTrackHeight(sp._data[i], sp._visitLabelHeight,
+				sp._labelContainerHeight);
 			coords.trackHeight.push(height);
 			coords.plotHeight += height;
 		}
@@ -238,7 +241,7 @@ var sp = {
 	/*
 	 * Layout plotting area of chart.
 	 */
-	_layoutPlot: function(chart, tempCoords, specimenTypes) {
+	_layoutPlot: function(chart, tempCoords) {
 
 		// Add container for plotting section
 		var plot = chart.append("g")
@@ -254,13 +257,13 @@ var sp = {
 			.attr("height", tempCoords.plotHeight);
 			
 		// Layout tracks
-		sp._layoutTracks(plot, tempCoords, specimenTypes);
+		sp._layoutTracks(plot, tempCoords);
 	},
 	
 	/*
 	 * Lay out individual data tracks, one per subject.
 	 */
-	_layoutTracks: function(plot, tempCoords, specimenTypes) {
+	_layoutTracks: function(plot, tempCoords) {
 			
 		// Add track containers
 		var tracks = plot.selectAll("g.track-container")
@@ -282,7 +285,7 @@ var sp = {
 			.attr("height", function(subject, i) {return tempCoords.trackHeight[i];});
 			
 		// Add track label sections
-		sp._layoutTrackLabelSections(tracks, tempCoords, specimenTypes);
+		sp._layoutTrackLabelSections(tracks, tempCoords);
 		
 		// Add track data sections
 		sp._layoutTrackDataSections(tracks, tempCoords);
@@ -291,14 +294,14 @@ var sp = {
 	/*
 	 * Layout left-most track area containing subject names and multi-select boxes.
 	 */
-	_layoutTrackLabelSections: function(tracks, tempCoords, specimenTypes) {
+	_layoutTrackLabelSections: function(tracks, tempCoords) {
 	
 		// Overall container
 		var labelContainers = tracks.append("g")
 			.attr("class", "label-container")
 			.attr("transform", function(visit, i) {
 				return "translate(" + sp.padding.track + ","
-					+ (tempCoords.trackHeight[i] / 2 - tempCoords.labelContainerHeight / 2) + ")";
+					+ (tempCoords.trackHeight[i] / 2 - sp._labelContainerHeight / 2) + ")";
 			});
 			
 		// Subject name
@@ -324,7 +327,7 @@ var sp = {
 				
 		// Specimen type-specific multi-selectors
 		multiSelectContainers.selectAll("rect")
-			.data(specimenTypes)
+			.data(sp._specimenTypes)
 			.enter()
 			.append("rect")
 			.attr("class", function(specimenType) {return specimenType;})
@@ -357,7 +360,7 @@ var sp = {
 				var n = visit.specimens.length;
 				var stackHeight = n * sp.size.dataPoint + (n - 1) * sp.padding.dataPoint;
 				if (visit.type == "surgery") {
-					stackHeight += tempCoords.visitLabelHeight + sp.padding.dataPoint;
+					stackHeight += sp._visitLabelHeight + sp.padding.dataPoint;
 				}
 				visit.y = -stackHeight / 2;
 				return "translate(0, " + visit.y + ")";
@@ -374,7 +377,7 @@ var sp = {
 			.attr("class", "visit-label")
 			.attr("x", sp.size.dataPoint / 2)
 			.attr("y", function(visit, i) {
-				var y = tempCoords.visitLabelHeight;
+				var y = sp._visitLabelHeight;
 				for (var i = 0; i < visit.specimens.length; i++) {
 					if (!sp._hideList[visit.specimens[i].type]) {
 						y += sp.size.dataPoint + sp.padding.dataPoint;
@@ -444,18 +447,18 @@ var sp = {
 	/*
 	 * Lay out legend components.
 	 */
-	_layoutLegend: function(chart, specimenTypes, tempCoords) {
+	_layoutLegend: function(chart, tempCoords) {
 		
 		// Compute legend width and placement of select boxes
 		var boxX = [];
 		var width = sp.padding.legend;
-		for (var i = 0; i < specimenTypes.length; i++) {
+		for (var i = 0; i < sp._specimenTypes.length; i++) {
 			if (i > 0) {
 				width += sp.padding.legendSelectBox_left;
 			}
 			boxX.push(width);
 			width += sp.size.legendSelectBox + sp.padding.legendSelectBox_right +
-				sp._getBBox(specimenTypes[i], "legend").width;
+				sp._getBBox(sp._specimenTypes[i], "legend").width;
 		}
 		width += sp.padding.legend;
 		
@@ -476,7 +479,7 @@ var sp = {
 			
 		// Add out container for select boxes, text, and link
 		var selectContainers = legendContainer.selectAll("g.legend-select-container")
-			.data(specimenTypes)
+			.data(sp._specimenTypes)
 			.enter()
 			.append("g")
 			.attr("class", "legend-select-container")
@@ -750,6 +753,15 @@ var sp = {
 		}
 		var visitContainers = d3.selectAll("g.visit-container");
 		sp._layoutDataPoints(visitContainers);
+		sp._updateYCoords();
+	},
+	
+	/*
+	 * Update y-coordinates of tracks, data points, x-axis, and legend after a sample type
+	 * has been hidden or un-hidden.
+	 */
+	_updateYCoords() {
+		var tempCoords = sp._computeTempCoordinates();
 	},
 	
 	/*
