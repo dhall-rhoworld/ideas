@@ -381,7 +381,7 @@ var sp = {
 			.attr("y", function(visit, i) {
 				return visit.specimens.length * (sp.size.dataPoint
 					+ sp.padding.dataPoint) + tempCoords.visitLabelHeight;
-			});	
+			});
 	},
 	
 	/*
@@ -444,7 +444,7 @@ var sp = {
 			.attr("width", width)
 			.attr("height", tempCoords.legendHeight);
 			
-		// Add contains for select boxes, text, and link
+		// Add out container for select boxes, text, and link
 		var selectContainers = legendContainer.selectAll("g.legend-select-container")
 			.data(specimenTypes)
 			.enter()
@@ -456,8 +456,12 @@ var sp = {
 				return translate;
 			});
 			
+		// Add inner container for rect and text
+		var innerContainers = selectContainers.append("g")
+			.attr("class", "legend-select-inner-container");
+			
 		// Add select boxes
-		selectContainers.append("rect")
+		innerContainers.append("rect")
 			.attr("class", function(specimenType) {return specimenType;})
 			.attr("x", 0)
 			.attr("y", 0)
@@ -466,7 +470,7 @@ var sp = {
 			.on("click", function(specimenType) {sp._toggleLegendMultiSelect(specimenType, this);});
 			
 		// Add text
-		selectContainers.append("text")
+		innerContainers.append("text")
 			.text(function(specimenType){return specimenType;})
 			.attr("class", "legend")
 			.attr("x", sp.size.legendSelectBox + sp.padding.legendSelectBox_right)
@@ -478,7 +482,8 @@ var sp = {
 			.attr("class", "legend-link")
 			.attr("x", sp.size.legendSelectBox / 2)
 			.attr("y", tempCoords.legendFirstLineHeight + sp.padding.legendSelectBox_bottom
-				+ tempCoords.legendLinkHeight);
+				+ tempCoords.legendLinkHeight)
+			.on("click", function(specimen) {sp._toggleShowHideSampleType(specimen, this);});
 	},
 	
 	/*
@@ -681,7 +686,26 @@ var sp = {
 		}
 	},
 	
-
+	/*
+	 * Toggle whether to show or hide a type of sample.
+	 */
+	_toggleShowHideSampleType: function(specimenType, text) {
+		if (text.textContent == "hide") {
+			text.textContent = "show";
+			d3.select(text.parentNode).select("g")
+				.attr("class", "legend-select-inner-container-disabled");
+			d3.select(text.parentNode).select("rect")
+				.on("click", function() {});
+		}
+		else {
+			text.textContent = "hide";
+			d3.select(text.parentNode).select("g")
+				.attr("class", "legend-select-inner-container");
+			d3.select(text.parentNode).select("rect")
+				.on("click", function(specimenType) {sp._toggleLegendMultiSelect(specimenType, this);});
+		}
+	},
+	
 	/*
 	 * Set time in days since/till the anchor visit.
 	 */

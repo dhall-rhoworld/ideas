@@ -93,6 +93,13 @@ rect.biopsy-selected {
 	cursor: pointer;
 }
 
+.legend-select-inner-container-disabled {
+	fill: gray;
+	stroke: gray;
+	cursor: auto;
+	opacity: 0.3;
+}
+
 text.subject-label {
     font-size: 10pt;
 }
