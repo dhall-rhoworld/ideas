@@ -444,14 +444,14 @@ var sp = {
 			.attr("width", width)
 			.attr("height", tempCoords.legendHeight);
 			
-		// Add contains for select boxes and text
+		// Add contains for select boxes, text, and link
 		var selectContainers = legendContainer.selectAll("g.legend-select-container")
 			.data(specimenTypes)
 			.enter()
 			.append("g")
 			.attr("class", "legend-select-container")
 			.attr("transform", function(specimenType, i) {
-				var y = tempCoords.legendHeight / 2;
+				var y = tempCoords.legendHeight / 2 - tempCoords.legendContentHeight / 2;
 				var translate = "translate(" + boxX[i] + ", " + y + ")";
 				return translate;
 			});
@@ -460,7 +460,7 @@ var sp = {
 		selectContainers.append("rect")
 			.attr("class", function(specimenType) {return specimenType;})
 			.attr("x", 0)
-			.attr("y", -sp.size.legendSelectBox / 2)
+			.attr("y", 0)
 			.attr("width", sp.size.legendSelectBox)
 			.attr("height", sp.size.legendSelectBox)
 			.on("click", function(specimenType) {sp._toggleLegendMultiSelect(specimenType, this);});
@@ -470,13 +470,15 @@ var sp = {
 			.text(function(specimenType){return specimenType;})
 			.attr("class", "legend")
 			.attr("x", sp.size.legendSelectBox + sp.padding.legendSelectBox_right)
-			.attr("y", tempCoords.legendTextHeight / 2);
-			
+			.attr("y", tempCoords.legendTextHeight);
+		
+		// Add link
 		selectContainers.append("text")
 			.text("hide")
 			.attr("class", "legend-link")
 			.attr("x", sp.size.legendSelectBox / 2)
-			.attr("y", tempCoords.legendHeight / 2 - 2);
+			.attr("y", tempCoords.legendFirstLineHeight + sp.padding.legendSelectBox_bottom
+				+ tempCoords.legendLinkHeight);
 	},
 	
 	/*
@@ -678,6 +680,7 @@ var sp = {
 			});
 		}
 	},
+	
 
 	/*
 	 * Set time in days since/till the anchor visit.

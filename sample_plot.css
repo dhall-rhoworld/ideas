@@ -1,5 +1,6 @@
 .plot-bg {
 	fill: #cccccc;
+	cursor: crosshair;
 }
 
 text.invisible {
@@ -8,6 +9,7 @@ text.invisible {
 
 .track-bg {
 	fill: white;
+	cursor: crosshair;
 }
 
 line {
@@ -25,60 +27,70 @@ rect.blood {
 	fill: white;
     stroke: red;
     stroke-width: 2;
+	cursor: pointer;
 }
 
 rect.blood-selected {
 	fill: red;
     stroke: red;
     stroke-width: 2;
+	cursor: pointer;
 }
 
 rect.all-specimen-types {
 	fill: white;
     stroke: black;
     stroke-width: 2;
+	cursor: pointer;
 }
 
 rect.all-specimen-types-selected {
 	fill: black;
     stroke: black;
     stroke-width: 2;
+	cursor: pointer;
 }
 
 rect.RNA {
 	fill: white;
     stroke: green;
     stroke-width: 2;
+	cursor: pointer;
 }
 
 rect.RNA-selected {
 	fill: green;
     stroke: green;
     stroke-width: 2;
+	cursor: pointer;
 }
 
 rect.DNA {
 	fill: white;
 	stroke: orange;
 	stroke-width: 2;
+	cursor: pointer;
 }
 
 rect.DNA-selected {
 	fill: orange;
 	stroke: orange;
 	stroke-width: 2;
+	cursor: pointer;
 }
 
 rect.biopsy {
 	fill: white;
 	stroke: blue;
 	stroke-width: 2;
+	cursor: pointer;
 }
 
 rect.biopsy-selected {
 	fill: blue;
 	stroke: blue;
 	stroke-width: 2;
+	cursor: pointer;
 }
 
 text.subject-label {
@@ -103,6 +115,7 @@ text.legend {
 text.legend-link {
 	font-size: 11pt;
 	fill: blue;
+	cursor: pointer;
 }
 
 .axis text {
