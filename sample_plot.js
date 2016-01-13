@@ -3,7 +3,7 @@ var sp = {
 	// Public attributes
 	margin: {top: 20, right: 20, bottom: 20, left: 20},
 	border: 5,
-	size: {dataPoint: 10, multiSelectBox: 10, legendSelectBox: 15},
+	size: {dataPoint: 8, multiSelectBox: 10, legendSelectBox: 15},
 	padding: {track: 5, multiSelectBox: 3, dataPoint: 3, axis: 10, legend: 15,
 		legendSelectBox_left: 20, legendSelectBox_right: 5, legendSelectBox_bottom: 5},
 	
@@ -56,9 +56,10 @@ var sp = {
 	 * @param {string} divId - ID of DIV element to contain viewer.
 	 * @param {string} dataUrl - URL to fetch data.
 	 * @param {int} width - Width of viewer in pixels.
+	 * @param {int} maxHeight - Maximum height of viewer in pixels.
 	 * @param {string} anchor - The string "date" or a visit type to anchor timeline.
 	 */
-	render: function(divId, dataUrl, width, anchor) {
+	render: function(divId, dataUrl, width, maxHeight, anchor) {
 		sp._anchor = anchor;
 		
 		// Retrieve data and lay out chart
@@ -74,7 +75,9 @@ var sp = {
 			sp._data = data;
 
 			// Create SVG canvas
-			var svg = d3.select(divId)
+			var div = d3.select(divId)
+				.attr("style", "position: relative; overflow-x: hidden; overflow-y: scroll; width: " + width + "px; height: " + maxHeight + "px");
+			var svg = div
 				.append("svg")
 				.attr("id", "svgMain")
 				.attr("width", width);
