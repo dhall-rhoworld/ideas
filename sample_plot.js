@@ -74,12 +74,18 @@ var sp = {
 			// Save data for later
 			sp._data = data;
 
-			// Create SVG canvas
-			var div = d3.select(divId)
-				.attr("style", "position: relative; overflow-x: hidden; overflow-y: scroll; width: " + width + "px; height: " + maxHeight + "px");
-			var svg = div
+			// Create SVG canvases
+			var divMain = d3.select(divId)
+				.append("div");
+			var svgMain = divMain
 				.append("svg")
 				.attr("id", "svgMain")
+				.attr("width", width);
+			var divBottom = d3.select(divId)
+				.append("div");
+			var svgBottom = divBottom
+				.append("svg")
+				.attr("id", "svgBottom")
 				.attr("width", width);
 
 			// Compute coordinates only needed for initial layout
@@ -90,7 +96,7 @@ var sp = {
 			sp._xAxisWidth = tempCoords.plotWidth - tempCoords.xAxisX - sp.padding.track;
 			
 			// Create overall container for chart
-			var chart = svg.append("g")
+			var chart = svgMain.append("g")
 				.attr("id", "chart-container")
 				.attr("transform", "translate(" + (sp.margin.left + sp.border) + ", "
 					+ (sp.margin.top + sp.border) + ")");
@@ -102,6 +108,9 @@ var sp = {
 			
 			// Initialize x-axis and position data points
 			sp._updateXAxis();
+			
+			divMain.attr("style", "position: relative; overflow-x: hidden; overflow-y: scroll; width: "
+				+ width + "px; height: " + maxHeight + "px");
 
 			// Set svg canvas height
 			var height = 
@@ -114,7 +123,7 @@ var sp = {
 				+ tempCoords.legendHeight
 				+ sp.border
 				+ sp.margin.bottom;
-			svg.attr("height", height);
+			svgMain.attr("height", height);
 		});
 	},
 	
