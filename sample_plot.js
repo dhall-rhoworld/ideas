@@ -73,16 +73,29 @@ var sp = {
 			
 			// Save data for later
 			sp._data = data;
-
-			// Create SVG canvases
+			
+			// Create DIVs to hold individual SVGs
+			var divTop = d3.select(divId)
+				.append("div");
 			var divMain = d3.select(divId)
 				.append("div");
+			var divBottom = d3.select(divId)
+				.append("div");
+
+			// Top SVG simply provides an invisible border
+			var svgTop = divTop
+				.append("svg")
+				.attr("id", "svgTop")
+				.attr("height", sp.border)
+				.attr("width", width);
+				
+			// Main SVG is where data are plotted
 			var svgMain = divMain
 				.append("svg")
 				.attr("id", "svgMain")
 				.attr("width", width);
-			var divBottom = d3.select(divId)
-				.append("div");
+				
+			// Bottom SVG is where the axis and legend are drawn
 			var svgBottom = divBottom
 				.append("svg")
 				.attr("id", "svgBottom")
@@ -99,7 +112,7 @@ var sp = {
 			var chart = svgMain.append("g")
 				.attr("id", "chart-container")
 				.attr("transform", "translate(" + (sp.margin.left + sp.border) + ", "
-					+ (sp.margin.top + sp.border) + ")");
+					+ sp.margin.top + ")");
 			
 			// Add plot sections
 			sp._layoutPlot(chart, tempCoords);
