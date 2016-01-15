@@ -86,7 +86,7 @@ var sp = {
 			var svgTop = divTop
 				.append("svg")
 				.attr("id", "svgTop")
-				.attr("height", sp.border)
+				.attr("height", (sp.margin.top + sp.border))
 				.attr("width", width);
 				
 			// Main SVG is where data are plotted
@@ -116,8 +116,8 @@ var sp = {
 			
 			// Add plot sections
 			sp._layoutPlot(chart, tempCoords);
-			sp._layoutXAxis(chart, tempCoords);
-			sp._layoutLegend(chart, tempCoords);
+			sp._layoutXAxis(svgBottom, tempCoords);
+			sp._layoutLegend(svgBottom, tempCoords);
 			
 			// Initialize x-axis and position data points
 			sp._updateXAxis();
@@ -126,17 +126,7 @@ var sp = {
 				+ width + "px; height: " + maxHeight + "px");
 
 			// Set svg canvas height
-			var height = 
-				sp.margin.top
-				+ sp.border
-				+ tempCoords.plotHeight
-				+ sp.border
-				+ tempCoords.xAxisSectionHeight
-				+ sp.border
-				+ tempCoords.legendHeight
-				+ sp.border
-				+ sp.margin.bottom;
-			svgMain.attr("height", height);
+			svgMain.attr("height", tempCoords.plotHeight);
 		});
 	},
 	
@@ -454,7 +444,7 @@ var sp = {
 		// Overall container
 		var axisContainer = chart.append("g")
 			.attr("id", "axis-container")
-			.attr("transform", "translate(" + tempCoords.xAxisX + ", " + (tempCoords.plotHeight + sp.border) + ")");
+			.attr("transform", "translate(" + tempCoords.xAxisX + ", " + sp.border + ")");
 			
 		// Axis
 		sp._xAxis = d3.svg.axis().orient("bottom");
@@ -493,7 +483,8 @@ var sp = {
 		
 		// Add overall container for legend
 		var x = tempCoords.xAxisX + sp._xAxisWidth / 2 - sp._legendWidth / 2;
-		var y = tempCoords.plotHeight + sp.border + tempCoords.xAxisSectionHeight + sp.border;
+		//var y = tempCoords.plotHeight + sp.border + tempCoords.xAxisSectionHeight + sp.border;
+		var y = sp.border + tempCoords.xAxisSectionHeight + sp.border;
 		var legendContainer = chart.append("g")
 			.attr("id", "legend-container")
 			.attr("transform", "translate(" + x + ", " + y + ")");
