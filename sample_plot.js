@@ -89,7 +89,7 @@ var sp = {
 				.attr("height", (sp.margin.top + sp.border))
 				.attr("width", width);
 				
-			// Main SVG is where data are plotted
+			// Main SVG is where data are plotted.  It is scrollable.
 			var svgMain = divMain
 				.append("svg")
 				.attr("id", "svgMain")
@@ -111,8 +111,7 @@ var sp = {
 			// Create overall container for chart
 			var chart = svgMain.append("g")
 				.attr("id", "chart-container")
-				.attr("transform", "translate(" + (sp.margin.left + sp.border) + ", "
-					+ sp.margin.top + ")");
+				.attr("transform", "translate(" + (sp.margin.left + sp.border) + ", 0");
 			
 			// Add plot sections
 			sp._layoutPlot(chart, tempCoords);
