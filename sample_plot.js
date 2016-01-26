@@ -111,6 +111,8 @@ var sp = {
 			// Save data for later
 			sp._data = data;
 			
+			sp._renderTopSvg(divId, width);
+			
 			// Create DIVs to hold individual SVGs
 			var divMain = d3.select(divId)
 				.append("div");
@@ -154,7 +156,7 @@ var sp = {
 
 			// Set svg canvas height
 			svgMain.attr("height", tempCoords.plotHeight);
-			svgBottom.attr("height", tempCoords.xAxisSectionHeight + legendHeight
+			svgBottom.attr("height", tempCoords.xAxisSectionHeight + tempCoords.legendHeight
 				+ 3 * sp.border + sp.margin.bottom);
 		});
 	},
@@ -178,7 +180,7 @@ var sp = {
 			.text("Cause: " + message);
 	},
 	
-	_renderTopSvg(divId) {
+	_renderTopSvg(divId, width) {
 		d3.select(divId)
 			.append("div")
 			.append("svg")
