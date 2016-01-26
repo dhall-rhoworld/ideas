@@ -194,14 +194,13 @@ var sp = {
 	 */
 	_computeTempCoordinates: function() {
 		var visitLabelBBox = sp._getBBox("T", "visit-label");
+		var trackLabelWidth = 0;
 		var coords = {
 			plotWidth: d3.select("#svgMain").attr("width") - sp.margin.left
 				- sp.margin.right - 2 * sp.border,
-			visitLabelWidth: visitLabelBBox.width,
 			plotHeight: 0,
 			trackHeight: [],
 			trackY: [],
-			trackLabelWidth: 0,
 			trackLabelHeight: 0,
 			xAxisX: 0,
 			xAxisLabelHeight: sp._getBBox("Date", "axis-label").height,
@@ -219,8 +218,8 @@ var sp = {
 		// Track label
 		for (var i = 0; i < sp._data.length; i++) {
 			var bbox = sp._getBBox(sp._data[i].subject_id, "subject-label");
-			if (bbox.width > coords.trackLabelWidth) {
-				coords.trackLabelWidth = bbox.width;
+			if (bbox.width > trackLabelWidth) {
+				trackLabelWidth = bbox.width;
 			}
 			if (bbox.height > coords.trackLabelHeight) {
 				coords.trackLabelHeight = bbox.height;
@@ -235,8 +234,8 @@ var sp = {
 		var multiSelectContainerWidth = (sp._specimenTypes.length + 1) * sp.size.multiSelectBox +
 			sp._specimenTypes.length * sp.padding.multiSelectBox;
 		var trackLabelContainerWidth = multiSelectContainerWidth;
-		if (coords.visitLabelWidth > trackLabelContainerWidth) {
-			trackLabelContainerWidth = coords.visitLabelWidth;
+		if (trackLabelWidth > trackLabelContainerWidth) {
+			trackLabelContainerWidth = trackLabelWidth;
 		}
 		coords.xAxisX = sp.padding.track * 2 + trackLabelContainerWidth
 			+ sp.size.dataPoint;
