@@ -840,20 +840,6 @@ var sp = {
 			.transition()
 			.duration(500)
 			.attr("height", function(subject, i) {return tempCoords.trackHeight[i];});
-			
-		// Y-axis
-		d3.select("#axis-container")
-			.transition()
-			.duration(500)
-			.attr("transform", "translate(" + tempCoords.xAxisX + ", " + (tempCoords.plotHeight + sp.border) + ")");
-	
-		// Legend
-		var x = tempCoords.xAxisX + sp._xAxisWidth / 2 - sp._legendWidth / 2;
-		var y = tempCoords.plotHeight + sp.border + tempCoords.xAxisSectionHeight + sp.border;
-		d3.select("#legend-container")
-			.transition()
-			.duration(500)
-			.attr("transform", "translate(" + x + ", " + y + ")");
 	},
 	
 	/*
