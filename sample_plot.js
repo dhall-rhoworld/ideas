@@ -1,5 +1,42 @@
 var sp = {
 
+	/*
+	
+	LAYOUT SCHEMATIC FOR MIDDLE SVG
+	
+    ---------------------------------------------------------------------------
+	| L |   | P | Padding       | Padding                         | P | B | R |
+	| e |   |   |---------------|---------------------------------|   |   |   |
+	| f |   | a | Track label   | Data points                     | a | o | i |
+	| t |   | d | Multi selects |---------------------------------| d | r | g |
+	|   | B |   |---------------| Padding                         | d | d | h |
+	| M |   |   | Padding       |---------------------------------|   |   |   |                                 
+	| a | r |-----------------------------------------------------| n | r |   |
+	| r | d |                     Border                          | g |   | m |
+	| r | e |-----------------------------------------------------|   |   | a |
+	| i |   | P | Padding       | Padding                         |   |   | g |
+	| n |   | a | Track label   | Data points                     |   |   | i |
+	|   |   | d | Multi selects | Padding                         |   |   | n |
+	|   |   |   | Padding       |                                 |   |   |   |
+	---------------------------------------------------------------------------
+	
+	LAYOUT SCHEMATIC FOR BOTTOM SVG
+	
+	---------------------------------------------------------------------------
+	| L | B | P |                Border                           | P | B | R |
+	| e | o | a |-------------------------------------------------| a | o | i |
+	| f | r | d |                Padding                          | d | r | g |
+	| t | d | d |-------------------------------------------------| d | d | h |
+	|   | e | i |                Axis                             | i | e | t |
+	| M | r | n |-------------------------------------------------| n | r |   |
+	| a |   | g |                Padding                          | g |   | M |
+	| r |   |   |-------------------------------------------------|   |   | a |
+	| g |   |   |                Border                           |   |   | r |
+	| i |   |   |-------------------------------------------------|   |   | g |
+	| n |   |   |                Padding
+	
+	*/
+
 	// Public attributes
 	margin: {top: 20, right: 20, bottom: 20, left: 20},
 	border: 5,
@@ -75,19 +112,10 @@ var sp = {
 			sp._data = data;
 			
 			// Create DIVs to hold individual SVGs
-			var divTop = d3.select(divId)
-				.append("div");
 			var divMain = d3.select(divId)
 				.append("div");
 			var divBottom = d3.select(divId)
 				.append("div");
-
-			// Top SVG simply provides an invisible border
-			var svgTop = divTop
-				.append("svg")
-				.attr("id", "svgTop")
-				.attr("height", (sp.margin.top + sp.border))
-				.attr("width", width);
 				
 			// Main SVG is where data are plotted.  It is scrollable.
 			var svgMain = divMain
@@ -126,6 +154,8 @@ var sp = {
 
 			// Set svg canvas height
 			svgMain.attr("height", tempCoords.plotHeight);
+			svgBottom.attr("height", tempCoords.xAxisSectionHeight + legendHeight
+				+ 3 * sp.border + sp.margin.bottom);
 		});
 	},
 	
@@ -146,6 +176,15 @@ var sp = {
 			.attr("class", "error-msg");
 		d3.select(divId).append("p")
 			.text("Cause: " + message);
+	},
+	
+	_renderTopSvg(divId) {
+		d3.select(divId)
+			.append("div")
+			.append("svg")
+				.attr("id", "svgTop")
+				.attr("height", (sp.margin.top + sp.border))
+				.attr("width", width);
 	},
 	
 	/*
@@ -482,7 +521,6 @@ var sp = {
 		
 		// Add overall container for legend
 		var x = tempCoords.xAxisX + sp._xAxisWidth / 2 - sp._legendWidth / 2;
-		//var y = tempCoords.plotHeight + sp.border + tempCoords.xAxisSectionHeight + sp.border;
 		var y = sp.border + tempCoords.xAxisSectionHeight + sp.border;
 		var legendContainer = chart.append("g")
 			.attr("id", "legend-container")
