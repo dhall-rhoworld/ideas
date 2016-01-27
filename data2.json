@@ -88,7 +88,10 @@
 					{"id": "13", "type": "blood"},
 					{"id": "14", "type": "RNA"},
 					{"id": "15", "type": "DNA"},
-					{"id": "16", "type": "biopsy"}
+					{"id": "16", "type": "biopsy"},
+					{"id": "100", "type": "sputum"},
+					{"id": "101", "type": "bile"},
+					{"id": "102", "type": "phlegm"}
 				]
 			}
         ]

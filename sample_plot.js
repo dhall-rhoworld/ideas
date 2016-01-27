@@ -469,7 +469,7 @@ var sp = {
 			.attr("height", sp.size.dataPoint)
 			.on("click", function(specimen) {sp._toggleSpecimenSelection(specimen, this);});
 		dataPoints.exit().remove();
-		dataPoints = visitContainer.selectAll("rect")
+		dataPoints
 			.transition()
 			.duration(500)
 			.attr("y", function(specimen, i) {return i * (sp.size.dataPoint + sp.padding.dataPoint);})
@@ -678,8 +678,6 @@ var sp = {
 		for (var i = 0; i < subject.visits.length; i++) {
 			var visit = subject.visits[i];
 			var specimens = visit.specimens;
-			//var n = visit.specimens.length;
-			//var height = n * sp.size.dataPoint + (n - 1) * sp.padding.dataPoint;
 			var height = 0;
 			var count = 0;
 			for (var j = 0; j < specimens.length; j++) {
@@ -777,14 +775,14 @@ var sp = {
 			.duration(500);
 		if (sp._anchor == "date") {
 			visits.attr("transform", function(visit) {
-				var x = sp._x(sp._parser.parse(visit.date)) - sp.size.dataPoint / 2;
-				return "translate(" + x + ", " + visit.y + ")";
+				visit.x = sp._x(sp._parser.parse(visit.date)) - sp.size.dataPoint / 2;
+				return "translate(" + visit.x + ", " + visit.y + ")";
 			});
 		}
 		else {
 			visits.attr("transform", function(visit) {
-				var x = sp._x(visit.daysSinceAnchorVisit) - sp.size.dataPoint / 2;
-				return "translate(" + x + ", " + visit.y + ")";
+				visit.x = sp._x(visit.daysSinceAnchorVisit) - sp.size.dataPoint / 2;
+				return "translate(" + visit.x + ", " + visit.y + ")";
 			});
 		}
 	},
@@ -832,7 +830,13 @@ var sp = {
 			.transition()
 			.duration(500)
 			.attr("transform", function(subject, i) {
-				return "translate(0, " + tempCoords.trackY[i] + ")";
+				return "translate(0, " + tempCoords.trackY[i] + ")"
+			});
+			
+		// Track origins
+		d3.selectAll("data-container")
+			.attr("transform", function(track, i) {
+				return "translate(" + tempCoords.xAxisX + "," + (tempCoords.trackHeight[i] / 2) + ")";
 			});
 				
 		// Track backgrounds
@@ -840,6 +844,28 @@ var sp = {
 			.transition()
 			.duration(500)
 			.attr("height", function(subject, i) {return tempCoords.trackHeight[i];});
+			
+		// Visit containers
+		d3.selectAll("g.visit-container")
+			.attr("transform", function(visit) {
+				var n = visit.specimens.length;
+				var stackHeight = 0;
+				var count = 0;
+				for (var i = 0; i < visit.specimens.length; i++) {
+					if (!sp._hideList[visit.specimens[i].type]) {
+						count++;
+						if (count > 1) {
+							stackHeight += sp.padding.dataPoint;
+						}
+						stackHeight += sp.size.dataPoint;
+					}
+				}
+				if (visit.type == "surgery") {
+					stackHeight += sp._visitLabelHeight + sp.padding.dataPoint;
+				}
+				visit.y = -stackHeight / 2;
+				return "translate(" + visit.x + ", " + visit.y + ")";
+			});
 	},
 	
 	/*
