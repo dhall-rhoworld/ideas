@@ -1,0 +1,27 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>RhoVer Home</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="/rhover.css"/>
+</head>
+<body>
+	<div class="page-header">RhoVer (Prototype)</div>
+		
+    <div id="content">
+    		<h2>Data Anomalies</h2>
+    		<table class="wide">
+    			<tr>
+    				<th>Study</th>
+    				<th>Un-Viewed Anomalies</th>
+    				<th>Total Anomalies</th>
+    			</tr>
+    			<tr th:each="study: ${studies}">
+    				<td><a href="#" th:text="${study.studyName}"/></td>
+    				<td>0</td>
+    				<td>0</td>
+    			</tr>
+    		</table>
+    </div>
+</body>
+</html>

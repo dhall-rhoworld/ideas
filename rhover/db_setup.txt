@@ -1,0 +1,11 @@
+/* MySQL root account: root@localhost/password */
+
+create database rhover;
+create user 'rhover'@'localhost' identified by 'rhover';
+grant all privileges on rhover.* to 'rhover'@'localhost';
+
+create table study (
+	study_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+	study_name VARCHAR(50),
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

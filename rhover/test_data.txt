@@ -1,0 +1,3 @@
+insert into study(study_name) values ('PROSE');
+insert into study(study_name) values ('SCITMO');
+insert into study(study_name) values ('RACR');
