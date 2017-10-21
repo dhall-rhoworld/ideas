@@ -9,3 +9,11 @@ create table study (
 	study_name VARCHAR(50),
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+create table dataset (
+	dataset_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+	dataset_name VARCHAR(50),
+	study_id BIGINT,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	foreign key(study_id) references study(study_id)
+);

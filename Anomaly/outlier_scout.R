@@ -68,11 +68,63 @@ isTrulyNumeric <- function(x, colNum) {
   ! grepl("date|month[^s]|year[^s]", colnames(x)[colNum], ignore.case = TRUE))
 }
 
+findTrulyNumericVariables <- function(x) {
+  var.is.numeric = logical(length = ncol(x))
+  for (i in 1:ncol(x)) {
+    var.is.numeric[i] <- isTrulyNumeric(x, i)
+  }
+  return (var.is.numeric)
+}
+
+loadStudyName <- function(studyName, con) {
+  sql <- sprintf("select study_id from study where study_name = '%s'", studyName)
+  rs <- dbSendQuery(con, sql)
+  result <- dbFetch(rs)
+  if (nrow(result) == 0) {
+    message("Study ", studyName, " not indatabase.  Loading.")
+    sql <- sprintf("insert into study(study_name) values('%s')", studyName)
+    dbSendQuery(con, sql)
+    studyId <- dbGetQuery(con, "select last_insert_id()")[1, 1]
+  }
+  else {
+    studyId = result[1,1]
+  }
+  return (studyId)
+}
+
+loadDataset <- function(datasetName, studyId, con) {
+  sql <- sprintf("select dataset_id from dataset where dataset_name = '%s'", datasetName)
+  rs <- dbSendQuery(con, sql)
+  result <- dbFetch(rs)
+  if (nrow(result) == 0) {
+    message("Dataset ", datasetName, " not indatabase.  Loading.")
+    sql <- sprintf("insert into dataset(dataset_name, study_id) values('%s', %d)", datasetName, studyId)
+    dbSendQuery(con, sql)
+    datasetId <- dbGetQuery(con, "select last_insert_id()")[1, 1]
+  }
+  else {
+    datasetId = result[1,1]
+  }
+  return(datasetId)
+}
+
+findAndLoadUnivariateOutliers <- function(df, studyName, formName, con) {
+  col.names = colnames(df)
+  studyId <- loadStudyName(studyName, con)
+  datasetId <- loadDataset(formName, studyId, con)
+  numericFields <- which(findTrulyNumericVariables(df))
+  total <- 0
+  for (i in numericFields) {
+    outlier.index <- findUnivariateOutliers(df, i)
+    total <- total + sum(outlier.index)
+  }
+  return(total)
+}
+
 findUnivariateOutliers <- function(x, colNum, cutoff.sd = 2) {
   m = mean(x[,colNum], na.rm = TRUE)
   deltas = abs(x[,colNum] - m)
   cutoff = cutoff.sd * sd(x[,colNum], na.rm = TRUE)
-  print(cutoff)
   return (deltas >= cutoff & !is.na(x[,colNum]))
 }
 

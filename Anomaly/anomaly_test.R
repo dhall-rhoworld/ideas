@@ -4,6 +4,7 @@ library(DMwR)
 library(spatstat)
 library(caret)
 library(lmtest)
+library(RMySQL)
 source("outlier_scout.R")
 
 # Read in vital signs data
@@ -32,6 +33,34 @@ data[findUnivariateOutliers(data, 14), 14]
 data[findUnivariateOutliers(data, 15), 15]
 data[findUnivariateOutliers(data, 20), 20]
 data[findUnivariateOutliers(data, 23), 23]
+
+con <- dbConnect(MySQL(),
+                 user="rhover", password="rhover",
+                 dbname="rhover", host="localhost")
+on.exit(dbDisconnect(con))
+
+rs <- dbSendQuery(con, "select study_name from study;")
+dat <- dbFetch(rs)
+dat
+dbClearResult(rs)
+
+query <- paste(
+  "select ds.dataset_id",
+  "from dataset ds",
+  "join study s on s.study_id = ds.study_id",
+  "where s.study_name = 'PROSE'",
+  "and ds.dataset_name = 'VSGP'"
+)
+
+rs <- dbSendQuery(con, query)
+dat <- dbFetch(rs)
+dat
+
+query <- paste(
+  "insert into dataset (dataset_name, study_id)",
+  "values('VSGP', 1)"
+)
+dbSendQuery(con, query)
 
 # Find all pairs of correlated numeric variables
 findCorrelatedVariables(data, use.var.names = TRUE)
