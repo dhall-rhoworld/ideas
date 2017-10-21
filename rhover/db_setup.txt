@@ -17,3 +17,11 @@ create table dataset (
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	foreign key(study_id) references study(study_id)
 );
+
+create table dataset_version (
+	dataset_version_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+	dataset_version_name VARCHAR(50),
+	dataset_id BIGINT,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	foreign key(dataset_id) references dataset(dataset_id)
+);

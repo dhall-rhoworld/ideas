@@ -81,7 +81,7 @@ loadStudyName <- function(studyName, con) {
   rs <- dbSendQuery(con, sql)
   result <- dbFetch(rs)
   if (nrow(result) == 0) {
-    message("Study ", studyName, " not indatabase.  Loading.")
+    message("Study ", studyName, " not in database.  Loading.")
     sql <- sprintf("insert into study(study_name) values('%s')", studyName)
     dbSendQuery(con, sql)
     studyId <- dbGetQuery(con, "select last_insert_id()")[1, 1]
@@ -97,7 +97,7 @@ loadDataset <- function(datasetName, studyId, con) {
   rs <- dbSendQuery(con, sql)
   result <- dbFetch(rs)
   if (nrow(result) == 0) {
-    message("Dataset ", datasetName, " not indatabase.  Loading.")
+    message("Dataset ", datasetName, " not in database.  Loading.")
     sql <- sprintf("insert into dataset(dataset_name, study_id) values('%s', %d)", datasetName, studyId)
     dbSendQuery(con, sql)
     datasetId <- dbGetQuery(con, "select last_insert_id()")[1, 1]
@@ -108,10 +108,27 @@ loadDataset <- function(datasetName, studyId, con) {
   return(datasetId)
 }
 
-findAndLoadUnivariateOutliers <- function(df, studyName, formName, con) {
+loadDatasetVersion <- function(datasetVersionName, datasetId, con) {
+  sql <- sprintf("select dataset_version_id from dataset_version where dataset_version_name = '%s'", datasetVersionName)
+  rs <- dbSendQuery(con, sql)
+  result <- dbFetch(rs)
+  if (nrow(result) == 0) {
+    message("Dataset version ", datasetVersionName, " not indatabase.  Loading.")
+    sql <- sprintf("insert into dataset_version(dataset_version_name, dataset_id) values('%s', %d)", datasetVersionName, datasetId)
+    dbSendQuery(con, sql)
+    datasetVersionId <- dbGetQuery(con, "select last_insert_id()")[1, 1]
+  }
+  else {
+    datasetVersionId = result[1,1]
+  }
+  return(datasetVersionId)
+}
+
+findAndLoadUnivariateOutliers <- function(df, studyName, formName, datasetVersionName, con) {
   col.names = colnames(df)
   studyId <- loadStudyName(studyName, con)
   datasetId <- loadDataset(formName, studyId, con)
+  datasetVersionId <- loadDatasetVersion(datasetVersionName, datasetId, con)
   numericFields <- which(findTrulyNumericVariables(df))
   total <- 0
   for (i in numericFields) {

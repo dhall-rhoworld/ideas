@@ -62,6 +62,8 @@ query <- paste(
 )
 dbSendQuery(con, query)
 
+file.info(path)
+
 # Find all pairs of correlated numeric variables
 findCorrelatedVariables(data, use.var.names = TRUE)
 
