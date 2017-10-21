@@ -24,6 +24,15 @@ for (i in 1:num.labels) {
 }
 colnames(data) = gsub(" ", "_", labels)
 
+source("outlier_scout.R")
+data[findUnivariateOutliers(data, 11), 11]
+data[findUnivariateOutliers(data, 12), 12]
+data[findUnivariateOutliers(data, 13), 13]
+data[findUnivariateOutliers(data, 14), 14]
+data[findUnivariateOutliers(data, 15), 15]
+data[findUnivariateOutliers(data, 20), 20]
+data[findUnivariateOutliers(data, 23), 23]
+
 # Find all pairs of correlated numeric variables
 findCorrelatedVariables(data, use.var.names = TRUE)
 

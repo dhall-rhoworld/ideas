@@ -68,10 +68,12 @@ isTrulyNumeric <- function(x, colNum) {
   ! grepl("date|month[^s]|year[^s]", colnames(x)[colNum], ignore.case = TRUE))
 }
 
-findUnivariateOutliers <- function(x, colNum) {
-  
-  v = na.omit(x[,colNum])
-  
+findUnivariateOutliers <- function(x, colNum, cutoff.sd = 2) {
+  m = mean(x[,colNum], na.rm = TRUE)
+  deltas = abs(x[,colNum] - m)
+  cutoff = cutoff.sd * sd(x[,colNum], na.rm = TRUE)
+  print(cutoff)
+  return (deltas >= cutoff & !is.na(x[,colNum]))
 }
 
 findBivariateOutliers <- function(x, col1, col2, cutoff.residual = 2, cutoff.density = 8) {
