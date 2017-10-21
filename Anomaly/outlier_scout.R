@@ -131,11 +131,46 @@ findAndLoadUnivariateOutliers <- function(df, studyName, formName, datasetVersio
   datasetVersionId <- loadDatasetVersion(datasetVersionName, datasetId, con)
   numericFields <- which(findTrulyNumericVariables(df))
   total <- 0
+  totalExisting <- 0
+  totalNew <- 0
   for (i in numericFields) {
+    fieldName <- col.names[i]
     outlier.index <- findUnivariateOutliers(df, i)
-    total <- total + sum(outlier.index)
+    outliers <- which(outlier.index)
+    for (j in outliers) {
+      total <- total + 1
+      recruitId <- df[j, "RecruitID"]
+      event <- df[j, "event"]
+      fieldValue <- df[j, i]
+      sql <- paste(
+        "select outlier_id ",
+        "from outlier ",
+        "where dataset_id = ", datasetId, " ",
+        "and field_name = '", fieldName, "' ",
+        "and field_value = '", fieldValue, "' ",
+        "and recruit_id = '", recruitId, "' ",
+        "and event = '", event, "'",
+        sep = ""
+      )
+      rs <- dbSendQuery(con, sql)
+      result <- dbFetch(rs)
+      if (nrow(result) == 0) {
+        totalNew <- totalNew + 1
+        sql <- paste(
+          "insert into outlier(dataset_id, field_name, field_value, recruit_id, event, version_first_seen_in, version_last_seen_in) ",
+          "values(", datasetId, ", '", fieldName, "', '", fieldValue, "', '", recruitId, "', '",
+          event, "', ", datasetVersionId, ", ", datasetVersionId, ")",
+          sep = ""
+        )
+        dbSendQuery(con, sql)
+      }
+      else {
+        totalExisting <- totalExisting + 1
+      }
+    }
+    break
   }
-  return(total)
+  return(list(c(total_outliers = total, new_outliers = totalNew, exising_outliers = totalExisting)))
 }
 
 findUnivariateOutliers <- function(x, colNum, cutoff.sd = 2) {
