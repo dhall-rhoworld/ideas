@@ -64,7 +64,7 @@ isTrulyNumeric <- function(x, colNum) {
   # Returns:
   #   TRUE/FALSE
   
-  return(is.numeric(x[,colNum]) &&
+  return(is.numeric(x[,colNum]) && length(unique(x[, colNum])) > 25 &&
   ! grepl("date|month[^s]|year[^s]", colnames(x)[colNum], ignore.case = TRUE))
 }
 
@@ -134,6 +134,7 @@ findAndLoadUnivariateOutliers <- function(df, studyName, formName, datasetVersio
   totalExisting <- 0
   totalNew <- 0
   for (i in numericFields) {
+    message("Processing field: ", col.names[i])
     fieldName <- col.names[i]
     outlier.index <- findUnivariateOutliers(df, i)
     outliers <- which(outlier.index)
@@ -166,9 +167,11 @@ findAndLoadUnivariateOutliers <- function(df, studyName, formName, datasetVersio
       }
       else {
         totalExisting <- totalExisting + 1
+        outlierId = result[1, 1]
+        sql <- sprintf("update outlier set version_last_seen_in = %d where outlier_id = %d", datasetVersionId, outlierId);
+        dbSendQuery(con, sql)
       }
     }
-    break
   }
   return(list(c(total_outliers = total, new_outliers = totalNew, exising_outliers = totalExisting)))
 }

@@ -28,13 +28,14 @@ create table dataset_version (
 
 create table outlier (
 	outlier_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-	field_name VARCHAR(100),
+	field_name VARCHAR(200),
 	field_value VARCHAR(100),
 	dataset_id BIGINT,
 	version_first_seen_in BIGINT,
 	version_last_seen_in BIGINT,
 	recruit_id VARCHAR(100),
 	event VARCHAR(100),
+	has_been_viewed TINYINT DEFAULT 0,
 	foreign key(dataset_id) references dataset(dataset_id),
 	foreign key(version_first_seen_in) references dataset_version(dataset_version_id),
 	foreign key(version_last_seen_in) references dataset_version(dataset_version_id)
