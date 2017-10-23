@@ -1,0 +1,24 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>RhoVer Anomaly Chart</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="/rhover.css"/>
+</head>
+<body>
+	<div class="page-header">RhoVer (Prototype)</div>
+		
+    <div id="content">
+    		<h2><span th:text="${data_field_name}"/> Anomalies</h2>
+    		
+    </div>
+</body>
+<script th:inline="javascript">
+	/*<![CDATA[*/
+	
+	const study_data = [[${study_data}]];
+	alert(message);
+	
+	/*]]>*/
+</script>
+</html>
