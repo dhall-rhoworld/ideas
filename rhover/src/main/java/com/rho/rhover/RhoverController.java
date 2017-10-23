@@ -6,13 +6,14 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.rho.rhover.study.AnomalyCountGenerator;
 import com.rho.rhover.study.StudyRepository;
 
 @Controller
 public class RhoverController {
 	
 	@Autowired
-	private StudyRepository studyRepository;
+	private AnomalyCountGenerator anomalyCountGenerator;
 
     @RequestMapping("/greeting")
     public String greeting(@RequestParam(value="name", required=false, defaultValue="World") String name, Model model) {
@@ -22,7 +23,7 @@ public class RhoverController {
 
     @RequestMapping("/home")
     public String home(Model model) {
-    		model.addAttribute("studies", studyRepository.findAll());
+    		model.addAttribute("counts", anomalyCountGenerator.getStudyCounts());
     		return "home";
     }
 }

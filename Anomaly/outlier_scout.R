@@ -124,6 +124,23 @@ loadDatasetVersion <- function(datasetVersionName, datasetId, con) {
   return(datasetVersionId)
 }
 
+loadDataField <- function(dataFieldName, datasetId, con) {
+  sql <- sprintf("select data_field_id from data_field where data_field_name = '%s' and dataset_id = %d",
+                 dataFieldName, datasetId)
+  rs <- dbSendQuery(con, sql)
+  result <- dbFetch(rs)
+  if (nrow(result) == 0) {
+    message("Data field ", dataFieldName, " not in database.  Loading.")
+    sql <- sprintf("insert into data_field(data_field_name, dataset_id) values('%s', %d)", dataFieldName, datasetId)
+    dbSendQuery(con, sql)
+    dataFieldId <- dbGetQuery(con, "select last_insert_id()")[1, 1]
+  }
+  else {
+    dataFieldId = result[1,1]
+  }
+  return(dataFieldId)
+}
+
 findAndLoadUnivariateOutliers <- function(df, studyName, formName, datasetVersionName, con) {
   col.names = colnames(df)
   studyId <- loadStudyName(studyName, con)
@@ -136,6 +153,7 @@ findAndLoadUnivariateOutliers <- function(df, studyName, formName, datasetVersio
   for (i in numericFields) {
     message("Processing field: ", col.names[i])
     fieldName <- col.names[i]
+    dataFieldId <- loadDataField(fieldName, datasetId, con)
     outlier.index <- findUnivariateOutliers(df, i)
     outliers <- which(outlier.index)
     for (j in outliers) {
@@ -144,10 +162,9 @@ findAndLoadUnivariateOutliers <- function(df, studyName, formName, datasetVersio
       event <- df[j, "event"]
       fieldValue <- df[j, i]
       sql <- paste(
-        "select outlier_id ",
-        "from outlier ",
-        "where dataset_id = ", datasetId, " ",
-        "and field_name = '", fieldName, "' ",
+        "select anomaly_id ",
+        "from anomaly ",
+        "where data_field_id = ", dataFieldId, " ",
         "and field_value = '", fieldValue, "' ",
         "and recruit_id = '", recruitId, "' ",
         "and event = '", event, "'",
@@ -158,8 +175,8 @@ findAndLoadUnivariateOutliers <- function(df, studyName, formName, datasetVersio
       if (nrow(result) == 0) {
         totalNew <- totalNew + 1
         sql <- paste(
-          "insert into outlier(dataset_id, field_name, field_value, recruit_id, event, version_first_seen_in, version_last_seen_in) ",
-          "values(", datasetId, ", '", fieldName, "', '", fieldValue, "', '", recruitId, "', '",
+          "insert into anomaly(anomaly_type, data_field_id, field_value, recruit_id, event, version_first_seen_in, version_last_seen_in) ",
+          "values('U', ", dataFieldId, ", '", fieldValue, "', '", recruitId, "', '",
           event, "', ", datasetVersionId, ", ", datasetVersionId, ")",
           sep = ""
         )
@@ -168,7 +185,7 @@ findAndLoadUnivariateOutliers <- function(df, studyName, formName, datasetVersio
       else {
         totalExisting <- totalExisting + 1
         outlierId = result[1, 1]
-        sql <- sprintf("update outlier set version_last_seen_in = %d where outlier_id = %d", datasetVersionId, outlierId);
+        sql <- sprintf("update anomaly set version_last_seen_in = %d where anomaly_id = %d", datasetVersionId, outlierId);
         dbSendQuery(con, sql)
       }
     }

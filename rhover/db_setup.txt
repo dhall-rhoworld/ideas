@@ -26,17 +26,26 @@ create table dataset_version (
 	foreign key(dataset_id) references dataset(dataset_id)
 );
 
-create table outlier (
-	outlier_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-	field_name VARCHAR(200),
-	field_value VARCHAR(100),
+create table data_field (
+	data_field_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+	data_field_name VARCHAR(200),
 	dataset_id BIGINT,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	foreign key(dataset_id) references dataset (dataset_id)
+);
+
+create table anomaly (
+	anomaly_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+	anomaly_type CHAR,
+	data_field_id BIGINT,
+	field_value VARCHAR(100),
 	version_first_seen_in BIGINT,
 	version_last_seen_in BIGINT,
 	recruit_id VARCHAR(100),
 	event VARCHAR(100),
 	has_been_viewed TINYINT DEFAULT 0,
-	foreign key(dataset_id) references dataset(dataset_id),
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	foreign key(data_field_id) references data_field(data_field_id),
 	foreign key(version_first_seen_in) references dataset_version(dataset_version_id),
 	foreign key(version_last_seen_in) references dataset_version(dataset_version_id)
 );

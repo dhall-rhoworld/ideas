@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 <head> 
-    <title>RhoVer Home</title> 
+    <title>RhoVer Datasets</title> 
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" href="/rhover.css"/>
 </head>
@@ -9,17 +9,17 @@
 	<div class="page-header">RhoVer (Prototype)</div>
 		
     <div id="content">
-    		<h2>Data Anomalies</h2>
+    		<h2><span th:text="${study.studyName}"/> Datasets</h2>
     		<table class="wide">
     			<tr>
-    				<th>Study</th>
+    				<th>Dataset</th>
     				<th>Un-Viewed Anomalies</th>
     				<th>Total Anomalies</th>
     			</tr>
-    			<tr th:each="count: ${counts}">
-    				<td><a th:href="@{/dataset/all(study_id=${count.entityId})}" th:text="${count.entityName}"/></td>
-    				<td th:text="${count.numAnomalies}"/>
-    				<td th:text="${count.numUnviewedAnomalies}"/>
+    			<tr th:each="dataset : ${datasets}">
+    				<td><a th:href="@{/data_field/all(dataset_id=${dataset.datasetId})}" th:text="${dataset.datasetName}"/></td>
+    				<td>0</td>
+    				<td>0</td>
     			</tr>
     		</table>
     </div>
