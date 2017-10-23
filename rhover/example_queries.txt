@@ -1,12 +1,14 @@
 select df.data_field_id, df.data_field_name, count(a.anomaly_id), count(a.has_been_viewed = 0)
 from data_field df
 join anomaly a on a.data_field_id = df.data_field_id
+where df.dataset_id = 1
 group by df.data_field_id, df.data_field_name
 
 select ds.dataset_id, ds.dataset_name, count(a.anomaly_id), count(a.has_been_viewed = 0)
 from dataset ds
 join data_field df on df.dataset_id = ds.dataset_id
 join anomaly a on a.data_field_id = df.data_field_id
+where ds.study_id = 1
 group by ds.dataset_id, ds.dataset_name
 
 select s.study_id, s.study_name, count(a.anomaly_id), count(a.has_been_viewed = 0)

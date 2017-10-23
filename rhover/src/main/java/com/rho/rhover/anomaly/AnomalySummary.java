@@ -1,17 +1,22 @@
-package com.rho.rhover.study;
+package com.rho.rhover.anomaly;
 
-public class AnomalyCount {
+/**
+ * Aggregate counts of anomalies associated with some entity, which may be a study, dataset, or data field
+ * @author dhall
+ *
+ */
+public class AnomalySummary {
 
 	private Long entityId;
 	private String entityName;
 	private Integer numAnomalies;
 	private Integer numUnviewedAnomalies;
 	
-	public AnomalyCount() {
+	public AnomalySummary() {
 		
 	}
 
-	public AnomalyCount(Long entityId, String entityName, Integer numAnomalies, Integer numUnviewedAnomalies) {
+	public AnomalySummary(Long entityId, String entityName, Integer numAnomalies, Integer numUnviewedAnomalies) {
 		super();
 		this.entityId = entityId;
 		this.entityName = entityName;

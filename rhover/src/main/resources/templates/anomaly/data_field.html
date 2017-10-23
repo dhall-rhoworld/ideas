@@ -9,17 +9,17 @@
 	<div class="page-header">RhoVer (Prototype)</div>
 		
     <div id="content">
-    		<h2><span th:text="${dataset.datasetName}"/> Fields</h2>
+    		<h2><span th:text="${dataset_name}"/> Fields</h2>
     		<table class="wide">
     			<tr>
     				<th>Field</th>
     				<th>Un-Viewed Anomalies</th>
     				<th>Total Anomalies</th>
     			</tr>
-    			<tr th:each="dataField : ${data_fields}">
-    				<td><a href="#" th:text="${dataField.dataFieldName}"/></td>
-    				<td>0</td>
-    				<td>0</td>
+    			<tr th:each="summary : ${summaries}">
+    				<td><a href="#" th:text="${summary.entityName}"/></td>
+    				<td th:text="${summary.numAnomalies}"/>
+    				<td th:text="${summary.numUnviewedAnomalies}"/>
     			</tr>
     		</table>
     </div>
