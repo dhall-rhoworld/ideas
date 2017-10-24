@@ -28,28 +28,31 @@ function getY(x) {
 	return y;
 }
 
-function renderBeeswarm(dataUrl) {
+function renderBeeswarm(dataUrl, fieldName) {
 	const viewport = d3.select("svg")
 		.append("g")
 		.attr("transform", "translate(40, 40)");
 	
 	const midPoint = viewport.append("g").attr("transform", "translate(0, 175)")
 	
-	d3.tsv(dataUrl, function(data) {
+	d3.csv(dataUrl, function(data) {
 		console.log(data);
 		
-		laneMax[0] = d3.min(data, function(d) {return d["value"]}) - 100;
+		laneMax[0] = d3.min(data, function(d) {return d[fieldName]}) - 100;
 		
 		const xScale = d3.scaleLinear()
-		.domain([d3.min(data, function(d) {return d["value"]}), d3.max(data, function(d) {return d["value"]})])
-		.range([0, 900]);
+		.domain([d3.min(data, function(d) {return d[fieldName]}), d3.max(data, function(d) {return d[fieldName]})])
+		.range([0, 760]);
+		
+		console.log("min: " + d3.min(data, function(d) {return d[fieldName]}));
+		console.log("max: " + d3.max(data, function(d) {return d[fieldName]}));
 	
 		midPoint.selectAll("circle")
 			.data(data)
 			.enter()
 			.append("circle")
-			.attr("cx", function(d) {return xScale(d["value"]);})
-			.attr("cy", function(d) {return getY(xScale(d["value"]));})
+			.attr("cx", function(d) {return xScale(d[fieldName]);})
+			.attr("cy", function(d) {return getY(xScale(d[fieldName]));})
 			.attr("r", CIRCUMFERENCE)
 			.style("fill", "purple");
 		
@@ -59,3 +62,6 @@ function renderBeeswarm(dataUrl) {
 			.call(xAxis);
 	});
 }
+
+const url = "/rest/anomaly/data?data_field_id=" + dataFieldId;
+renderBeeswarm(url, dataFieldName);

@@ -18,9 +18,6 @@ public class AnomalyController {
 	@Autowired
 	private AnomalyRepository anomalyRepository;
 	
-	@Autowired
-	private StudyDataRepository studyDataRepository;
-	
     @RequestMapping("/study")
     public String study(Model model) {
     		model.addAttribute("summaries", anomalySummaryBuilder.getStudySummaries());
@@ -62,7 +59,7 @@ public class AnomalyController {
 		    @RequestParam("data_field_id") Long dataFieldId,
 			@RequestParam("data_field_name") String dataFieldName,
 			Model model) {
-    	model.addAttribute("study_data", studyDataRepository.getAllDataFieldValues(dataFieldId));
+    	model.addAttribute("data_field_id", dataFieldId);
     	model.addAttribute("data_field_name", dataFieldName);
     	return "anomaly/chart";
     }
