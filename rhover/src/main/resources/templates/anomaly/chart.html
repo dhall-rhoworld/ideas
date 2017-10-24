@@ -4,13 +4,14 @@
     <title>RhoVer Anomaly Chart</title> 
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" href="/rhover.css"/>
+    <script src="/d3.min.js"></script>
 </head>
 <body>
 	<div class="page-header">RhoVer (Prototype)</div>
 		
     <div id="content">
-    		<h2><span th:text="${data_field_name}"/> Anomalies</h2>
-    		
+    	<h2><span th:text="${data_field_name}"/> Anomalies</h2>
+    	<svg width="800" height = "400"/>	
     </div>
 </body>
 <script th:inline="javascript">
@@ -21,4 +22,6 @@
 	
 	/*]]>*/
 </script>
+
+<script src="/beeswarm.js"></script>
 </html>

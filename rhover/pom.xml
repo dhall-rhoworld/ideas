@@ -42,6 +42,11 @@
 		  <artifactId>commons-lang3</artifactId>
 		  <version>3.6</version>
 		</dependency>
+		<dependency>
+		    <groupId>tech.tablesaw</groupId>
+		    <artifactId>tablesaw-core</artifactId>
+		    <version>0.10.0</version>
+		</dependency>
     </dependencies>
 
     <properties>
