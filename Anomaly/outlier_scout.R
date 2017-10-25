@@ -124,19 +124,23 @@ loadDatasetVersion <- function(datasetVersionName, datasetId, con) {
   return(datasetVersionId)
 }
 
-loadDataField <- function(dataFieldName, datasetId, con) {
+loadDataField <- function(dataFieldName, datasetId, lowerThresh, upperThresh, con) {
   sql <- sprintf("select data_field_id from data_field where data_field_name = '%s' and dataset_id = %d",
                  dataFieldName, datasetId)
   rs <- dbSendQuery(con, sql)
   result <- dbFetch(rs)
   if (nrow(result) == 0) {
     message("Data field ", dataFieldName, " not in database.  Loading.")
-    sql <- sprintf("insert into data_field(data_field_name, dataset_id) values('%s', %d)", dataFieldName, datasetId)
+    sql <- sprintf(
+      "insert into data_field(data_field_name, dataset_id, lower_threshold, upper_threshold) values('%s', %d, %f, %f)",
+      dataFieldName, datasetId, lowerThresh, upperThresh)
     dbSendQuery(con, sql)
     dataFieldId <- dbGetQuery(con, "select last_insert_id()")[1, 1]
   }
   else {
     dataFieldId = result[1,1]
+    sql <- sprintf("update data_field set lower_thresh = %f, upper_thresh = %f where data_field_id = %d",
+                   lowerThresh, upperThresh, dataFieldId);
   }
   return(dataFieldId)
 }
@@ -180,8 +184,11 @@ findAndLoadUnivariateOutliers <- function(df, studyName, formName, datasetVersio
     message("Processing field: ", col.names[i])
     writeNumeridAndPrimaryKeyFieldsToFile(df, i, studyName, formName, rootDir)
     fieldName <- col.names[i]
-    dataFieldId <- loadDataField(fieldName, datasetId, con)
-    outlier.index <- findUnivariateOutliers(df, i)
+    outlier.dat <- findUnivariateOutliers(df, i)
+    upperThresh <- outlier.dat$upperThresh
+    lowerThresh <- outlier.dat$lowerThresh
+    dataFieldId <- loadDataField(fieldName, datasetId, lowerThresh, upperThresh, con)
+    outlier.index <- outlier.dat$outlierIndex
     outliers <- which(outlier.index)
     for (j in outliers) {
       total <- total + 1
@@ -221,10 +228,15 @@ findAndLoadUnivariateOutliers <- function(df, studyName, formName, datasetVersio
 }
 
 findUnivariateOutliers <- function(x, colNum, cutoff.sd = 2) {
-  m = mean(x[,colNum], na.rm = TRUE)
-  deltas = abs(x[,colNum] - m)
-  cutoff = cutoff.sd * sd(x[,colNum], na.rm = TRUE)
-  return (deltas >= cutoff & !is.na(x[,colNum]))
+  m <- mean(x[,colNum], na.rm = TRUE)
+  deltas <- abs(x[,colNum] - m)
+  stdev <- sd(x[,colNum], na.rm = TRUE)
+  cutoff <- cutoff.sd * stdev
+  outlierDat <- list();
+  outlierDat$outlierIndex <- deltas >= cutoff & !is.na(x[,colNum])
+  outlierDat$upperThresh <- m + cutoff
+  outlierDat$lowerThresh <- m - cutoff
+  return (outlierDat)
 }
 
 findBivariateOutliers <- function(x, col1, col2, cutoff.residual = 2, cutoff.density = 8) {

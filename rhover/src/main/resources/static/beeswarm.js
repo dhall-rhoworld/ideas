@@ -59,7 +59,7 @@ function computeHeight(data, fieldName, xScale) {
 	return maxY - minY;
 }
 
-function renderBeeswarm(dataUrl, fieldName) {
+function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 	
 	d3.csv(dataUrl, function(data) {
 		console.log(data);
@@ -83,9 +83,9 @@ function renderBeeswarm(dataUrl, fieldName) {
 		const axisY = dataHeight + BORDER + PADDING;
 		const axisArea = svg.append("g")
 			.attr("transform", "translate(" + BORDER + ", " + axisY + ")");
-		console.log("svgHeight: " + svgHeight + ", dataMidPoint: " + dataMidPoint + ", axisY: " + axisY + ", dataAreaWidth: " + dataAreaWidth);
 		
 		/*
+		console.log("svgHeight: " + svgHeight + ", dataMidPoint: " + dataMidPoint + ", axisY: " + axisY + ", dataAreaWidth: " + dataAreaWidth);
 		svg.append("line").attr("x1", "0").attr("y1", "0").attr("x2", SVG_WIDTH).attr("y2", "0").attr("stroke", "black").attr("stroke-width", "1");
 		svg.append("line").attr("x1", "0").attr("y1", svgHeight).attr("x2", SVG_WIDTH).attr("y2", svgHeight).attr("stroke", "black").attr("stroke-width", "1");
 		svg.append("line").attr("x1", "0").attr("y1", BORDER).attr("x2", SVG_WIDTH).attr("y2", BORDER).attr("stroke", "black").attr("stroke-width", "1");
@@ -114,9 +114,21 @@ function renderBeeswarm(dataUrl, fieldName) {
 				return "blue";
 			})
 			.style("stroke-width", "1")
-			.style("fill", "none")
+			.style("fill", "none");
+		
+		// Draw threshold lines
+		let xLower = xScale(lowerThresh) + BORDER;
+		let xUpper = xScale(upperThresh) + BORDER;
+		let y1 = BORDER;
+		let y2 = BORDER + dataHeight;
+		svg.append("line")
+			.attr("x1", xLower).attr("y1", y1).attr("x2", xLower).attr("y2", y2)
+			.attr("stroke", "black").attr("stroke-width", 1).attr("stroke-dasharray", "5, 5");
+		svg.append("line")
+			.attr("x1", xUpper).attr("y1", y1).attr("x2", xUpper).attr("y2", y2)
+			.attr("stroke", "black").attr("stroke-width", 1).attr("stroke-dasharray", "5, 5");
 	});
 }
 
 const url = "/rest/anomaly/data?data_field_id=" + dataFieldId;
-renderBeeswarm(url, "value");
+renderBeeswarm(url, "value", lowerThreshold, upperThreshold);

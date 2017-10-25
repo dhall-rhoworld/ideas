@@ -30,6 +30,8 @@ create table data_field (
 	data_field_id BIGINT AUTO_INCREMENT PRIMARY KEY,
 	data_field_name VARCHAR(200),
 	dataset_id BIGINT,
+	lower_threshold DOUBLE,
+	upper_threshold DOUBLE,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	foreign key(dataset_id) references dataset (dataset_id)
 );

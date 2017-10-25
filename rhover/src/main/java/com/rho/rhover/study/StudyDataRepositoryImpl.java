@@ -102,4 +102,16 @@ public class StudyDataRepositoryImpl implements StudyDataRepository {
 				"where df.data_field_id = " + dataFieldId;
 		return jdbcTemplate.queryForObject(sql, String.class);	
 	}
+
+	@Override
+	public Double getLowerThreshold(Long dataFieldId) {
+		String sql = "select lower_threshold from data_field where data_field_id = " + dataFieldId;
+		return jdbcTemplate.queryForObject(sql, Double.class);
+	}
+
+	@Override
+	public Double getUpperThreshold(Long dataFieldId) {
+		String sql = "select upper_threshold from data_field where data_field_id = " + dataFieldId;
+		return jdbcTemplate.queryForObject(sql, Double.class);
+	}
 }

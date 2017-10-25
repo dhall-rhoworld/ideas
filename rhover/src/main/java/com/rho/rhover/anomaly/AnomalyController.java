@@ -18,6 +18,9 @@ public class AnomalyController {
 	@Autowired
 	private AnomalyRepository anomalyRepository;
 	
+	@Autowired
+	private StudyDataRepository studyDataRepository;
+	
     @RequestMapping("/study")
     public String study(Model model) {
     		model.addAttribute("summaries", anomalySummaryBuilder.getStudySummaries());
@@ -61,6 +64,8 @@ public class AnomalyController {
 			Model model) {
     	model.addAttribute("data_field_id", dataFieldId);
     	model.addAttribute("data_field_name", dataFieldName);
+    	model.addAttribute("lower_threshold", studyDataRepository.getLowerThreshold(dataFieldId));
+    	model.addAttribute("upper_threshold", studyDataRepository.getUpperThreshold(dataFieldId));
     	return "anomaly/chart";
     }
 }
