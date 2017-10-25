@@ -62,6 +62,7 @@ function computeHeight(data, fieldName, xScale) {
 function renderBeeswarm(dataUrl, fieldName) {
 	
 	d3.csv(dataUrl, function(data) {
+		console.log(data);
 		
 		// Set extent of data and chart areas on the screen
 		const min = data[0][fieldName];
@@ -106,7 +107,12 @@ function renderBeeswarm(dataUrl, fieldName) {
 			.attr("cx", function(d) {return xScale(d[fieldName]);})
 			.attr("cy", function(d) {return getY(xScale(d[fieldName]));})
 			.attr("r", CIRCUMFERENCE)
-			.style("stroke", "blue")
+			.style("stroke", function(d) {
+				if (d["is_anomaly"] == 1) {
+					return "red";
+				}
+				return "blue";
+			})
 			.style("stroke-width", "1")
 			.style("fill", "none")
 	});
