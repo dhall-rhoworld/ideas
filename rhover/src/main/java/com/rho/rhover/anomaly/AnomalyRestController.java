@@ -26,7 +26,7 @@ public class AnomalyRestController {
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "text/plain; charset=utf-8");
 		String data = studyDataRepository.getAllDataFieldValues(dataFieldId);
-		logger.debug(data);
+		//logger.debug(data);
 		return new ResponseEntity<String>(data, headers, HttpStatus.OK);
 	}
 }

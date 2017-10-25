@@ -37,3 +37,9 @@ select ds.dataset_name
 from dataset ds
 join data_field df on df.dataset_id = ds.dataset_id
 where df.data_field_id = 1
+
+select s.study_name
+from study s
+join dataset ds on ds.study_id = s.study_id
+join data_field df on df.dataset_id = ds.dataset_id
+where df.data_field_id = 213

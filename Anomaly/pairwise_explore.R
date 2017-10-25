@@ -6,6 +6,8 @@ library(spatstat)
 library(caret)
 library(lmtest)
 
+gsub("/", "_per_", "Platelet_Count_(K/uL)")
+
 # Read in vital signs data
 path = "S:/RhoFED/ICAC2/PROSE/Statistics/Data/Complete/vsgp.sas7bdat"
 #path = "S:/RhoFED/ICAC2/PROSE/Statistics/Data/Complete/ueh.sas7bdat"

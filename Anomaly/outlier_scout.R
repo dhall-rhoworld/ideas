@@ -141,7 +141,33 @@ loadDataField <- function(dataFieldName, datasetId, con) {
   return(dataFieldId)
 }
 
-findAndLoadUnivariateOutliers <- function(df, studyName, formName, datasetVersionName, con) {
+writeNumeridAndPrimaryKeyFieldsToFile <- function(df, numericCol, studyName, formName, rootDir) {
+  
+  # Prepare data
+  outDf <- df[c("RecruitID", "event")]
+  outDf$value <- df[,numericCol]
+  outDf <- na.omit(outDf)
+  outDf <- outDf[order(outDf$value),]
+  
+  # Prepare directory
+  studyDir <- paste(rootDir, "/", studyName, sep="")
+  if (!file.exists(studyDir)) {
+    message("Creating directory: ", studyDir)
+    dir.create(studyDir)
+  }
+  datasetDir <- paste(studyDir, "/", formName, sep="")
+  if (!file.exists(datasetDir)) {
+    message("Creating directory: ", datasetDir)
+    dir.create(datasetDir)
+  }
+  
+  # Write data
+  cleanedFieldName = gsub("/", "_per_", colnames(df)[numericCol])
+  filePath <- paste(datasetDir, "/", cleanedFieldName, ".csv", sep="")
+  write.csv(outDf, file=filePath, quote=FALSE, append=FALSE)
+}
+
+findAndLoadUnivariateOutliers <- function(df, studyName, formName, datasetVersionName, rootDir, con) {
   col.names = colnames(df)
   studyId <- loadStudyName(studyName, con)
   datasetId <- loadDataset(formName, studyId, con)
@@ -152,6 +178,7 @@ findAndLoadUnivariateOutliers <- function(df, studyName, formName, datasetVersio
   totalNew <- 0
   for (i in numericFields) {
     message("Processing field: ", col.names[i])
+    writeNumeridAndPrimaryKeyFieldsToFile(df, i, studyName, formName, rootDir)
     fieldName <- col.names[i]
     dataFieldId <- loadDataField(fieldName, datasetId, con)
     outlier.index <- findUnivariateOutliers(df, i)

@@ -47,6 +47,11 @@
 		    <artifactId>tablesaw-core</artifactId>
 		    <version>0.10.0</version>
 		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.3</version>
+		</dependency>
     </dependencies>
 
     <properties>

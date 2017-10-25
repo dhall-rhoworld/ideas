@@ -29,6 +29,13 @@ for (file in files) {
   data <- read.sas7bdat(path)
   #data <- read.csv(path)
   
+  # Make sure data has primary key variables RecruitID and event
+  cnames = colnames(data)
+  if (sum(cnames == "StudyID") == 0 || sum(cnames == 'event') == 0) {
+    message("Dataset does not contain primary key fields StudyID and/or event.  Not processing.")
+    next
+  }
+  
   # Replace variable names with labels
   #if (FALSE) {
     attrs = attr(data, "column.info")
@@ -49,10 +56,10 @@ for (file in files) {
   dataset.name <- data[1, "form_name"]
   
   # Find and load outliers
-  findAndLoadUnivariateOutliers(data, study, dataset.name, version.name, con)
+  findAndLoadUnivariateOutliers(data, study, dataset.name, version.name, output.dir, con)
   
   # Write data to CSV file
-  out.path <- paste(output.dir, "/", dataset.name, ".csv", sep = "")
-  write.csv(data, file = out.path)
+  #out.path <- paste(output.dir, "/", dataset.name, ".csv", sep = "")
+  #write.csv(data, file = out.path)
 }
 
