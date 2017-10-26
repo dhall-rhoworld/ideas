@@ -9,7 +9,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import com.rho.rhover.anomaly.Anomaly;
@@ -23,14 +22,18 @@ public class StudyDataRepositoryImpl implements StudyDataRepository {
 	Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	@Autowired
-	private JdbcTemplate jdbcTemplate;
+	private AnomalyRepository anomalyRepository;
 	
 	@Autowired
-	private AnomalyRepository anomalyRepository;
+	private DataFieldRepository dataFieldRepository;
 
 	@Override
 	public String getAllDataFieldValues(Long dataFieldId) {
-		String fname = REPO_PATH + "/" + getStudyName(dataFieldId) + "/" + getDatasetName(dataFieldId) + "/" + getDataFieldName(dataFieldId) + ".csv";
+		DataField dataField = dataFieldRepository.findOne(dataFieldId);
+		String fname = REPO_PATH
+				+ "/" + dataField.getDataset().getStudy().getStudyName()
+				+ "/" + dataField.getDataset().getDatasetName()
+				+ "/" + dataField.getDataFieldName() + ".csv";
 		String data = "";
 		BufferedReader reader = null;
 		Set<String> anomalies = buildAnomalySet(dataFieldId);
@@ -78,55 +81,4 @@ public class StudyDataRepositoryImpl implements StudyDataRepository {
 		return set;
 	}
 	
-	public String getDataFieldName(Long dataFieldId) {
-		String sql = "select data_field_name from data_field where data_field_id = " + dataFieldId;
-		return jdbcTemplate.queryForObject(sql, String.class);
-	}
-	
-	public Long getDatasetId(Long dataFieldId) {
-		String sql = "select ds.dataset_id\r\n" + 
-				"from dataset ds\r\n" + 
-				"join data_field df on df.dataset_id = ds.dataset_id\r\n" + 
-				"where df.data_field_id = " + dataFieldId;
-		return jdbcTemplate.queryForObject(sql, Long.class);
-	}
-	
-	public String getDatasetName(Long dataFieldId) {
-		String sql = "select ds.dataset_name\r\n" + 
-				"from dataset ds\r\n" + 
-				"join data_field df on df.dataset_id = ds.dataset_id\r\n" + 
-				"where df.data_field_id = " + dataFieldId;
-		String name = jdbcTemplate.queryForObject(sql, String.class);
-		return name.replaceAll("/", "_per_");
-	}
-	
-	public Long getStudyId(Long dataFieldId) {
-		String sql = "select s.study_id\r\n" + 
-				"from study s\r\n" + 
-				"join dataset ds on ds.study_id = s.study_id\r\n" + 
-				"join data_field df on df.dataset_id = ds.dataset_id\r\n" + 
-				"where df.data_field_id = " + dataFieldId;
-		return jdbcTemplate.queryForObject(sql, Long.class);
-	}
-	
-	public String getStudyName(Long dataFieldId) {
-		String sql = "select s.study_name\r\n" + 
-				"from study s\r\n" + 
-				"join dataset ds on ds.study_id = s.study_id\r\n" + 
-				"join data_field df on df.dataset_id = ds.dataset_id\r\n" + 
-				"where df.data_field_id = " + dataFieldId;
-		return jdbcTemplate.queryForObject(sql, String.class);	
-	}
-
-	@Override
-	public Double getLowerThreshold(Long dataFieldId) {
-		String sql = "select lower_threshold from data_field where data_field_id = " + dataFieldId;
-		return jdbcTemplate.queryForObject(sql, Double.class);
-	}
-
-	@Override
-	public Double getUpperThreshold(Long dataFieldId) {
-		String sql = "select upper_threshold from data_field where data_field_id = " + dataFieldId;
-		return jdbcTemplate.queryForObject(sql, Double.class);
-	}
 }
