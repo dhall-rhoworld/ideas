@@ -44,3 +44,29 @@ table.wide tr:nth-child(even) {
 	color: red;
 	font-weight: bold;
 }
+
+.inlier {
+	stroke: green;
+	stroke-width: 1;
+	fill: none;
+}
+
+.outlier {
+	stroke: red;
+	stroke-width: 1;
+	fill: none;
+}
+
+.inlier-selected {
+	fill: green;
+}
+
+.outlier-selected {
+	fill: red;
+}
+
+.select-rect {
+	stroke: black;
+	stroke-width: 1;
+	fill: none;
+}

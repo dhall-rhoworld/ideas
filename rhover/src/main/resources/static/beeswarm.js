@@ -9,6 +9,18 @@ let laneMax = new Array(500);
 let numLanes = 1;
 laneIndex[0] = 0;
 
+let isDragging = false;
+let mouseDownX = 0;
+let mouseDownY = 0;
+let mouseUpX = 0;
+let mouseUpY = 0;
+let selectRect = null;
+
+let minX = 0;
+let maxX = 0;
+let minY = 0;
+let maxY = 0;
+
 function getY(x) {
 	let lane = 0;
 	while (lane < numLanes && (laneMax[lane] + 2 * CIRCUMFERENCE) > x) {
@@ -62,7 +74,7 @@ function computeHeight(data, fieldName, xScale) {
 function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 	
 	d3.csv(dataUrl, function(data) {
-		console.log(data);
+		//console.log(data);
 		
 		// Set extent of data and chart areas on the screen
 		const min = data[0][fieldName];
@@ -107,14 +119,12 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 			.attr("cx", function(d) {return xScale(d[fieldName]);})
 			.attr("cy", function(d) {return getY(xScale(d[fieldName]));})
 			.attr("r", CIRCUMFERENCE)
-			.style("stroke", function(d) {
-				if (d["is_anomaly"] == 1 && (d["value"] < lowerThresh || d["value"] > upperThresh)) {
-					return "red";
-				}
-				return "blue";
+			.classed("outlier", function(d) {
+				return d["is_anomaly"] == 1 && (d["value"] < lowerThresh || d["value"] > upperThresh);
 			})
-			.style("stroke-width", "1")
-			.style("fill", "none");
+			.classed("inlier", function(d) {
+				return d["is_anomaly"] == 0 || (d["value"] >= lowerThresh && d["value"] <= upperThresh)
+			});
 		
 		// Draw threshold lines
 		let xLower = xScale(lowerThresh) + BORDER;
@@ -127,6 +137,79 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 		svg.append("line")
 			.attr("x1", xUpper).attr("y1", y1).attr("x2", xUpper).attr("y2", y2)
 			.attr("stroke", "black").attr("stroke-width", 1).attr("stroke-dasharray", "5, 5");
+		
+		// Add selection event handler
+		svg.on("mousedown", function() {
+			if (selectRect != null) {
+				selectRect.remove();
+			}
+			console.log("mouse down");
+			isDragging = true;
+			mouseDownX = d3.mouse(this)[0];
+			mouseDownY = d3.mouse(this)[1];
+			selectRect = svg.append("rect")
+				.attr("x", mouseDownX)
+				.attr("y", mouseDownY)
+				.attr("width", 0)
+				.attr("height", 0)
+				.classed("select-rect", true);
+		});
+		
+		svg.on("mousemove", function() {
+			if (isDragging) {
+				console.log("mouse dragging");
+				let x = d3.mouse(this)[0];
+				let y = d3.mouse(this)[1];
+				minX = mouseDownX;
+				maxX = x;
+				if (minX > maxX) {
+					minX = x;
+					maxX = mouseDownX;
+				}
+				minY = mouseDownY;
+				maxY = y;
+				if (minY > maxY) {
+					minY = y;
+					maxY = mouseDownY;
+				}
+				let width = maxX - minX;
+				let height = maxY - minY;
+				selectRect
+					.attr("x", minX)
+					.attr("y", minY)
+					.attr("width", width)
+					.attr("height", height);
+			}
+		});
+		
+		svg.on("mouseup", function() {
+			console.log("mouse up");
+			isDragging = false;
+			mouseUpX = d3.mouse(this)[0];
+			mouseUpY = d3.mouse(this)[1];
+			selectRect.remove();
+			minX = mouseDownX;
+			maxY = mouseUpX;
+			if (minX > maxX) {
+				minX = mouseUpX;
+				maxX = mouseDownX;
+			}
+			minY = mouseDownY;
+			maxY = mouseUpY;
+			if (minY > maxY) {
+				minY = mouseUpY;
+				maxY = mouseDownY;
+			}
+			minX -= BORDER;
+			maxX -= BORDER;
+			dataArea.selectAll("circle").each(function(d) {
+				const x = d3.select(this).attr("cx");
+				const y = dataMidPoint + parseInt(d3.select(this).attr("cy"));
+				if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
+					d3.select(this).classed("outlier-selected", "true");
+				}
+			});
+		});
 	});
 }
 
