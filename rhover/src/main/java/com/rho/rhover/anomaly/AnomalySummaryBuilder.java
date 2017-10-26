@@ -2,7 +2,10 @@ package com.rho.rhover.anomaly;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Iterator;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -15,6 +18,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class AnomalySummaryBuilder {
+	
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
@@ -29,34 +34,75 @@ public class AnomalySummaryBuilder {
 	 */
 	public Iterable<AnomalySummary> getStudySummaries() {
 		String sql =
-				"select s.study_id, s.study_name, count(a.anomaly_id) num_anomalies, count(a.has_been_viewed = 0) num_unviewed " +
-				"from study s " +
-				"join dataset ds on ds.study_id = s.study_id " +
-				"join data_field df on df.dataset_id = ds.dataset_id " +
-				"join anomaly a on a.data_field_id = df.data_field_id " +
-				"group by s.study_id, s.study_name";
-		return jdbcTemplate.query(sql, new AnomalySummaryRowMapper());
+				"select s.study_id, s.study_name,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from anomaly a\r\n" + 
+				"	join data_field df on df.data_field_id = a.data_field_id\r\n" + 
+				"	join dataset ds on ds.dataset_id = df.dataset_id\r\n" + 
+				"	where ds.study_id = s.study_id\r\n" + 
+				"),\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from anomaly a\r\n" + 
+				"	join data_field df on df.data_field_id = a.data_field_id\r\n" + 
+				"	join dataset ds on ds.dataset_id = df.dataset_id\r\n" + 
+				"	where ds.study_id = s.study_id\r\n" + 
+				"	and a.has_been_viewed = 0\r\n" + 
+				")\r\n" + 
+				"from study s";
+		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
 	}
 	
 	public Iterable<AnomalySummary> getDatasetSummaries(Long studyId) {
 		String sql =
-				"select ds.dataset_id, ds.dataset_name, count(a.anomaly_id), count(a.has_been_viewed = 0) " +
-				"from dataset ds " +
-				"join data_field df on df.dataset_id = ds.dataset_id " +
-				"join anomaly a on a.data_field_id = df.data_field_id " +
-				"where ds.study_id = " + studyId + " " +
-				"group by ds.dataset_id, ds.dataset_name";
-		return jdbcTemplate.query(sql, new AnomalySummaryRowMapper());
+				"select ds.dataset_id, ds.dataset_name,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from anomaly a\r\n" + 
+				"	join data_field df on df.data_field_id = a.data_field_id\r\n" + 
+				"	where df.dataset_id = ds.dataset_id\r\n" + 
+				"),\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from anomaly a\r\n" + 
+				"	join data_field df on df.data_field_id = a.data_field_id\r\n" + 
+				"	where df.dataset_id = ds.dataset_id\r\n" + 
+				"	and a.has_been_viewed = 0\r\n" + 
+				")\r\n" + 
+				"from dataset ds \r\n" + 
+				"where ds.study_id = " + studyId;
+		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
 	}
 	
 	public Iterable<AnomalySummary> getDataFieldSummaries(Long datasetId) {
 		String sql =
-				"select df.data_field_id, df.data_field_name, count(a.anomaly_id), count(a.has_been_viewed = 0) " +
-				"from data_field df " +
-				"join anomaly a on a.data_field_id = df.data_field_id " +
-				"where df.dataset_id = " + datasetId + " " +
-				"group by df.data_field_id, df.data_field_name";
-		return jdbcTemplate.query(sql, new AnomalySummaryRowMapper());
+				"select df.data_field_id, df.data_field_name,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from anomaly a\r\n" + 
+				"	where a.data_field_id = df.data_field_id\r\n" + 
+				"),\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from anomaly a\r\n" + 
+				"	where a.data_field_id = df.data_field_id\r\n" + 
+				"	and a.has_been_viewed = 0\r\n" + 
+				")\r\n" + 
+				"from data_field df \r\n" + 
+				"where df.dataset_id = " + datasetId;
+		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
+	}
+	
+	private Iterable<AnomalySummary> removeEmpties(Iterable<AnomalySummary> summaries) {
+		Iterator<AnomalySummary> it = summaries.iterator();
+		while (it.hasNext()) {
+			AnomalySummary summary = it.next();
+			if (summary.getNumAnomalies() == 0) {
+				it.remove();
+			}
+		}
+		return summaries;
 	}
 	
 	private static class AnomalySummaryRowMapper implements RowMapper<AnomalySummary> {

@@ -9,6 +9,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import com.rho.rhover.anomaly.Anomaly;
@@ -20,6 +21,9 @@ public class StudyDataRepositoryImpl implements StudyDataRepository {
 	private static final String REPO_PATH = "C:/RhoVer";
 	
 	Logger logger = LoggerFactory.getLogger(this.getClass());
+	
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
 	
 	@Autowired
 	private AnomalyRepository anomalyRepository;
@@ -71,6 +75,9 @@ public class StudyDataRepositoryImpl implements StudyDataRepository {
 				throw new RuntimeException(e);
 			}
 		}
+		
+		String sql = "update anomaly set has_been_viewed = 1 where data_field_id = " + dataFieldId;
+		jdbcTemplate.update(sql);
 		return data;
 	}
 	
