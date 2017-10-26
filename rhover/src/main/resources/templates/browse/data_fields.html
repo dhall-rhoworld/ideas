@@ -1,0 +1,47 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>RhoVer Data Fields</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="/rhover.css"/>
+</head>
+<body>
+	<div class="page-header">RhoVer (Prototype)</div>
+	
+	<div id="breadcrumbs">
+		<a href="/browse/studies">Browse by Study</a> >
+		<a th:href="@{/browse/datasets(study_id=${dataset.study.studyId})}"><span th:text="${dataset.study.studyName}"/></a> >
+		<strong><span th:text="${dataset.datasetName}"/></strong>
+	</div>
+		
+    <div id="content">
+    		<table class="wide">
+    			<tr>
+    				<th></th>
+    				<th colspan="2">Univariate Outliers</th>
+    				<th></th>
+    			</tr>
+    			<tr>
+    				<th><span th:text="${dataset.datasetName}"/> Field</th>
+    				<th>Unviewed/Total</th>
+    				<th>View</th>
+    				<th>Total Anomalies</th>
+    			</tr>
+    			<tr th:each="summary : ${summaries}">
+    				<td>
+    					<span th:text="${summary.entityName}"/>
+    				</td>
+    				<td>
+    					<span th:class="${summary.numUnviewedAnomalies} > 0? attention : plain" th:text="${summary.numUnviewedAnomalies}"/>/<span th:text="${summary.numAnomalies}"/>
+    				</td>
+    				<td>
+    					<a th:href="@{/anomaly/table(data_field_id=${summary.entityId})}">Table</a> |
+    					<a th:href="@{/anomaly/chart(data_field_id=${summary.entityId})}">Beeswarm</a> |
+    					<a href="#">Boxplot</a>
+    				</td>
+    				<td th:text="${summary.numUnviewedAnomalies}"/>
+    			</tr>
+    		</table>
+    </div>
+</body>
+</html>

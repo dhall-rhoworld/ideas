@@ -1,13 +1,11 @@
 package com.rho.rhover.study;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,12 +78,20 @@ public class StudyDataRepositoryImpl implements StudyDataRepository {
 		return set;
 	}
 	
-	private String getDataFieldName(Long dataFieldId) {
+	public String getDataFieldName(Long dataFieldId) {
 		String sql = "select data_field_name from data_field where data_field_id = " + dataFieldId;
 		return jdbcTemplate.queryForObject(sql, String.class);
 	}
 	
-	private String getDatasetName(Long dataFieldId) {
+	public Long getDatasetId(Long dataFieldId) {
+		String sql = "select ds.dataset_id\r\n" + 
+				"from dataset ds\r\n" + 
+				"join data_field df on df.dataset_id = ds.dataset_id\r\n" + 
+				"where df.data_field_id = " + dataFieldId;
+		return jdbcTemplate.queryForObject(sql, Long.class);
+	}
+	
+	public String getDatasetName(Long dataFieldId) {
 		String sql = "select ds.dataset_name\r\n" + 
 				"from dataset ds\r\n" + 
 				"join data_field df on df.dataset_id = ds.dataset_id\r\n" + 
@@ -94,7 +100,16 @@ public class StudyDataRepositoryImpl implements StudyDataRepository {
 		return name.replaceAll("/", "_per_");
 	}
 	
-	private String getStudyName(Long dataFieldId) {
+	public Long getStudyId(Long dataFieldId) {
+		String sql = "select s.study_id\r\n" + 
+				"from study s\r\n" + 
+				"join dataset ds on ds.study_id = s.study_id\r\n" + 
+				"join data_field df on df.dataset_id = ds.dataset_id\r\n" + 
+				"where df.data_field_id = " + dataFieldId;
+		return jdbcTemplate.queryForObject(sql, Long.class);
+	}
+	
+	public String getStudyName(Long dataFieldId) {
 		String sql = "select s.study_name\r\n" + 
 				"from study s\r\n" + 
 				"join dataset ds on ds.study_id = s.study_id\r\n" + 

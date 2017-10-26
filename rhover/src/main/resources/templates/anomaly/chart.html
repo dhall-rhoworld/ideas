@@ -8,6 +8,13 @@
 </head>
 <body>
 	<div class="page-header">RhoVer (Prototype)</div>
+	
+	<div id="breadcrumbs">
+		<a href="/browse/studies">Browse by Study</a> >
+		<a th:href="@{/browse/datasets(study_id=${data_field.dataset.study.studyId})}"><span th:text="${data_field.dataset.study.studyName}"/></a> >
+		<a th:href="@{/browse/data_fields(dataset_id=${data_field.dataset.datasetId})}"><span th:text="${data_field.dataset.datasetName}"/></a> >
+		<strong><span th:text="${data_field.dataFieldName}"/></strong>
+	</div>
 		
     <div id="content">
     	For selected data points:
@@ -26,14 +33,14 @@
     	</select>
     	<button type="button">Suppress</button>
     	<svg/>
-    	<h3><span th:text="${data_field_name}"/></h3>
+    	<h3><span th:text="${data_field.dataFieldName}"/></h3>
     </div>
 </body>
 <script th:inline="javascript">
-	dataFieldName = [[${data_field_name}]]
-	dataFieldId = [[${data_field_id}]]
-	lowerThreshold = [[${lower_threshold}]]
-	upperThreshold = [[${upper_threshold}]]
+	dataFieldName = [[${data_field.dataFieldName}]]
+	dataFieldId = [[${data_field.dataFieldId}]]
+	lowerThreshold = [[${data_field.lowerThreshold}]]
+	upperThreshold = [[${data_field.upperThreshold}]]
 </script>
 
 <script src="/beeswarm.js"></script>

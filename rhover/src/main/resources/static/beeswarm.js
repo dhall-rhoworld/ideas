@@ -108,7 +108,7 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 			.attr("cy", function(d) {return getY(xScale(d[fieldName]));})
 			.attr("r", CIRCUMFERENCE)
 			.style("stroke", function(d) {
-				if (d["is_anomaly"] == 1) {
+				if (d["is_anomaly"] == 1 && (d["value"] < lowerThresh || d["value"] > upperThresh)) {
 					return "red";
 				}
 				return "blue";

@@ -9,7 +9,7 @@
 	<div class="page-header">RhoVer (Prototype)</div>
 		
     <div id="content">
-    		<h2>All Studies</h2>
+    		<h2>Browse by Study</h2>
     		<table class="wide">
     			<tr>
     				<th>Study</th>
@@ -17,9 +17,9 @@
     				<th>Total Anomalies</th>
     			</tr>
     			<tr th:each="summary : ${summaries}">
-    				<td><a th:href="@{/anomaly/dataset(study_id=${summary.entityId}, study_name=${summary.entityName})}" th:text="${summary.entityName}"/></td>
+    				<td><a th:href="@{/browse/datasets(study_id=${summary.entityId})}" th:text="${summary.entityName}"/></td>
+    				<td th:class="${summary.numUnviewedAnomalies} > 0? attention : plain" th:text="${summary.numUnviewedAnomalies}"/>
     				<td th:text="${summary.numAnomalies}"/>
-    				<td th:text="${summary.numUnviewedAnomalies}"/>
     			</tr>
     		</table>
     </div>

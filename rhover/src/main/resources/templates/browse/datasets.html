@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>RhoVer Datasets</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="/rhover.css"/>
+</head>
+<body>
+	<div class="page-header">RhoVer (Prototype)</div>
+	<div id="breadcrumbs">
+		<a href="/browse/studies">Browse by Study</a> >
+		<strong><span th:text="${study.studyName}"/></strong>
+	</div>
+    <div id="content">
+   		<table class="wide">
+   			<tr>
+   				<th><span th:text="${study.studyName}"/> Datasets</th>
+   				<th>Un-Viewed Anomalies</th>
+   				<th>Total Anomalies</th>
+   			</tr>
+   			<tr th:each="summary : ${summaries}">
+   				<td><a th:href="@{/browse/data_fields(dataset_id=${summary.entityId})}"
+   					th:text="${summary.entityName}"/></td>
+   				<td th:class="${summary.numUnviewedAnomalies} > 0? attention : plain" th:text="${summary.numUnviewedAnomalies}"/>
+   				<td th:text="${summary.numAnomalies}"/>
+   			</tr>
+   		</table>
+    </div>
+</body>
+</html>
