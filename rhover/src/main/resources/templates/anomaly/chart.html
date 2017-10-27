@@ -4,7 +4,10 @@
     <title>RhoVer Anomaly Chart</title> 
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" href="/rhover.css"/>
+    <link rel="stylesheet" href="/jquery-ui.css"/>
     <script src="/d3.min.js"></script>
+    <script src="/jquery-3.2.1.min.js"></script>
+    <script src="/jquery-ui.js"></script>
 </head>
 <body>
 	<div class="page-header">RhoVer (Prototype)</div>
@@ -18,22 +21,26 @@
 		
     <div id="content">
     	For selected data points:
-    	<button type="button">Export Data</button>
-    	<button type="button">Open Query</button>&nbsp;&nbsp;&nbsp;
+    	<button type="button" id="button_show" disabled="true" onclick="onExport()">Show Data</button>
+    	<button type="button" id="button_query" disabled="true">Open Query</button>&nbsp;&nbsp;&nbsp;
     	<select>
     		<option>Is an issue</option>
     		<option>Not an issue</option>
     	</select>
-    	<button type="button">Change</button>&nbsp;&nbsp;&nbsp;
+    	<button type="button" id="button_change" disabled="true">Change</button>&nbsp;&nbsp;&nbsp;
     	<input type="text" size="2"/>
     	<select>
     		<option>Days</option>
     		<option>Weeks</option>
     		<option>Months</option>
     	</select>
-    	<button type="button">Suppress</button>
+    	<button type="button" id="button_suppress" disabled="true">Suppress</button>
     	<svg/>
     	<h3><span th:text="${data_field.dataFieldName}"/></h3>
+    </div>
+    
+    <div id="dialog_data">
+    	<div id="dialog_data_table"></div>
     </div>
 </body>
 <script th:inline="javascript">
@@ -44,4 +51,22 @@
 </script>
 
 <script src="/beeswarm.js"></script>
+
+<script>
+	$(function() {
+		$("#dialog_data").dialog({
+			autoOpen: false,
+			modal: true,
+			minWidth: 600,
+			buttons: [
+				{
+					text: "OK",
+					click: function() {
+						$(this).dialog("close");
+					}
+				}
+			]
+		});
+	});
+</script>
 </html>

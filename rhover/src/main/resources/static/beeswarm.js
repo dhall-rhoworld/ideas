@@ -21,6 +21,10 @@ let maxX = 0;
 let minY = 0;
 let maxY = 0;
 
+let dataAreSelected = false;
+
+let dataArea = null;
+
 function getY(x) {
 	let lane = 0;
 	while (lane < numLanes && (laneMax[lane] + 2 * CIRCUMFERENCE) > x) {
@@ -90,7 +94,7 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 			.attr("width", SVG_WIDTH)
 			.attr("height", svgHeight);
 		const dataMidPoint = BORDER + dataHeight / 2;
-		const dataArea = svg.append("g")
+		dataArea = svg.append("g")
 			.attr("transform", "translate(" + BORDER + ", " + dataMidPoint + ")");
 		const axisY = dataHeight + BORDER + PADDING;
 		const axisArea = svg.append("g")
@@ -140,10 +144,16 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 		
 		// Add selection event handler
 		svg.on("mousedown", function() {
-			if (selectRect != null) {
-				selectRect.remove();
+			if (dataAreSelected) {
+				dataArea.selectAll(".outlier-selected").classed("outlier-selected", false);
+				dataArea.selectAll(".inlier-selected").classed("inlier-selected", false);
+				dataArea.selectAll(".data-selected").classed("data-selected", false);
+				dataAreSelected = false;
+				document.getElementById("button_show").setAttribute("disabled", "true");
+				document.getElementById("button_query").setAttribute("disabled", "true");
+				document.getElementById("button_change").setAttribute("disabled", "true");
+				document.getElementById("button_suppress").setAttribute("disabled", "true");
 			}
-			console.log("mouse down");
 			isDragging = true;
 			mouseDownX = d3.mouse(this)[0];
 			mouseDownY = d3.mouse(this)[1];
@@ -157,7 +167,6 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 		
 		svg.on("mousemove", function() {
 			if (isDragging) {
-				console.log("mouse dragging");
 				let x = d3.mouse(this)[0];
 				let y = d3.mouse(this)[1];
 				minX = mouseDownX;
@@ -183,13 +192,12 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 		});
 		
 		svg.on("mouseup", function() {
-			console.log("mouse up");
 			isDragging = false;
 			mouseUpX = d3.mouse(this)[0];
 			mouseUpY = d3.mouse(this)[1];
 			selectRect.remove();
 			minX = mouseDownX;
-			maxY = mouseUpX;
+			maxX = mouseUpX;
 			if (minX > maxX) {
 				minX = mouseUpX;
 				maxX = mouseDownX;
@@ -206,11 +214,45 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 				const x = d3.select(this).attr("cx");
 				const y = dataMidPoint + parseInt(d3.select(this).attr("cy"));
 				if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
-					d3.select(this).classed("outlier-selected", "true");
+					let node = d3.select(this);
+					node.classed("data-selected", true);
+					if (node.classed("outlier")) {
+						node.classed("outlier-selected", true);
+					}
+					else if (node.classed("inlier")) {
+						node.classed("inlier-selected", true)
+					}
+					dataAreSelected = true;
 				}
 			});
+			if (dataAreSelected) {
+				document.getElementById("button_show").removeAttribute("disabled");
+				document.getElementById("button_query").removeAttribute("disabled");
+				document.getElementById("button_change").removeAttribute("disabled");
+				document.getElementById("button_suppress").removeAttribute("disabled");
+			}
 		});
 	});
+}
+
+let hmtl = "";
+
+function onExport() {
+	html = "<table class='wide'><tr><th>RecruitID</th><th>Event</th><th>"
+		+ dataFieldName + "</th></tr>";
+	dataArea.selectAll(".data-selected").each(function(d) {
+		console.log(dataFieldName + ", " + d.RecruitID + ", " + d.event + ", " + d.value);
+		let row = "<tr><td>" + d.RecruitID + "</td><td>" + d.event + "</td><td>"
+			+ d.value + "</td></tr>";
+		html += row;
+	});
+	hmtl += "</table>"
+	$("#dialog_data").html(html);
+	$("#dialog_data").dialog("open");
+}
+
+function onChange() {
+	
 }
 
 const url = "/rest/anomaly/data?data_field_id=" + dataFieldId;
