@@ -7,21 +7,30 @@
 </head>
 <body>
 	<div class="page-header">RhoVer (Prototype)</div>
+	
+	<div class="menu-bar">
+		<ul>
+			<li><a href="/">Home</a></li>
+			<li><a href="/browse/studies" class="active-menu-item">Browse by Study</a></li>
+			<li><a href="#">Browse by Key Variable</a></li>
+			<li><a href="#">Search</a></li>
+		</ul>
+	</div>
 		
     <div id="content">
-    		<h2>Browse by Study</h2>
-    		<table class="wide">
-    			<tr>
-    				<th>Study</th>
-    				<th>Un-Viewed Anomalies</th>
-    				<th>Total Anomalies</th>
-    			</tr>
-    			<tr th:each="summary : ${summaries}">
-    				<td><a th:href="@{/browse/datasets(study_id=${summary.entityId})}" th:text="${summary.entityName}"/></td>
-    				<td th:class="${summary.numUnviewedAnomalies} > 0? attention : plain" th:text="${summary.numUnviewedAnomalies}"/>
-    				<td th:text="${summary.numAnomalies}"/>
-    			</tr>
-    		</table>
+   		<h2>Browse by Study</h2>
+   		<table class="wide">
+   			<tr>
+   				<th>Study</th>
+   				<th>Un-Viewed Anomalies</th>
+   				<th>Total Anomalies</th>
+   			</tr>
+   			<tr th:each="summary : ${summaries}">
+   				<td><a th:href="@{/browse/datasets(study_id=${summary.entityId})}" th:text="${summary.entityName}"/></td>
+   				<td th:class="${summary.numUnviewedAnomalies} > 0? attention : plain" th:text="${summary.numUnviewedAnomalies}"/>
+   				<td th:text="${summary.numAnomalies}"/>
+   			</tr>
+   		</table>
     </div>
 </body>
 </html>

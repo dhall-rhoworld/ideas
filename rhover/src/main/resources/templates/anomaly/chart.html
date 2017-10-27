@@ -23,11 +23,11 @@
     	For selected data points:
     	<button type="button" id="button_show" disabled="true" onclick="onExport()">Show Data</button>
     	<button type="button" id="button_query" disabled="true">Open Query</button>&nbsp;&nbsp;&nbsp;
-    	<select>
-    		<option>Is an issue</option>
-    		<option>Not an issue</option>
+    	<select id="select_label">
+    		<option value="issue">Is an issue</option>
+    		<option value="non-issue">Not an issue</option>
     	</select>
-    	<button type="button" id="button_change" disabled="true">Change</button>&nbsp;&nbsp;&nbsp;
+    	<button type="button" id="button_change" disabled="true" onclick="onChange()">Change</button>&nbsp;&nbsp;&nbsp;
     	<input type="text" size="2"/>
     	<select>
     		<option>Days</option>

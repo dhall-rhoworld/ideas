@@ -46,6 +46,7 @@ create table anomaly (
 	recruit_id VARCHAR(100),
 	event VARCHAR(100),
 	has_been_viewed TINYINT DEFAULT 0,
+	is_an_issue TINYINT DEFAULT 1,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	foreign key(data_field_id) references data_field(data_field_id),
 	foreign key(version_first_seen_in) references dataset_version(dataset_version_id),

@@ -23,15 +23,16 @@ public class AnomalyRepositoryImpl implements AnomalyRepository {
 		
 		// Get anomalies
 		sql =
-				"select a.recruit_id, a.event, a.field_value, dsv.dataset_version_name\r\n" + 
+				"select a.anomaly_id, a.recruit_id, a.event, a.field_value, dsv.dataset_version_name\r\n" + 
 				"from anomaly a\r\n" + 
 				"join dataset_version dsv on a.version_first_seen_in = dsv.dataset_version_id\r\n" + 
 				"where a.data_field_id = " + dataFieldId + "\r\n" + 
 				"and a.version_last_seen_in = " + version + "\r\n" +
+				"and a.is_an_issue = 1\r\n" +
 				"order by a.event, a.recruit_id";
 		return jdbcTemplate.query(sql, new RowMapper<Anomaly>() {
 			public Anomaly mapRow(ResultSet rs, int p) throws SQLException {
-				return new Anomaly(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4));
+				return new Anomaly(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5));
 			}
 		});
 	}

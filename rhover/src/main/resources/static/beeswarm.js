@@ -241,7 +241,6 @@ function onExport() {
 	html = "<table class='wide'><tr><th>RecruitID</th><th>Event</th><th>"
 		+ dataFieldName + "</th></tr>";
 	dataArea.selectAll(".data-selected").each(function(d) {
-		console.log(dataFieldName + ", " + d.RecruitID + ", " + d.event + ", " + d.value);
 		let row = "<tr><td>" + d.RecruitID + "</td><td>" + d.event + "</td><td>"
 			+ d.value + "</td></tr>";
 		html += row;
@@ -252,7 +251,36 @@ function onExport() {
 }
 
 function onChange() {
-	
+	let option = document.getElementById("select_label").value;
+	let selectedPoints = [];
+	if (option == "issue") {
+		dataArea.selectAll(".inlier-selected")
+			.classed("inlier", false)
+			.classed("inlier-selected", false)
+			.classed("outlier", true)
+			.classed("outlier-selected", true);
+	}
+	else if (option == "non-issue") {
+		dataArea.selectAll(".outlier-selected")
+			.classed("outlier", false)
+			.classed("outlier-selected", false)
+			.classed("inlier", true)
+			.classed("inlier-selected", true)
+			.each(function(d) {
+				let selectedPoint = {
+					"RecruitID" : d["RecruitID"],
+					"event" : d["event"]
+				};
+				selectedPoints.push(selectedPoint);
+			});
+		$.ajax("/rest/anomaly/set_is_not_an_issue", {
+			data : JSON.stringify(selectedPoints),
+			contentType: "application/json",
+			error: function() {
+				
+			}
+		});
+	}
 }
 
 const url = "/rest/anomaly/data?data_field_id=" + dataFieldId;
