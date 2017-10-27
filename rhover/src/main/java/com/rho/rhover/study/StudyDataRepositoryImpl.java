@@ -3,8 +3,8 @@ package com.rho.rhover.study;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,24 +40,24 @@ public class StudyDataRepositoryImpl implements StudyDataRepository {
 				+ "/" + dataField.getDataFieldName() + ".csv";
 		String data = "";
 		BufferedReader reader = null;
-		Set<String> anomalies = buildAnomalySet(dataFieldId);
+		Map<String, Long> anomalies = buildAnomalySet(dataFieldId);
 		//logger.debug(anomalies.toString());
 		try {
 			StringBuilder builder = new StringBuilder();
 			reader = new BufferedReader(new FileReader(fname));
 			String header = reader.readLine();
 			if (header != null) {
-				builder.append(header + ",is_anomaly\n");
+				builder.append(header + ",anomaly_id\n");
 				String record = reader.readLine();
 				while (record != null) {
 					String[] fields = record.split(",");
 					if (fields.length == 4) {
 						String key = fields[1] + fields[2];
-						String isAnomalyField = ",0\n";
-						if (anomalies.contains(key)) {
-							isAnomalyField = ",1\n";
+						String anomalyIdValue = ",0\n";
+						if (anomalies.containsKey(key)) {
+							anomalyIdValue = "," + anomalies.get(key) + "\n";
 						}
-						builder.append(record + isAnomalyField);
+						builder.append(record + anomalyIdValue);
 					}
 					record = reader.readLine();
 				}
@@ -81,11 +81,12 @@ public class StudyDataRepositoryImpl implements StudyDataRepository {
 		return data;
 	}
 	
-	private Set<String> buildAnomalySet(Long dataFieldId) {
-		Set<String> set = new HashSet<>();
+	private Map<String, Long> buildAnomalySet(Long dataFieldId) {
+		Map<String, Long> map = new HashMap<>();
 		Iterable<Anomaly> anomalies = anomalyRepository.getCurrentAnomalies(dataFieldId);
-		anomalies.forEach(anomaly -> set.add(anomaly.getRecruitId() + anomaly.getEvent()));
-		return set;
+		anomalies.forEach(anomaly -> map.put(anomaly.getRecruitId() + anomaly.getEvent(),
+				anomaly.getAnomalyId()));
+		return map;
 	}
 	
 }

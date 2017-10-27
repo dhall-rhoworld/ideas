@@ -124,10 +124,10 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 			.attr("cy", function(d) {return getY(xScale(d[fieldName]));})
 			.attr("r", CIRCUMFERENCE)
 			.classed("outlier", function(d) {
-				return d["is_anomaly"] == 1 && (d["value"] < lowerThresh || d["value"] > upperThresh);
+				return d["anomaly_id"] > 0 && (d["value"] < lowerThresh || d["value"] > upperThresh);
 			})
 			.classed("inlier", function(d) {
-				return d["is_anomaly"] == 0 || (d["value"] >= lowerThresh && d["value"] <= upperThresh)
+				return d["anomaly_id"] == 0 || (d["value"] >= lowerThresh && d["value"] <= upperThresh)
 			});
 		
 		// Draw threshold lines
@@ -252,33 +252,51 @@ function onExport() {
 
 function onChange() {
 	let option = document.getElementById("select_label").value;
-	let selectedPoints = [];
 	if (option == "issue") {
+		let recruitIds = "";
+		let events = "";
+		let count = 0;
 		dataArea.selectAll(".inlier-selected")
+			.each(function(d) {
+				count++;
+				if (count > 1) {
+					recruitIds += ",";
+					events += ",";
+				}
+				recruitIds += d["RecruitID"];
+				events += d["event"];
+			});
+		let data =
+			"data_field_id=" + dataFieldId + "&" +
+			"recruit_ids=" + recruitIds + "&" +
+			"events=" + events.replace(/&/g, "%26");
+		data = encodeURI(data);
+		//console.log(data);
+		$.post("/rest/anomaly/is_an_issue", data, function() {
+			dataArea.selectAll(".inlier-selected")
 			.classed("inlier", false)
 			.classed("inlier-selected", false)
 			.classed("outlier", true)
 			.classed("outlier-selected", true);
+		})
 	}
 	else if (option == "non-issue") {
+		let data = "anomaly_ids=";
+		let count = 0;
 		dataArea.selectAll(".outlier-selected")
+			.each(function(d) {
+				count++;
+				if (count > 1) {
+					data += ","
+				}
+				data += d["anomaly_id"];
+			});
+		$.post("/rest/anomaly/not_an_issue", data, function() {
+			dataArea.selectAll(".outlier-selected")
 			.classed("outlier", false)
 			.classed("outlier-selected", false)
 			.classed("inlier", true)
 			.classed("inlier-selected", true)
-			.each(function(d) {
-				let selectedPoint = {
-					"RecruitID" : d["RecruitID"],
-					"event" : d["event"]
-				};
-				selectedPoints.push(selectedPoint);
-			});
-		$.ajax("/rest/anomaly/set_is_not_an_issue", {
-			data : JSON.stringify(selectedPoints),
-			contentType: "application/json",
-			error: function() {
-				
-			}
 		});
 	}
 }

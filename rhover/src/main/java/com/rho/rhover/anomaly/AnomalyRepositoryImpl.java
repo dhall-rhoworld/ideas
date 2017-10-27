@@ -2,7 +2,10 @@ package com.rho.rhover.anomaly;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Iterator;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -10,6 +13,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class AnomalyRepositoryImpl implements AnomalyRepository {
+	
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
@@ -35,5 +40,46 @@ public class AnomalyRepositoryImpl implements AnomalyRepository {
 				return new Anomaly(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5));
 			}
 		});
+	}
+
+	@Override
+	public int setIsAnIssue(Iterable<Long> anomalyIds, boolean isAnIssue) {
+		int isAnIssueValue = 0;
+		if (isAnIssue) {
+			isAnIssueValue = 1;
+		}
+		StringBuilder builder = new StringBuilder("update anomaly set is_an_issue = "
+				+ isAnIssueValue + " where anomaly_id in (");
+		int count = 0;
+		for (Long anomalyId : anomalyIds) {
+			count++;
+			if (count > 1) {
+				builder.append(",");
+			}
+			builder.append(anomalyId);
+		}
+		builder.append(")");
+		String sql = builder.toString();
+		//logger.debug(sql);
+		//return 1;
+		return jdbcTemplate.update(sql);
+	}
+
+	@Override
+	public int setIsAnIssue(Long dataFieldId, String[] recruitIds, String[] events, boolean isAnIssue) {
+		int isAnIssueValue = 0;
+		if (isAnIssue) {
+			isAnIssueValue = 1;
+		}
+		for (int i = 0; i < recruitIds.length; i++) {
+			String sql =
+				"update anomaly " +
+				"set is_an_issue = " + isAnIssueValue + " " +
+				"where data_field_id = " + dataFieldId + " " +
+				"and recruit_id = '" + recruitIds[i] + "' " +
+				"and event = '" + events[i] + "'";
+			jdbcTemplate.update(sql);
+		}
+		return recruitIds.length;
 	}
 }
