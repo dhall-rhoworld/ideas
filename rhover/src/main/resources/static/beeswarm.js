@@ -10,6 +10,8 @@ let numLanes = 1;
 laneIndex[0] = 0;
 
 let isDragging = false;
+let isMovingLowerThreshold = false;
+let isMovingUpperThreshold = false;
 let mouseDownX = 0;
 let mouseDownY = 0;
 let mouseUpX = 0;
@@ -24,6 +26,13 @@ let maxY = 0;
 let dataAreSelected = false;
 
 let dataArea = null;
+let line1 = null;
+let line2 = null;
+let caret1 = null;
+let caret2 = null;
+let caretY = 0;
+
+let xScale = null;
 
 function getY(x) {
 	let lane = 0;
@@ -75,6 +84,13 @@ function computeHeight(data, fieldName, xScale) {
 	return maxY - minY;
 }
 
+function computeCaretPoints(x) {
+	let p1 = x + ", " + (caretY + 8);
+	let p2 = (x - 8) + ", " + caretY;
+	let p3 = (x + 8) + ", " + caretY;
+	return p1 + " " + p2 + " " + p3;
+}
+
 function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 	
 	d3.csv(dataUrl, function(data) {
@@ -84,7 +100,7 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 		const min = data[0][fieldName];
 		const max = data[data.length - 1][fieldName];
 		const dataAreaWidth = SVG_WIDTH - 2 * BORDER;
-		const xScale = d3.scaleLinear()
+		xScale = d3.scaleLinear()
 			.domain([min, max])
 			.range([0, dataAreaWidth]);
 		let dataHeight = computeHeight(data, fieldName, xScale);
@@ -135,15 +151,45 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 		let xUpper = xScale(upperThresh) + BORDER;
 		let y1 = BORDER;
 		let y2 = BORDER + dataHeight;
-		svg.append("line")
+		line1 = svg.append("line")
 			.attr("x1", xLower).attr("y1", y1).attr("x2", xLower).attr("y2", y2)
 			.attr("stroke", "black").attr("stroke-width", 1).attr("stroke-dasharray", "5, 5");
-		svg.append("line")
+		line2 = svg.append("line")
 			.attr("x1", xUpper).attr("y1", y1).attr("x2", xUpper).attr("y2", y2)
 			.attr("stroke", "black").attr("stroke-width", 1).attr("stroke-dasharray", "5, 5");
 		
+		// Draw draggable carets above threshold lines
+		caretY = y1;
+		caret1 = svg.append("polygon")
+			.attr("points", computeCaretPoints(xLower))
+			.attr("fill", "black")
+			.on("mousedown", function() {
+				isMovingLowerThreshold = true;
+				document.getElementById("button_save").removeAttribute("disabled");
+			});
+		caret2 = svg.append("polygon")
+			.attr("points", computeCaretPoints(xUpper))
+			.attr("fill", "black")
+			.on("mousedown", function() {
+				isMovingUpperThreshold = true;
+				document.getElementById("button_save").removeAttribute("disabled");
+			});
+		/*
+		caret1 = svg.append("circle")
+			.attr("cx", xLower)
+			.attr("cy", y1)
+			.attr("r", 8)
+			.attr("fill", "black");
+		caret2 = svg.append("circle")
+			.attr("cx", xUpper)
+			.attr("cy", y1)
+			.attr("r", 8)
+			.attr("fill", "black")
+			*/
+		
 		// Add selection event handler
 		svg.on("mousedown", function() {
+			console.log(isMovingLowerThreshold);
 			if (dataAreSelected) {
 				dataArea.selectAll(".outlier-selected").classed("outlier-selected", false);
 				dataArea.selectAll(".inlier-selected").classed("inlier-selected", false);
@@ -154,21 +200,23 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 				document.getElementById("button_change").setAttribute("disabled", "true");
 				document.getElementById("button_suppress").setAttribute("disabled", "true");
 			}
-			isDragging = true;
-			mouseDownX = d3.mouse(this)[0];
-			mouseDownY = d3.mouse(this)[1];
-			selectRect = svg.append("rect")
-				.attr("x", mouseDownX)
-				.attr("y", mouseDownY)
-				.attr("width", 0)
-				.attr("height", 0)
-				.classed("select-rect", true);
+			if (! (isMovingLowerThreshold || isMovingUpperThreshold)) {
+				isDragging = true;
+				mouseDownX = d3.mouse(this)[0];
+				mouseDownY = d3.mouse(this)[1];
+				selectRect = svg.append("rect")
+					.attr("x", mouseDownX)
+					.attr("y", mouseDownY)
+					.attr("width", 0)
+					.attr("height", 0)
+					.classed("select-rect", true);
+			}
 		});
 		
 		svg.on("mousemove", function() {
+			let x = d3.mouse(this)[0];
+			let y = d3.mouse(this)[1];
 			if (isDragging) {
-				let x = d3.mouse(this)[0];
-				let y = d3.mouse(this)[1];
 				minX = mouseDownX;
 				maxX = x;
 				if (minX > maxX) {
@@ -189,47 +237,65 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 					.attr("width", width)
 					.attr("height", height);
 			}
+			else if (isMovingLowerThreshold) {
+				caret1.attr("points", computeCaretPoints(x));
+				line1.attr("x1", x);
+				line1.attr("x2", x);
+			}
+			else if (isMovingUpperThreshold) {
+				caret2.attr("points", computeCaretPoints(x));
+				line2.attr("x1", x);
+				line2.attr("x2", x);
+			}
 		});
 		
 		svg.on("mouseup", function() {
-			isDragging = false;
 			mouseUpX = d3.mouse(this)[0];
 			mouseUpY = d3.mouse(this)[1];
-			selectRect.remove();
-			minX = mouseDownX;
-			maxX = mouseUpX;
-			if (minX > maxX) {
-				minX = mouseUpX;
-				maxX = mouseDownX;
-			}
-			minY = mouseDownY;
-			maxY = mouseUpY;
-			if (minY > maxY) {
-				minY = mouseUpY;
-				maxY = mouseDownY;
-			}
-			minX -= BORDER;
-			maxX -= BORDER;
-			dataArea.selectAll("circle").each(function(d) {
-				const x = d3.select(this).attr("cx");
-				const y = dataMidPoint + parseInt(d3.select(this).attr("cy"));
-				if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
-					let node = d3.select(this);
-					node.classed("data-selected", true);
-					if (node.classed("outlier")) {
-						node.classed("outlier-selected", true);
-					}
-					else if (node.classed("inlier")) {
-						node.classed("inlier-selected", true)
-					}
-					dataAreSelected = true;
+			if (isDragging) {
+				isDragging = false;
+				selectRect.remove();
+				minX = mouseDownX;
+				maxX = mouseUpX;
+				if (minX > maxX) {
+					minX = mouseUpX;
+					maxX = mouseDownX;
 				}
-			});
-			if (dataAreSelected) {
-				document.getElementById("button_show").removeAttribute("disabled");
-				document.getElementById("button_query").removeAttribute("disabled");
-				document.getElementById("button_change").removeAttribute("disabled");
-				document.getElementById("button_suppress").removeAttribute("disabled");
+				minY = mouseDownY;
+				maxY = mouseUpY;
+				if (minY > maxY) {
+					minY = mouseUpY;
+					maxY = mouseDownY;
+				}
+				minX -= BORDER;
+				maxX -= BORDER;
+				dataArea.selectAll("circle").each(function(d) {
+					const x = d3.select(this).attr("cx");
+					const y = dataMidPoint + parseInt(d3.select(this).attr("cy"));
+					if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
+						let node = d3.select(this);
+						node.classed("data-selected", true);
+						if (node.classed("outlier")) {
+							node.classed("outlier-selected", true);
+						}
+						else if (node.classed("inlier")) {
+							node.classed("inlier-selected", true)
+						}
+						dataAreSelected = true;
+					}
+				});
+				if (dataAreSelected) {
+					document.getElementById("button_show").removeAttribute("disabled");
+					document.getElementById("button_query").removeAttribute("disabled");
+					document.getElementById("button_change").removeAttribute("disabled");
+					document.getElementById("button_suppress").removeAttribute("disabled");
+				}
+			}
+			else if (isMovingLowerThreshold) {
+				isMovingLowerThreshold = false;
+			}
+			else if (isMovingUpperThreshold) {
+				isMovingUpperThreshold = false;
 			}
 		});
 	});
@@ -299,6 +365,29 @@ function onChange() {
 			.classed("inlier-selected", true)
 		});
 	}
+}
+
+function onSave() {
+	document.getElementById("button_save").setAttribute("disabled", "true");
+	let x1 = caret1.attr("points").split(",")[0] - BORDER;
+	let x2 = caret2.attr("points").split(",")[0] - BORDER;
+	lowerThreshold = xScale.invert(x1);
+	upperThreshold = xScale.invert(x2);
+	//console.log("lower: " + lowerThreshold + ", upper: " + upperThreshold)
+	dataArea.selectAll("circle").each(function(d) {
+		let v = parseFloat(d["value"]);
+		//console.log(v);
+		if (v < lowerThreshold || v > upperThreshold) {
+			d3.select(this)
+			.classed("inlier", false)
+			.classed("outlier", true);
+		}
+		else {
+			d3.select(this)
+			.classed("outlier", false)
+			.classed("inlier", true);
+		}
+	});
 }
 
 const url = "/rest/anomaly/data?data_field_id=" + dataFieldId;
