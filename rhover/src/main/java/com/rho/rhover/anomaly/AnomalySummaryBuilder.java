@@ -41,6 +41,7 @@ public class AnomalySummaryBuilder {
 				"	join data_field df on df.data_field_id = a.data_field_id\r\n" + 
 				"	join dataset ds on ds.dataset_id = df.dataset_id\r\n" + 
 				"	where ds.study_id = s.study_id\r\n" + 
+				"   and a.is_an_issue = 1\r\n" +
 				"),\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
@@ -49,6 +50,7 @@ public class AnomalySummaryBuilder {
 				"	join dataset ds on ds.dataset_id = df.dataset_id\r\n" + 
 				"	where ds.study_id = s.study_id\r\n" + 
 				"	and a.has_been_viewed = 0\r\n" + 
+				"   and a.is_an_issue = 1\r\n" +
 				")\r\n" + 
 				"from study s";
 		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
@@ -62,12 +64,14 @@ public class AnomalySummaryBuilder {
 				"	from anomaly a\r\n" + 
 				"	join data_field df on df.data_field_id = a.data_field_id\r\n" + 
 				"	where df.dataset_id = ds.dataset_id\r\n" + 
+				"   and a.is_an_issue = 1\r\n" +
 				"),\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
 				"	join data_field df on df.data_field_id = a.data_field_id\r\n" + 
 				"	where df.dataset_id = ds.dataset_id\r\n" + 
+				"   and a.is_an_issue = 1\r\n" +
 				"	and a.has_been_viewed = 0\r\n" + 
 				")\r\n" + 
 				"from dataset ds \r\n" + 
@@ -82,11 +86,13 @@ public class AnomalySummaryBuilder {
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
 				"	where a.data_field_id = df.data_field_id\r\n" + 
+				"   and a.is_an_issue = 1\r\n" +
 				"),\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
 				"	where a.data_field_id = df.data_field_id\r\n" + 
+				"   and a.is_an_issue = 1\r\n" +
 				"	and a.has_been_viewed = 0\r\n" + 
 				")\r\n" + 
 				"from data_field df \r\n" + 
