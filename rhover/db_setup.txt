@@ -56,3 +56,33 @@ create table anomaly (
 	foreign key(version_first_seen_in) references dataset_version(dataset_version_id),
 	foreign key(version_last_seen_in) references dataset_version(dataset_version_id)
 );
+
+create table bivariate_check (
+	bivariate_check_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+	dataset_id BIGINT,
+	data_field_1 VARCHAR(200),
+	data_field_2 VARCHAR(200),
+	/*
+	lower_threshold DOUBLE,
+	upper_threshold DOUBLE,
+	*/
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	foreign key(dataset_id) references dataset (dataset_id)
+);
+
+create table bivariate_outlier (
+	bivariate_outlier_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+	field_value_1 DOUBLE,
+	field_value_2 DOUBLE,
+	bivariate_check_id BIGINT,
+	version_first_seen_in BIGINT,
+	version_last_seen_in BIGINT,
+	recruit_id VARCHAR(100),
+	event VARCHAR(100),
+	has_been_viewed TINYINT DEFAULT 0,
+	is_an_issue TINYINT DEFAULT 1,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	foreign key(bivariate_check_id) references bivariate_check(bivariate_check_id),
+	foreign key(version_first_seen_in) references dataset_version(dataset_version_id),
+	foreign key(version_last_seen_in) references dataset_version(dataset_version_id)
+);

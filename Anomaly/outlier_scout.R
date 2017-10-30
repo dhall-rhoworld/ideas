@@ -250,6 +250,10 @@ findUnivariateOutliers <- function(x, colNum, cutoff.sd = 2) {
   return (outlierDat)
 }
 
+findAndLoadBivariateOutliers <- function(x, col1, col2, cutoff.residual = 2, cutoff.density = 8) {
+  
+}
+
 findBivariateOutliers <- function(x, col1, col2, cutoff.residual = 2, cutoff.density = 8) {
   
   # Finds bivariate outliers in two columns of a data frame.  A data point is

@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>RhoVer Boxplot Chart</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="/rhover.css"/>
+    <link rel="stylesheet" href="/jquery-ui.css"/>
+    <script src="/d3.min.js"></script>
+    <script src="/jquery-3.2.1.min.js"></script>
+    <script src="/jquery-ui.js"></script>
+</head>
+<body>
+	<div class="page-header">RhoVer (Prototype)</div>
+	
+	<div id="breadcrumbs">
+		<a href="/browse/studies">Browse by Study</a> >
+		<a th:href="@{/browse/datasets(study_id=${bivariate_check.dataset.study.studyId})}"><span th:text="${bivariate_check.dataset.study.studyName}"/></a> >
+		<a th:href="@{/browse/data_fields(dataset_id=${bivariate_check.dataset.datasetId})}"><span th:text="${bivariate_check.dataset.datasetName}"/></a> >
+		<strong><span th:text="${bivariate_check.displayName}"/></strong>
+	</div>
+		
+    <div id="content">
+    
+    </div>
+</body>
+</html>

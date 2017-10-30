@@ -24,33 +24,48 @@
 	</div>
 		
     <div id="content">
+    	<h2>Univeriate Outliers</h2>
    		<table class="wide">
    			<tr>
-   				<th></th>
-   				<th colspan="2">Univariate Outliers</th>
-   				<th></th>
-   			</tr>
-   			<tr>
    				<th><span th:text="${dataset.datasetName}"/> Field</th>
-   				<th>Unviewed/Total</th>
+   				<th>Unviewed</th>
+   				<th>Total</th>
    				<th>View</th>
-   				<th>Total Anomalies</th>
    			</tr>
    			<tr th:each="summary : ${summaries}">
    				<td>
    					<span th:text="${summary.entityName}"/>
    				</td>
    				<td>
-   					<span th:class="${summary.numUnviewedAnomalies} > 0? attention : plain" th:text="${summary.numUnviewedAnomalies}"/>/<span th:text="${summary.numAnomalies}"/>
+   					<span th:class="${summary.numUnviewedAnomalies} > 0? attention : plain" th:text="${summary.numUnviewedAnomalies}"/>
+   				</td>
+   				<td>
+   					<span th:text="${summary.numAnomalies}"/>
    				</td>
    				<td>
    					<a th:href="@{/anomaly/table(data_field_id=${summary.entityId})}">Table</a> |
    					<a th:href="@{/anomaly/beeswarm(data_field_id=${summary.entityId})}">Beeswarm</a> |
    					<a th:href="@{/anomaly/boxplot(data_field_id=${summary.entityId})}">Boxplot</a>
    				</td>
-   				<td th:text="${summary.numAnomalies}"/>
    			</tr>
    		</table>
+   		<div th:if="${not #lists.isEmpty(bivariate_checks)}">
+   			<h2>Bivariate Outliers</h2>
+   			<table class="wide">
+   				<tr>
+   					<th>Field 1</th>
+   					<th>Field 2</th>
+   					<th>View</th>
+   				</tr>
+   				<tr th:each="check : ${bivariate_checks}">
+   					<td th:text="${check.dataField1}"/>
+   					<td th:text="${check.dataField2}"/>
+   					<td>
+   						<a th:href="@{/anomaly/scatter_plot(bivariate_check_id=${check.bivariateCheckId})}">Scatter Plot</a>
+   					</td>
+   				</tr>
+   			</table>
+   		</div>
     </div>
 </body>
 </html>

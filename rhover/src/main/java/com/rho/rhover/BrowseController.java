@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.rho.rhover.anomaly.AnomalySummaryBuilder;
+import com.rho.rhover.anomaly.BivariateCheck;
+import com.rho.rhover.anomaly.BivariateCheckRepository;
 import com.rho.rhover.study.Dataset;
 import com.rho.rhover.study.DatasetRepository;
 import com.rho.rhover.study.Study;
@@ -24,6 +26,9 @@ public class BrowseController {
 	
 	@Autowired
 	private DatasetRepository datasetRepository;
+	
+	@Autowired
+	private BivariateCheckRepository bivariateCheckRepository;
 
     @RequestMapping("/studies")
     public String studies(Model model) {
@@ -46,8 +51,10 @@ public class BrowseController {
     			@RequestParam("dataset_id") Long datasetId,
     			Model model) {
     	Dataset dataset = datasetRepository.findOne(datasetId);
+    	Iterable<BivariateCheck> bivariateChecks = bivariateCheckRepository.findByDataset(dataset);
 		model.addAttribute("summaries", anomalySummaryBuilder.getDataFieldSummaries(datasetId));
 		model.addAttribute("dataset", dataset);
+		model.addAttribute("bivariate_checks", bivariateChecks);
 		return "browse/data_fields";
     }
 }

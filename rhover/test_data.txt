@@ -1,3 +1,6 @@
 insert into study(study_name) values ('PROSE');
 insert into study(study_name) values ('SCITMO');
 insert into study(study_name) values ('RACR');
+
+insert into bivariate_check(dataset_id, data_field_1, data_field_2)
+values (150, 'Height_Avg', 'Weight_Avg');

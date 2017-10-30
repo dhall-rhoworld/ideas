@@ -18,6 +18,9 @@ public class AnomalyController {
 	
 	@Autowired
 	private DataFieldRepository dataFieldRepository;
+	
+	@Autowired
+	private BivariateCheckRepository bivariateCheckRepository;
     
     @RequestMapping("/table")
     public String anomalyTable(
@@ -45,5 +48,13 @@ public class AnomalyController {
     	DataField dataField = dataFieldRepository.findOne(dataFieldId);
     	model.addAttribute("data_field", dataField);
     	return "anomaly/boxplot";
+    }
+    
+    @RequestMapping("/scatter_plot")
+    public String scatterPlot(
+    		@RequestParam("bivariate_check_id") Long bivariateCheckId,
+    		Model model) {
+    	model.addAttribute("bivariate_check", bivariateCheckRepository.findOne(bivariateCheckId));
+    	return "anomaly/scatter_plot";
     }
 }
