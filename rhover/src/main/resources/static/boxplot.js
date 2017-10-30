@@ -1,14 +1,12 @@
 const CIRCUMFERENCE = 3;
+const BOX_HEIGHT = 40;
 const AXIS_HEIGHT = 25;
 const PADDING = 20;
 const BORDER = 25;
+const DATA_HEIGHT = 100;
+const SVG_HEIGHT = BORDER * 2 + PADDING + AXIS_HEIGHT + DATA_HEIGHT;
 const SVG_WIDTH = 800;
 		
-let laneIndex = new Array(500);
-let laneMax = new Array(500);
-let numLanes = 1;
-laneIndex[0] = 0;
-
 let isDragging = false;
 let isMovingLowerThreshold = false;
 let isMovingUpperThreshold = false;
@@ -34,56 +32,6 @@ let caretY = 0;
 
 let xScale = null;
 
-function getY(x) {
-	let lane = 0;
-	while (lane < numLanes && (laneMax[lane] + 2 * CIRCUMFERENCE) > x) {
-		lane++;
-	}
-	laneMax[lane] = x;
-	if (lane == numLanes) {
-		numLanes++;
-		if (laneIndex[lane - 1] == 0) {
-			laneIndex[lane] = -1;
-		}
-		else if (laneIndex[lane - 1] < 0) {
-			laneIndex[lane] = -laneIndex[lane - 1];
-		}
-		else {
-			laneIndex[lane] = -laneIndex[lane - 1] - 1;
-		}
-	}
-	let y = laneIndex[lane] * 2 * CIRCUMFERENCE;
-	//console.log(x + ", " + y);
-	return y;
-}
-
-function computeHeight(data, fieldName, xScale) {
-	let minY = 0;
-	let maxY = 0;
-	let count = 0;
-	data.forEach(function(d) {
-		count++;
-		let y = getY(xScale(d[fieldName]));
-		if (count == 1) {
-			minY = y;
-			maxY = y;
-		}
-		if (y < minY) {
-			minY = y;
-		}
-		if (y > maxY) {
-			maxY = y;
-		}
-	});
-
-	laneIndex = new Array(500);
-	laneMax = new Array(500);
-	numLanes = 1;
-	laneIndex[0] = 0;
-	
-	return maxY - minY;
-}
-
 function computeCaretPoints(x) {
 	let p1 = x + ", " + (caretY + 8);
 	let p2 = (x - 8) + ", " + caretY;
@@ -91,10 +39,10 @@ function computeCaretPoints(x) {
 	return p1 + " " + p2 + " " + p3;
 }
 
-function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
+function renderBoxplot(dataUrl, fieldName, lowerThresh, upperThresh, firstQuartile,
+		secondQuartile, thirdQuartile) {
 	
 	d3.csv(dataUrl, function(data) {
-		//console.log(data);
 		
 		// Set extent of data and chart areas on the screen
 		const min = data[0][fieldName];
@@ -103,16 +51,13 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 		xScale = d3.scaleLinear()
 			.domain([min, max])
 			.range([0, dataAreaWidth]);
-		let dataHeight = computeHeight(data, fieldName, xScale);
-		laneMax[0] = min - 100;
-		const svgHeight = dataHeight + 2 * BORDER + PADDING + AXIS_HEIGHT;
 		const svg = d3.select("svg")
 			.attr("width", SVG_WIDTH)
-			.attr("height", svgHeight);
-		const dataMidPoint = BORDER + dataHeight / 2;
+			.attr("height", SVG_HEIGHT);
+		const dataMidPoint = BORDER + DATA_HEIGHT / 2;
 		dataArea = svg.append("g")
 			.attr("transform", "translate(" + BORDER + ", " + dataMidPoint + ")");
-		const axisY = dataHeight + BORDER + PADDING;
+		const axisY = DATA_HEIGHT + BORDER + PADDING;
 		const axisArea = svg.append("g")
 			.attr("transform", "translate(" + BORDER + ", " + axisY + ")");
 		
@@ -131,20 +76,53 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 		const xAxis = d3.axisBottom().scale(xScale);
 		axisArea.call(xAxis);
 		
-		// Draw data points
+		// Draw outlier data points
 		dataArea.selectAll("circle")
 			.data(data)
 			.enter()
 			.append("circle")
+			.filter(function(d) {
+					return d[fieldName] <= lowerThreshold || d[fieldName] >= upperThreshold;
+				})
 			.attr("cx", function(d) {return xScale(d[fieldName]);})
-			.attr("cy", function(d) {return getY(xScale(d[fieldName]));})
+			.attr("cy", "0")
 			.attr("r", CIRCUMFERENCE)
-			.classed("outlier", function(d) {
-				return d["anomaly_id"] > 0 && (d["value"] < lowerThresh || d["value"] > upperThresh);
-			})
-			.classed("inlier", function(d) {
-				return d["anomaly_id"] == 0 || (d["value"] >= lowerThresh && d["value"] <= upperThresh)
-			});
+			.classed("outlier", true);
+		
+		// Draw box
+		let x = xScale(firstQuartile);
+		let y = -BOX_HEIGHT / 2;
+		let width = xScale(thirdQuartile) - x;
+		dataArea.append("rect").attr("x", x).attr("y", y).attr("width", width).attr("height", BOX_HEIGHT)
+			.classed("quartile-box", true);
+		
+		// Draw median line
+		x = xScale(secondQuartile);
+		let y2 = y + BOX_HEIGHT;
+		dataArea.append("line").attr("x1", x).attr("y1", y).attr("x2", x).attr("y2", y2)
+			.classed("boxplot-lines", true);
+		
+		// Draw whiskers
+		x = xScale(lowerThreshold);
+		dataArea.append("line").attr("x1", x).attr("y1", y).attr("x2", x).attr("y2", y2)
+		.classed("boxplot-lines", true);
+		
+		let x2 = xScale(firstQuartile);
+		dataArea.append("line").attr("x1", x).attr("y1", 0).attr("x2", x2).attr("y2", 0)
+		.classed("boxplot-lines", true);
+		
+		x = xScale(thirdQuartile);
+		x2 = xScale(upperThreshold);
+		dataArea.append("line").attr("x1", x).attr("y1", 0).attr("x2", x2).attr("y2", 0)
+		.classed("boxplot-lines", true);
+		
+		x = xScale(upperThreshold);
+		dataArea.append("line").attr("x1", x).attr("y1", y).attr("x2", x).attr("y2", y2)
+		.classed("boxplot-lines", true);
+		
+		
+		
+		/*
 		
 		// Draw threshold lines
 		let xLower = xScale(lowerThresh) + BORDER;
@@ -174,18 +152,6 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 				isMovingUpperThreshold = true;
 				document.getElementById("button_save").removeAttribute("disabled");
 			});
-		/*
-		caret1 = svg.append("circle")
-			.attr("cx", xLower)
-			.attr("cy", y1)
-			.attr("r", 8)
-			.attr("fill", "black");
-		caret2 = svg.append("circle")
-			.attr("cx", xUpper)
-			.attr("cy", y1)
-			.attr("r", 8)
-			.attr("fill", "black")
-			*/
 		
 		// Add selection event handler
 		svg.on("mousedown", function() {
@@ -298,6 +264,7 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 				isMovingUpperThreshold = false;
 			}
 		});
+		*/
 	});
 }
 
@@ -394,4 +361,4 @@ function onSave() {
 }
 
 const url = "/rest/anomaly/data?data_field_id=" + dataFieldId;
-renderBeeswarm(url, "value", lowerThreshold, upperThreshold);
+renderBoxplot(url, "value", lowerThreshold, upperThreshold, firstQuartile, secondQuartile, thirdQuartile);

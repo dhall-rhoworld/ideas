@@ -32,7 +32,6 @@ public class AnomalyRestController {
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "text/plain; charset=utf-8");
 		String data = studyDataRepository.getAllDataFieldValues(dataFieldId);
-		//logger.debug(data);
 		return new ResponseEntity<String>(data, headers, HttpStatus.OK);
 	}
 	
@@ -47,6 +46,7 @@ public class AnomalyRestController {
 		return new ResponseEntity<Integer>(numUpdated, HttpStatus.OK);
 	}
 	
+	// TODO: Complete functionality so that inliers can marked as issues in database.
 	@RequestMapping("/is_an_issue")
 	public ResponseEntity<Integer> isAnIssue(
 			@RequestParam("data_field_id") Long dataFieldId,
@@ -54,9 +54,18 @@ public class AnomalyRestController {
 			@RequestParam("events") String eventString) {
 		String[] recruitIds = recruitIdString.split(",");
 		String[] events = eventString.replaceAll("%26", "&").split(",");
-		//logger.debug(recruitIdString);
-		//logger.debug(eventString);
 		anomalyRepository.setIsAnIssue(dataFieldId, recruitIds, events, true);
+		return new ResponseEntity<Integer>(0, HttpStatus.OK);
+	}
+	
+	// TODO: Complete functionality.
+	@RequestMapping("/set_univariate_thresholds")
+	public ResponseEntity<Integer> setUnivariateThresholds(
+			@RequestParam("data_field_id") Long dataFieldId,
+			@RequestParam("lower_threshold") Double lowerThreshold,
+			@RequestParam("upper_threshold") Double upperThreshold) {
+		logger.debug("Setting thresholds for data field " + dataFieldId + ": " + lowerThreshold
+				+ " - " + upperThreshold);
 		return new ResponseEntity<Integer>(0, HttpStatus.OK);
 	}
 }

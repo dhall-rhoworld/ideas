@@ -29,12 +29,21 @@ public class AnomalyController {
     	return "anomaly/table";
     }
     
-    @RequestMapping("/chart")
-    public String anomalyChart(
+    @RequestMapping("/beeswarm")
+    public String beeswarm(
 		    @RequestParam("data_field_id") Long dataFieldId,
 			Model model) {
     	DataField dataField = dataFieldRepository.findOne(dataFieldId);
     	model.addAttribute("data_field", dataField);
-    	return "anomaly/chart";
+    	return "anomaly/beeswarm";
+    }
+    
+    @RequestMapping("/boxplot")
+    public String boxplot(
+		    @RequestParam("data_field_id") Long dataFieldId,
+			Model model) {
+    	DataField dataField = dataFieldRepository.findOne(dataFieldId);
+    	model.addAttribute("data_field", dataField);
+    	return "anomaly/boxplot";
     }
 }

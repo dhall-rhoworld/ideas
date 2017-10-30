@@ -112,3 +112,14 @@ table.wide tr:nth-child(even) {
 	/*text-decoration: underline;*/
 	background-color: #4caf50;
 }
+
+.quartile-box {
+	fill: none;
+	stroke: black;
+	stroke-width: 1;
+}
+
+.boxplot-lines {
+	stroke: black;
+	stroke-width: 2;
+}

@@ -32,6 +32,10 @@ create table data_field (
 	dataset_id BIGINT,
 	lower_threshold DOUBLE,
 	upper_threshold DOUBLE,
+	is_fixed_threshold TINYINT DEFAULT 0,
+	first_quartile DOUBLE,
+	second_quartile DOUBLE,
+	third_quartile DOUBLE,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	foreign key(dataset_id) references dataset (dataset_id)
 );

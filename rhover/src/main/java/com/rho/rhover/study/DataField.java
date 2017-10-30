@@ -34,6 +34,15 @@ public class DataField {
 	@Column(name="upper_threshold")
 	private Double upperThreshold;
 	
+	@Column(name="first_quartile")
+	private Double firstQuartile;
+	
+	@Column(name="second_quartile")
+	private Double secondQuartile;
+	
+	@Column(name="third_quartile")
+	private Double thirdQuartile;
+	
 	public DataField() {
 		
 	}
@@ -72,6 +81,30 @@ public class DataField {
 
 	public Double getUpperThreshold() {
 		return upperThreshold;
+	}
+
+	public Double getFirstQuartile() {
+		return firstQuartile;
+	}
+
+	public void setFirstQuartile(Double firstQuartile) {
+		this.firstQuartile = firstQuartile;
+	}
+
+	public Double getSecondQuartile() {
+		return secondQuartile;
+	}
+
+	public void setSecondQuartile(Double secondQuartile) {
+		this.secondQuartile = secondQuartile;
+	}
+
+	public Double getThirdQuartile() {
+		return thirdQuartile;
+	}
+
+	public void setThirdQuartile(Double thirdQuartile) {
+		this.thirdQuartile = thirdQuartile;
 	}
 
 	public void setUpperThreshold(Double upperThreshold) {

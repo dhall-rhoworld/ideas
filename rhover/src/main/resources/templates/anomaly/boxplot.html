@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 <head> 
-    <title>RhoVer Anomaly Chart</title> 
+    <title>RhoVer Boxplot Chart</title> 
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" href="/rhover.css"/>
     <link rel="stylesheet" href="/jquery-ui.css"/>
@@ -44,13 +44,16 @@
     </div>
 </body>
 <script th:inline="javascript">
-	dataFieldName = [[${data_field.dataFieldName}]]
-	dataFieldId = [[${data_field.dataFieldId}]]
-	lowerThreshold = [[${data_field.lowerThreshold}]]
-	upperThreshold = [[${data_field.upperThreshold}]]
+	dataFieldName = [[${data_field.dataFieldName}]];
+	dataFieldId = [[${data_field.dataFieldId}]];
+	lowerThreshold = [[${data_field.lowerThreshold}]];
+	upperThreshold = [[${data_field.upperThreshold}]];
+	firstQuartile = [[${data_field.firstQuartile}]];
+	secondQuartile = [[${data_field.secondQuartile}]];
+	thirdQuartile = [[${data_field.thirdQuartile}]];
 </script>
 
-<script src="/beeswarm.js"></script>
+<script src="/boxplot.js"></script>
 
 <script>
 	$(function() {

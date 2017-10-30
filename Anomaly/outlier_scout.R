@@ -124,23 +124,27 @@ loadDatasetVersion <- function(datasetVersionName, datasetId, con) {
   return(datasetVersionId)
 }
 
-loadDataField <- function(dataFieldName, datasetId, lowerThresh, upperThresh, con) {
+loadDataField <- function(dataFieldName, datasetId, lowerThresh, upperThresh, firstQuartile, secondQuartile, thirdQuartile, con) {
+  #msg = paste(dataFieldName, datasetId, lowerThresh, upperThresh, firstQuartile, secondQuartile, thirdQuartile)
+  #message(msg)
   sql <- sprintf("select data_field_id from data_field where data_field_name = '%s' and dataset_id = %d",
                  dataFieldName, datasetId)
+  #message(sql)
   rs <- dbSendQuery(con, sql)
   result <- dbFetch(rs)
   if (nrow(result) == 0) {
     message("Data field ", dataFieldName, " not in database.  Loading.")
     sql <- sprintf(
-      "insert into data_field(data_field_name, dataset_id, lower_threshold, upper_threshold) values('%s', %d, %f, %f)",
-      dataFieldName, datasetId, lowerThresh, upperThresh)
+      "insert into data_field(data_field_name, dataset_id, lower_threshold, upper_threshold, first_quartile, second_quartile, third_quartile) values('%s', %d, %f, %f, %f, %f, %f)",
+      dataFieldName, datasetId, lowerThresh, upperThresh, firstQuartile, secondQuartile, thirdQuartile)
     dbSendQuery(con, sql)
     dataFieldId <- dbGetQuery(con, "select last_insert_id()")[1, 1]
   }
   else {
     dataFieldId = result[1,1]
-    sql <- sprintf("update data_field set lower_thresh = %f, upper_thresh = %f where data_field_id = %d",
-                   lowerThresh, upperThresh, dataFieldId);
+    sql <- sprintf("update data_field set lower_threshold = %f, upper_threshold = %f, first_quartile = %f, second_quartile = %f, third_quartile = %f where data_field_id = %d",
+                   lowerThresh, upperThresh, firstQuartile, secondQuartile, thirdQuartile, dataFieldId);
+    dbSendQuery(con, sql);
   }
   return(dataFieldId)
 }
@@ -187,7 +191,10 @@ findAndLoadUnivariateOutliers <- function(df, studyName, formName, datasetVersio
     outlier.dat <- findUnivariateOutliers(df, i)
     upperThresh <- outlier.dat$upperThresh
     lowerThresh <- outlier.dat$lowerThresh
-    dataFieldId <- loadDataField(fieldName, datasetId, lowerThresh, upperThresh, con)
+    firstQuartile <- outlier.dat$firstQuartile
+    secondQuartile <- outlier.dat$secondQuartile
+    thirdQuartile <- outlier.dat$thirdQuartile
+    dataFieldId <- loadDataField(fieldName, datasetId, lowerThresh, upperThresh, firstQuartile, secondQuartile, thirdQuartile, con)
     outlier.index <- outlier.dat$outlierIndex
     outliers <- which(outlier.index)
     for (j in outliers) {
@@ -232,10 +239,14 @@ findUnivariateOutliers <- function(x, colNum, cutoff.sd = 2) {
   deltas <- abs(x[,colNum] - m)
   stdev <- sd(x[,colNum], na.rm = TRUE)
   cutoff <- cutoff.sd * stdev
+  quants = quantile(x[,colNum], na.rm=TRUE)
   outlierDat <- list();
   outlierDat$outlierIndex <- deltas >= cutoff & !is.na(x[,colNum])
   outlierDat$upperThresh <- m + cutoff
   outlierDat$lowerThresh <- m - cutoff
+  outlierDat$firstQuartile <- quants[2]
+  outlierDat$secondQuartile <- quants[3]
+  outlierDat$thirdQuartile <- quants[4]
   return (outlierDat)
 }
 
