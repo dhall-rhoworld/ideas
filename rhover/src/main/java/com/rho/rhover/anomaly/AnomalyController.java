@@ -50,11 +50,11 @@ public class AnomalyController {
     	return "anomaly/boxplot";
     }
     
-    @RequestMapping("/scatter_plot")
+    @RequestMapping("/scatterplot")
     public String scatterPlot(
     		@RequestParam("bivariate_check_id") Long bivariateCheckId,
     		Model model) {
     	model.addAttribute("bivariate_check", bivariateCheckRepository.findOne(bivariateCheckId));
-    	return "anomaly/scatter_plot";
+    	return "anomaly/scatterplot";
     }
 }

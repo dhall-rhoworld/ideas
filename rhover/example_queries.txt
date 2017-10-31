@@ -43,3 +43,6 @@ from study s
 join dataset ds on ds.study_id = s.study_id
 join data_field df on df.dataset_id = ds.dataset_id
 where df.data_field_id = 213
+
+insert into bivariate_check(dataset_id_1, dataset_id_2, data_field_1, data_field_2, file_path)
+values (77, 78, 'test1', 'test2', 'path')

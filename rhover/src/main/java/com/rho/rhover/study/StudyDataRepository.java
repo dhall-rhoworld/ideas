@@ -2,6 +2,8 @@ package com.rho.rhover.study;
 
 public interface StudyDataRepository {
 
-	String getAllDataFieldValues(Long dataFieldId);
+	String getUnivariateData(Long dataFieldId);
+	
+	String getBivariateData(Long bivariateCheckId);
 	
 }

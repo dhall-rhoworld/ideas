@@ -27,11 +27,19 @@ public class AnomalyRestController {
 	@Autowired
 	private AnomalyRepository anomalyRepository;
 
-	@RequestMapping("/data")
-	public ResponseEntity<String> getData(@RequestParam("data_field_id") Long dataFieldId) {
+	@RequestMapping("/data/univariate")
+	public ResponseEntity<String> getUnivariateData(@RequestParam("data_field_id") Long dataFieldId) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "text/plain; charset=utf-8");
-		String data = studyDataRepository.getAllDataFieldValues(dataFieldId);
+		String data = studyDataRepository.getUnivariateData(dataFieldId);
+		return new ResponseEntity<String>(data, headers, HttpStatus.OK);
+	}
+	
+	@RequestMapping("/data/bivariate")
+	public ResponseEntity<String> getBivariateData(@RequestParam("bivariate_check_id") Long bivariateCheckId) {
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "text/plain; charset=utf-8");
+		String data = studyDataRepository.getBivariateData(bivariateCheckId);
 		return new ResponseEntity<String>(data, headers, HttpStatus.OK);
 	}
 	

@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import com.rho.rhover.anomaly.Anomaly;
 import com.rho.rhover.anomaly.AnomalyRepository;
+import com.rho.rhover.anomaly.BivariateCheck;
+import com.rho.rhover.anomaly.BivariateCheckRepository;
 
 @Service
 public class StudyDataRepositoryImpl implements StudyDataRepository {
@@ -30,9 +32,12 @@ public class StudyDataRepositoryImpl implements StudyDataRepository {
 	
 	@Autowired
 	private DataFieldRepository dataFieldRepository;
+	
+	@Autowired
+	private BivariateCheckRepository bivariateCheckRepository;
 
 	@Override
-	public String getAllDataFieldValues(Long dataFieldId) {
+	public String getUnivariateData(Long dataFieldId) {
 		DataField dataField = dataFieldRepository.findOne(dataFieldId);
 		String fname = REPO_PATH
 				+ "/" + dataField.getDataset().getStudy().getStudyName()
@@ -87,6 +92,35 @@ public class StudyDataRepositoryImpl implements StudyDataRepository {
 		anomalies.forEach(anomaly -> map.put(anomaly.getRecruitId() + anomaly.getEvent(),
 				anomaly.getAnomalyId()));
 		return map;
+	}
+
+	@Override
+	public String getBivariateData(Long bivariateCheckId) {
+		BivariateCheck check = bivariateCheckRepository.findOne(bivariateCheckId);
+		StringBuilder builder = new StringBuilder();
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new FileReader(check.getFilePath()));
+			String line = reader.readLine();
+			while (line != null) {
+				builder.append(line + "\n");
+				line = reader.readLine();
+			}
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		finally {
+			try {
+				if (reader != null) {
+					reader.close();
+				}
+			}
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+		return builder.toString();
 	}
 	
 }

@@ -1,5 +1,8 @@
 package com.rho.rhover;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -51,10 +54,12 @@ public class BrowseController {
     			@RequestParam("dataset_id") Long datasetId,
     			Model model) {
     	Dataset dataset = datasetRepository.findOne(datasetId);
-    	Iterable<BivariateCheck> bivariateChecks = bivariateCheckRepository.findByDataset(dataset);
+    	List<BivariateCheck> checks = new ArrayList<BivariateCheck>();
+    	checks.addAll(bivariateCheckRepository.findByDataset1(dataset));
+    	checks.addAll(bivariateCheckRepository.findByDataset2(dataset));
 		model.addAttribute("summaries", anomalySummaryBuilder.getDataFieldSummaries(datasetId));
 		model.addAttribute("dataset", dataset);
-		model.addAttribute("bivariate_checks", bivariateChecks);
+		model.addAttribute("bivariate_checks", checks);
 		return "browse/data_fields";
     }
 }

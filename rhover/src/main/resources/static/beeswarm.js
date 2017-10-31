@@ -393,5 +393,5 @@ function onSave() {
 	});
 }
 
-const url = "/rest/anomaly/data?data_field_id=" + dataFieldId;
+const url = "/rest/anomaly/data/univariate?data_field_id=" + dataFieldId;
 renderBeeswarm(url, "value", lowerThreshold, upperThreshold);

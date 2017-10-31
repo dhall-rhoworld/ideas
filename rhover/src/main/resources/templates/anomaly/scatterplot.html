@@ -14,13 +14,20 @@
 	
 	<div id="breadcrumbs">
 		<a href="/browse/studies">Browse by Study</a> >
-		<a th:href="@{/browse/datasets(study_id=${bivariate_check.dataset.study.studyId})}"><span th:text="${bivariate_check.dataset.study.studyName}"/></a> >
-		<a th:href="@{/browse/data_fields(dataset_id=${bivariate_check.dataset.datasetId})}"><span th:text="${bivariate_check.dataset.datasetName}"/></a> >
+		<a th:href="@{/browse/datasets(study_id=${bivariate_check.dataset1.study.studyId})}"><span th:text="${bivariate_check.dataset1.study.studyName}"/></a> >
+		<a th:href="@{/browse/data_fields(dataset_id=${bivariate_check.dataset1.datasetId})}"><span th:text="${bivariate_check.dataset1.datasetName}"/></a> >
 		<strong><span th:text="${bivariate_check.displayName}"/></strong>
 	</div>
 		
     <div id="content">
-    
+    	<svg></svg>
     </div>
 </body>
+<script th:inline="javascript">
+	bivariateCheckId = [[${bivariate_check.bivariateCheckId}]];
+	fieldName1 = [[${bivariate_check.dataField1}]];
+	fieldName2 = [[${bivariate_check.dataField2}]];
+</script>
+
+<script src="/scatterplot.js"></script>
 </html>

@@ -37,20 +37,18 @@ for (file in files) {
   }
   
   # Replace variable names with labels
-  #if (FALSE) {
-    attrs = attr(data, "column.info")
-    num.labels = length(attrs)
-    labels = vector(length = num.labels)
-    for (i in 1:num.labels) {
-      if (is.null(attrs[[i]]$label)) {
-        labels[i] = attrs[[i]]$name
-      }
-      else {
-        labels[i] = attrs[[i]]$label
-      }
+  attrs = attr(data, "column.info")
+  num.labels = length(attrs)
+  labels = vector(length = num.labels)
+  for (i in 1:num.labels) {
+    if (is.null(attrs[[i]]$label)) {
+      labels[i] = attrs[[i]]$name
     }
-    colnames(data) = gsub(" ", "_", labels)
-  #}
+    else {
+      labels[i] = attrs[[i]]$label
+    }
+  }
+  colnames(data) = gsub(" ", "_", labels)
   
   # Extract dataset name
   dataset.name <- data[1, "form_name"]

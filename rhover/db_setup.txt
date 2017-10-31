@@ -59,15 +59,14 @@ create table anomaly (
 
 create table bivariate_check (
 	bivariate_check_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-	dataset_id BIGINT,
+	dataset_id_1 BIGINT,
+	dataset_id_2 BIGINT,
 	data_field_1 VARCHAR(200),
 	data_field_2 VARCHAR(200),
-	/*
-	lower_threshold DOUBLE,
-	upper_threshold DOUBLE,
-	*/
+	file_path VARCHAR(250),
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-	foreign key(dataset_id) references dataset (dataset_id)
+	foreign key(dataset_id_1) references dataset (dataset_id),
+	foreign key(dataset_id_2) references dataset (dataset_id)
 );
 
 create table bivariate_outlier (

@@ -360,5 +360,5 @@ function onSave() {
 	});
 }
 
-const url = "/rest/anomaly/data?data_field_id=" + dataFieldId;
+const url = "/rest/anomaly/data/univariate?data_field_id=" + dataFieldId;
 renderBoxplot(url, "value", lowerThreshold, upperThreshold, firstQuartile, secondQuartile, thirdQuartile);

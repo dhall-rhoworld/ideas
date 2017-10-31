@@ -27,7 +27,7 @@
     	<h2>Univeriate Outliers</h2>
    		<table class="wide">
    			<tr>
-   				<th><span th:text="${dataset.datasetName}"/> Field</th>
+   				<th>Label</th>
    				<th>Unviewed</th>
    				<th>Total</th>
    				<th>View</th>
@@ -53,15 +53,24 @@
    			<h2>Bivariate Outliers</h2>
    			<table class="wide">
    				<tr>
-   					<th>Field 1</th>
-   					<th>Field 2</th>
+   					<th colspan="2">Field 1</th>
+   					<th colspan="2">Field 2</th>
+   					<th/>
+   				</tr>
+   				<tr>
+   					<th>Dataset</th>
+   					<th>Label</th>
+   					<th>Dataset</th>
+   					<th>Label</th>
    					<th>View</th>
    				</tr>
    				<tr th:each="check : ${bivariate_checks}">
+   					<td th:text="${check.dataset1.datasetName}"/>
    					<td th:text="${check.dataField1}"/>
+   					<td th:text="${check.dataset2.datasetName}"/>
    					<td th:text="${check.dataField2}"/>
    					<td>
-   						<a th:href="@{/anomaly/scatter_plot(bivariate_check_id=${check.bivariateCheckId})}">Scatter Plot</a>
+   						<a th:href="@{/anomaly/scatterplot(bivariate_check_id=${check.bivariateCheckId})}">Scatter Plot</a>
    					</td>
    				</tr>
    			</table>

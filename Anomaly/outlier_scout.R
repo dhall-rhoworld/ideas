@@ -68,6 +68,14 @@ isTrulyNumeric <- function(x, colNum) {
   ! grepl("date|month[^s]|year[^s]", colnames(x)[colNum], ignore.case = TRUE))
 }
 
+isFloatingPoint <- function(x, colNum) {
+  if(!is.numeric(x[, colNum]) || grepl("date|month[^s]|year[^s]", colnames(x)[colNum], ignore.case = TRUE)) {
+    return (FALSE)
+  }
+  v <- na.omit(x[, colNum])
+  return (sum(v - trunc(v)) != 0)
+}
+
 findTrulyNumericVariables <- function(x) {
   var.is.numeric = logical(length = ncol(x))
   for (i in 1:ncol(x)) {
@@ -147,6 +155,25 @@ loadDataField <- function(dataFieldName, datasetId, lowerThresh, upperThresh, fi
     dbSendQuery(con, sql);
   }
   return(dataFieldId)
+}
+
+loadBivariateCheck <- function(datasetId1, datasetId2, fieldName1, fieldName2, filePath, con) {
+  sql <- sprintf("select bivariate_check_id from bivariate_check where dataset_id_1 = %d and dataset_id_2 = %d and data_field_1 = '%s' and data_field_2 = '%s'",
+                 datasetId1, datasetId2, fieldName1, fieldName2);
+  rs <- dbSendQuery(con, sql)
+  result <- dbFetch(rs)
+  if (nrow(result) == 0) {
+    sql <- sprintf("insert into bivariate_check(dataset_id_1, dataset_id_2, data_field_1, data_field_2) values(%d, %d, '%s', '%s')",
+                   datasetId1, datasetId2, fieldName1, fieldName2)
+    dbSendQuery(con, sql)
+    bivariateCheckId <- dbGetQuery(con, "select last_insert_id()")[1, 1]
+  }
+  else {
+    bivariateCheckId <- result[1, 1]
+  }
+  sql <- sprintf("update bivariate_check set file_path = '%s' where bivariate_check_id = %d", filePath, bivariateCheckId);
+  dbSendQuery(con, sql)
+  return (bivariateCheckId)
 }
 
 writeNumeridAndPrimaryKeyFieldsToFile <- function(df, numericCol, studyName, formName, rootDir) {

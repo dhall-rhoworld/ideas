@@ -25,8 +25,15 @@ public class BivariateCheck {
 	private String dataField2;
 	
 	@ManyToOne
-	@JoinColumn(name="dataset_id")
-	private Dataset dataset;
+	@JoinColumn(name="dataset_id_1")
+	private Dataset dataset1;
+	
+	@ManyToOne
+	@JoinColumn(name="dataset_id_2")
+	private Dataset dataset2;
+	
+	@Column(name="file_path")
+	private String filePath;
 	
 	public BivariateCheck() {
 		
@@ -56,14 +63,30 @@ public class BivariateCheck {
 		this.dataField2 = dataField2;
 	}
 
-	public Dataset getDataset() {
-		return dataset;
+	public Dataset getDataset1() {
+		return dataset1;
 	}
 
-	public void setDataset(Dataset dataset) {
-		this.dataset = dataset;
+	public void setDataset1(Dataset dataset1) {
+		this.dataset1 = dataset1;
 	}
 	
+	public Dataset getDataset2() {
+		return dataset2;
+	}
+
+	public void setDataset2(Dataset dataset2) {
+		this.dataset2 = dataset2;
+	}
+
+	public String getFilePath() {
+		return filePath;
+	}
+
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
+	}
+
 	public String getDisplayName() {
 		return this.dataField1 + " X " + this.dataField2;
 	}
