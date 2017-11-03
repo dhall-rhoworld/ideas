@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.rho.rhover.study.DataField;
 import com.rho.rhover.study.DataFieldRepository;
+import com.rho.rhover.study.StudyDataRepository;
 
 @Controller
 @RequestMapping("/anomaly")
@@ -21,6 +22,9 @@ public class AnomalyController {
 	
 	@Autowired
 	private BivariateCheckRepository bivariateCheckRepository;
+	
+	@Autowired
+	private StudyDataRepository studyDataRepository;
     
     @RequestMapping("/table")
     public String anomalyTable(
@@ -29,6 +33,7 @@ public class AnomalyController {
     	DataField dataField = dataFieldRepository.findOne(dataFieldId);
     	model.addAttribute("anomalies", anomalyRepository.getCurrentAnomalies(dataFieldId));
     	model.addAttribute("data_field", dataField);
+    	studyDataRepository.markAnomaliesAsViewed(dataFieldId);
     	return "anomaly/table";
     }
     

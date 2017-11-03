@@ -81,10 +81,12 @@ public class StudyDataRepositoryImpl implements StudyDataRepository {
 			}
 		}
 		
-		String sql = "update anomaly set has_been_viewed = 1 where data_field_id = " + dataFieldId;
-		jdbcTemplate.update(sql);
+//		String sql = "update anomaly set has_been_viewed = 1 where data_field_id = " + dataFieldId;
+//		jdbcTemplate.update(sql);
+		markAnomaliesAsViewed(dataFieldId);
 		return data;
 	}
+	
 	
 	private Map<String, Long> buildAnomalySet(Long dataFieldId) {
 		Map<String, Long> map = new HashMap<>();
@@ -121,6 +123,13 @@ public class StudyDataRepositoryImpl implements StudyDataRepository {
 			}
 		}
 		return builder.toString();
+	}
+
+
+	@Override
+	public void markAnomaliesAsViewed(Long dataFieldId) {
+		String sql = "update anomaly set has_been_viewed = 1 where data_field_id = " + dataFieldId;
+		jdbcTemplate.update(sql);
 	}
 	
 }

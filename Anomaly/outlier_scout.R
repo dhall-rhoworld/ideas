@@ -176,6 +176,7 @@ loadBivariateCheck <- function(datasetId1, datasetId2, fieldName1, fieldName2, f
   return (bivariateCheckId)
 }
 
+
 writeNumeridAndPrimaryKeyFieldsToFile <- function(df, numericCol, studyName, formName, rootDir) {
   
   # Prepare data
@@ -293,7 +294,14 @@ findBivariateOutliers <- function(x, col1, col2, cutoff.residual = 2, cutoff.den
   #   col2 : A column number
   #
   # Returns:
-  #   A vector of boolean values
+  #   A list with the following attributes:
+  #     outlierIndex : A logical vector indicating whether the associated observation is an outlier
+  #     lm.fit : A linear model fit to the data points
+  #     is.het : A Boolean value indicating whether the data are heteroschedastic
+  #     ----------- Remaining attributes only appear when data are heteroschedastic ---------
+  #     het.fit : A linear model fit to Box-Cox transformed data points
+  #     points.hi : A data frame containing (X,Y) coordinates for the upper inlier-outlier boundary
+  #     points.lo : A data frame containing (X,Y) coordinates for the lower inlier-outlier boundary
   
   # Structure that is returned
   outlierData = list()

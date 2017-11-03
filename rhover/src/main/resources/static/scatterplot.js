@@ -5,10 +5,8 @@ const DATA_HEIGHT = 500;
 const AXIS_HEIGHT = 25;
 const SVG_HEIGHT = BORDER * 2 + PADDING + AXIS_HEIGHT + DATA_HEIGHT;
 const SVG_WIDTH = 800;
-const AXIS_WIDTH = 75;
-const DATA_WIDTH = SVG_WIDTH - 2 * BORDER - AXIS_WIDTH;
-const DATA_START_X = BORDER + AXIS_WIDTH;
-const X_AXIS_START_Y = BORDER + DATA_HEIGHT + PADDING;
+const DATA_WIDTH = SVG_WIDTH - 2 * BORDER;
+const X_AXIS_START_Y = BORDER + DATA_HEIGHT;
 
 function renderScatterplot(dataUrl, fieldName1, fieldName2) {
 	
@@ -25,13 +23,19 @@ function renderScatterplot(dataUrl, fieldName1, fieldName2) {
 		
 		// Draw X-axis
 		const xAxisArea = svg.append("g")
-			.attr("transform", "translate(" + DATA_START_X + ", " + X_AXIS_START_Y + ")");
+			.attr("transform", "translate(" + BORDER + ", " + X_AXIS_START_Y + ")");
 		const xAxis = d3.axisBottom().scale(xScale);
 		xAxisArea.call(xAxis);
 		
+		// Draw Y-axis
+		const yAxisArea = svg.append("g")
+			.attr("transform", "translate(" + BORDER + ", " + BORDER + ")");
+		const yAxis = d3.axisLeft().scale(yScale);
+		yAxisArea.call(yAxis);
+		
 		// Draw data points
 		const dataArea = svg.append("g")
-		.attr("transform", "translate(" + DATA_START_X + ", " + BORDER + ")");
+		.attr("transform", "translate(" + BORDER + ", " + BORDER + ")");
 		
 		dataArea.selectAll("circle")
 			.data(data)

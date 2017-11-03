@@ -8,6 +8,9 @@ working.dir <- "C:/Working"
 study <- "PROSE"
 output.dir <- paste(output.dir.root, "/", study, "/_bivariate", sep="")
 
+cutoffResidual <- 2
+cutoffDensity <- 8
+
 con <- dbConnect(MySQL(),
                  user="rhover", password="rhover",
                  dbname="rhover", host="localhost")
@@ -80,17 +83,25 @@ for (i in 2:nrow(fpCols)) {
     datasetId1 <- loadDataset(dataset1, studyId, con)
     if (nrow(data3) > 0) {
       c = cor(data3[,4], data3[,6])
-      if (!is.na(c) && abs(c) > 0.5) {
+      if (!is.na(c) && abs(c) > 0.5 && abs(c) < 0.99) {
         count <- count + 1
         dataset2 <- fpCols[j, "dataset"]
         fieldName2 <- fpCols[j, "fieldName"]
         fieldNum2 <- fpCols[j, "fieldNum"]
         datasetId2 <- loadDataset(dataset2, studyId, con)
         message(dataset1, ".", fieldName1, " and ", dataset2, ".", fieldName2, " correlated: ", c)
+        
+        # Generate processed data file containing all data points
         outFile <- paste(dataset1, ".", fieldNum1, "_X_", dataset2, ".", fieldNum2, ".csv", sep="")
         outPath <- paste(output.dir, "/", outFile, sep="")
         write.csv(data3[,c(1, 2, 4, 6)], file=outPath)
+        
+        # Save new record for bivariate check
         bivariateCheckId <- loadBivariateCheck(datasetId1, datasetId2, fieldName1, fieldName2, outPath, con)
+        
+        # Run bivariate check
+        outlierData <- findBivariateOutliers(data3, 4, 6, cutoffResidual, cutoffDensity)
+        
       }
     }
   }
