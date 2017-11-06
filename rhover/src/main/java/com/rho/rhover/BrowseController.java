@@ -49,6 +49,16 @@ public class BrowseController {
 		return "browse/datasets";
     }
     
+    @RequestMapping("/sites")
+    public String sites(
+    		@RequestParam("study_id") Long studyId,
+    		Model model) {
+		Study study = studyRepository.findOne(studyId);
+		model.addAttribute("summaries", anomalySummaryBuilder.getSiteSummaries(studyId));
+		model.addAttribute("study", study);
+    	return "browse/sites";
+    }
+    
     @RequestMapping("/data_fields")
     public String dataField(
     			@RequestParam("dataset_id") Long datasetId,

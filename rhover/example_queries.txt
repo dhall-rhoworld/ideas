@@ -44,5 +44,40 @@ join dataset ds on ds.study_id = s.study_id
 join data_field df on df.dataset_id = ds.dataset_id
 where df.data_field_id = 213
 
+select a.site_id
+from anomaly a
 insert into bivariate_check(dataset_id_1, dataset_id_2, data_field_1, data_field_2, file_path)
 values (77, 78, 'test1', 'test2', 'path')
+
+update bivariate_check
+set intercept = 2,
+slope = 2,
+residual_threshold = 1,
+density_threshold = 1
+where bivariate_check_id = 11
+
+update bivariate_check
+set is_het = 1,
+lambda = 1
+where bivariate_check_id = 21
+
+select recruit_id, count(anomaly_id)
+from anomaly
+group by recruit_id
+order by count(anomaly_id) desc
+limit 50
+
+select s.site_name,
+(
+	select count(*)
+	from anomaly a
+	where a.site_id = s.site_id
+),
+(
+	select count(*)
+	from anomaly a
+	where a.site_id = s.site_id
+	and a.has_been_viewed = 0
+)
+from site s
+where s.study_id = 11

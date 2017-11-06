@@ -79,6 +79,25 @@ public class AnomalySummaryBuilder {
 		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
 	}
 	
+	public Iterable<AnomalySummary> getSiteSummaries(Long studyId) {
+		String sql = "select s.site_id, s.site_name,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from anomaly a\r\n" + 
+				"	where a.site_id = s.site_id\r\n" + 
+				") total,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from anomaly a\r\n" + 
+				"	where a.site_id = s.site_id\r\n" + 
+				"	and a.has_been_viewed = 0\r\n" + 
+				")\r\n" + 
+				"from site s\r\n" + 
+				"where s.study_id = " + studyId + "\r\n" +
+				"order by total desc";
+		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
+	}
+	
 	public Iterable<AnomalySummary> getDataFieldSummaries(Long datasetId) {
 		String sql =
 				"select df.data_field_id, df.data_field_name,\r\n" + 

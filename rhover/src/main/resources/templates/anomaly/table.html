@@ -9,7 +9,7 @@
 	<div class="page-header">RhoVer (Prototype)</div>
 	
 	<div id="breadcrumbs">
-		<a href="/browse/studies">Browse by Study</a> >
+		<a href="/browse/studies">Browse</a> >
 		<a th:href="@{/browse/datasets(study_id=${data_field.dataset.study.studyId})}"><span th:text="${data_field.dataset.study.studyName}"/></a> >
 		<a th:href="@{/browse/data_fields(dataset_id=${data_field.dataset.datasetId})}"><span th:text="${data_field.dataset.datasetName}"/></a> >
 		<strong><span th:text="${data_field.dataFieldName}"/></strong>

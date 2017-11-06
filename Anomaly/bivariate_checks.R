@@ -102,6 +102,23 @@ for (i in 2:nrow(fpCols)) {
         # Run bivariate check
         outlierData <- findBivariateOutliers(data3, 4, 6, cutoffResidual, cutoffDensity)
         
+        # Save general data check parameters
+        intercept <- outlierData$lm.fit$coefficients[1]
+        slope <- outlierData$lm.fit$coefficients[2]
+        residualThreshold <- outlierData$residual.threshold
+        densityThreshold <- outlierData$density.threshold
+        updateBivariateCheck(bivariateCheckId, intercept, slope, residualThreshold, densityThreshold, con)
+        
+        # Save heteroschedastic data check parameters
+        if (outlierData$is.het) {
+          lambda <- outlierData$lambda
+          if (is.na(lambda)) {
+            message("Lambda is NA")
+          }
+          else {
+            updateBivariateCheckHet(bivariateCheckId, 1, lambda, con)
+          }
+        }
       }
     }
   }

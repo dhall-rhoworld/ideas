@@ -64,6 +64,45 @@ dbSendQuery(con, query)
 
 file.info(path)
 
+# --- For presentation ---
+data2 = data[,c(20, 23)]
+data2 = na.omit(data2)
+colnames(data2) = c("Height", "Weight")
+plot(data2$Height, data2$Weight, xlab="Height", ylab="Weight")
+
+fit <- lm(Weight ~ Height, data=data2)
+res <- abs(fit$residuals)
+boundary <- mean(res) + 2 * sd(res)
+outlierIndex <- res > boundary
+plot(data2$Height, data2$Weight, col="green", xlab="Height", ylab="Weight")
+abline(fit)
+
+plot(data2$Height, data2$Weight, col="green", xlab="Height", ylab="Weight")
+abline(fit)
+abline(a = fit$coefficients[1] + boundary, b = fit$coefficients[2], lty=3)
+abline(a = fit$coefficients[1] - boundary, b = fit$coefficients[2], lty=3)
+
+plot(data2$Height, data2$Weight, col="green", xlab="Height", ylab="Weight")
+abline(fit)
+abline(a = fit$coefficients[1] + boundary, b = fit$coefficients[2], lty=3)
+abline(a = fit$coefficients[1] - boundary, b = fit$coefficients[2], lty=3)
+outliers <- data2[outlierIndex,]
+points(outliers$Height, outliers$Weight, col="red")
+
+o <- findBivariateOutliers(data2, 1, 2, cutoff.residual = 2, cutoff.density = 0)
+plotBivariateOutliers(data2, 1, 2, o)
+
+o <- findBivariateOutliers(data2, 1, 2, cutoff.residual = 3, cutoff.density = 0)
+plotBivariateOutliers(data2, 1, 2, o)
+
+o <- findBivariateOutliers(data2, 1, 2, cutoff.residual = 2, cutoff.density = 0)
+plotBivariateOutliers(data2, 1, 2, o)
+
+o <- findBivariateOutliers(data2, 1, 2, cutoff.residual = 2, cutoff.density = 8)
+plotBivariateOutliers(data2, 1, 2, o)
+
+# -------------------------
+
 # Find all pairs of correlated numeric variables
 findCorrelatedVariables(data, use.var.names = TRUE)
 

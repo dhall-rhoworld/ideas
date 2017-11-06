@@ -116,12 +116,13 @@ loadDataset <- function(datasetName, studyId, con) {
   return(datasetId)
 }
 
+# TODO: This is not working at all.  Additionally, the initial match must be on both dataset_version_name and dataset_id.
 loadDatasetVersion <- function(datasetVersionName, datasetId, con) {
   sql <- sprintf("select dataset_version_id from dataset_version where dataset_version_name = '%s'", datasetVersionName)
   rs <- dbSendQuery(con, sql)
   result <- dbFetch(rs)
   if (nrow(result) == 0) {
-    message("Dataset version ", datasetVersionName, " not indatabase.  Loading.")
+    message("Dataset version ", datasetVersionName, " not in database.  Loading.")
     sql <- sprintf("insert into dataset_version(dataset_version_name, dataset_id) values('%s', %d)", datasetVersionName, datasetId)
     dbSendQuery(con, sql)
     datasetVersionId <- dbGetQuery(con, "select last_insert_id()")[1, 1]
@@ -157,6 +158,22 @@ loadDataField <- function(dataFieldName, datasetId, lowerThresh, upperThresh, fi
   return(dataFieldId)
 }
 
+loadSite <- function(studyId, siteName, con) {
+  sql = sprintf("select site_id from site where site_name = '%s' and study_id = %d", siteName, studyId);
+  rs <- dbSendQuery(con, sql)
+  result <- dbFetch(rs)
+  if (nrow(result) == 0) {
+    message("Site ", siteName, " not in database.  Loading.")
+    sql <- sprintf("insert into site(site_name, study_id) values('%s', %d)", siteName, studyId)
+    dbSendQuery(con, sql)
+    siteId <- dbGetQuery(con, "select last_insert_id()")[1, 1]
+  }
+  else {
+    siteId = result[1, 1]
+  }
+  return (siteId)
+}
+
 loadBivariateCheck <- function(datasetId1, datasetId2, fieldName1, fieldName2, filePath, con) {
   sql <- sprintf("select bivariate_check_id from bivariate_check where dataset_id_1 = %d and dataset_id_2 = %d and data_field_1 = '%s' and data_field_2 = '%s'",
                  datasetId1, datasetId2, fieldName1, fieldName2);
@@ -176,6 +193,24 @@ loadBivariateCheck <- function(datasetId1, datasetId2, fieldName1, fieldName2, f
   return (bivariateCheckId)
 }
 
+updateBivariateCheck <- function(bivariateCheckId, intercept, slope, residualThreshold,
+                                 densityThreshold, con) {
+  sql <- paste("update bivariate_check ",
+                "set intercept = ", intercept, ", ",
+                "slope = ", slope, ", ",
+                "residual_threshold = ", residualThreshold, ", ",
+                "density_threshold = ", densityThreshold, " ",
+                "where bivariate_check_id = ", bivariateCheckId, sep="");
+  dbSendQuery(con, sql);
+}
+
+updateBivariateCheckHet <- function(bivariateCheckId, isHet, lambda, con) {
+  sql <- paste("update bivariate_check ",
+                "set is_het = ", isHet, ", ",
+                "lambda = ", lambda, " ",
+                "where bivariate_check_id = ", bivariateCheckId, sep="");
+  dbSendQuery(con, sql);
+}
 
 writeNumeridAndPrimaryKeyFieldsToFile <- function(df, numericCol, studyName, formName, rootDir) {
   
@@ -228,6 +263,8 @@ findAndLoadUnivariateOutliers <- function(df, studyName, formName, datasetVersio
     for (j in outliers) {
       total <- total + 1
       recruitId <- df[j, "RecruitID"]
+      siteName <- df[j, "Site"]
+      siteId <- loadSite(studyId, siteName, con)
       event <- df[j, "event"]
       fieldValue <- df[j, i]
       sql <- paste(
@@ -244,9 +281,9 @@ findAndLoadUnivariateOutliers <- function(df, studyName, formName, datasetVersio
       if (nrow(result) == 0) {
         totalNew <- totalNew + 1
         sql <- paste(
-          "insert into anomaly(anomaly_type, data_field_id, field_value, recruit_id, event, version_first_seen_in, version_last_seen_in) ",
+          "insert into anomaly(anomaly_type, data_field_id, field_value, recruit_id, event, site_id, version_first_seen_in, version_last_seen_in) ",
           "values('U', ", dataFieldId, ", '", fieldValue, "', '", recruitId, "', '",
-          event, "', ", datasetVersionId, ", ", datasetVersionId, ")",
+          event, "', ", siteId, ", ", datasetVersionId, ", ", datasetVersionId, ")",
           sep = ""
         )
         dbSendQuery(con, sql)
@@ -297,11 +334,14 @@ findBivariateOutliers <- function(x, col1, col2, cutoff.residual = 2, cutoff.den
   #   A list with the following attributes:
   #     outlierIndex : A logical vector indicating whether the associated observation is an outlier
   #     lm.fit : A linear model fit to the data points
+  #     residual.threshold : Outlier boundary for residuals
+  #     density.threshold : Outlier boundary for density
   #     is.het : A Boolean value indicating whether the data are heteroschedastic
   #     ----------- Remaining attributes only appear when data are heteroschedastic ---------
   #     het.fit : A linear model fit to Box-Cox transformed data points
   #     points.hi : A data frame containing (X,Y) coordinates for the upper inlier-outlier boundary
   #     points.lo : A data frame containing (X,Y) coordinates for the lower inlier-outlier boundary
+  #     lambda : Box-Cox lambda parameter
   
   # Structure that is returned
   outlierData = list()
@@ -341,6 +381,7 @@ findBivariateOutliers <- function(x, col1, col2, cutoff.residual = 2, cutoff.den
     message("   Low magnitude of variance.  Using alternate cutoff for first phase of outlier detection.")
     cutoff.res <- cutoff.alt
   }
+  outlierData$residual.threshold = cutoff.res
   outlier.index <- res >= cutoff.res
   
   # Remove index of putative outliers that are in high-density regions
@@ -348,6 +389,7 @@ findBivariateOutliers <- function(x, col1, col2, cutoff.residual = 2, cutoff.den
   mean.dist <- rowMeans(matrix.dist)
   cutoff.dist <- mean(mean.dist) + cutoff.density * sd(mean.dist)
   outlier.index <- outlier.index & mean.dist >= cutoff.dist
+  outlierData$density.threshold = cutoff.dist
   
   # Fit boundary curve for heteroschedastic data
   if (is.het) {
@@ -364,6 +406,7 @@ findBivariateOutliers <- function(x, col1, col2, cutoff.residual = 2, cutoff.den
     lambda = fit.bct$lambda
     p$YHi = (p$YHi * lambda + 1)^(1.0 / lambda)
     p$YLo = (p$YLo * lambda + 1)^(1.0 / lambda)
+    outlierData$lambda = lambda
     
     outlierData$points.hi = p[c("X", "YHi")]
     outlierData$points.lo = p[c("X", "YLo")]

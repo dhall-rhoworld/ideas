@@ -40,6 +40,14 @@ create table data_field (
 	foreign key(dataset_id) references dataset (dataset_id)
 );
 
+create table site (
+	site_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+	site_name VARCHAR(200),
+	study_id BIGINT,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	foreign key(study_id) references study(study_id)
+);
+
 create table anomaly (
 	anomaly_id BIGINT AUTO_INCREMENT PRIMARY KEY,
 	anomaly_type CHAR,
@@ -49,12 +57,14 @@ create table anomaly (
 	version_last_seen_in BIGINT,
 	recruit_id VARCHAR(100),
 	event VARCHAR(100),
+	site_id BIGINT,
 	has_been_viewed TINYINT DEFAULT 0,
 	is_an_issue TINYINT DEFAULT 1,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	foreign key(data_field_id) references data_field(data_field_id),
 	foreign key(version_first_seen_in) references dataset_version(dataset_version_id),
-	foreign key(version_last_seen_in) references dataset_version(dataset_version_id)
+	foreign key(version_last_seen_in) references dataset_version(dataset_version_id),
+	foreign key(site_id) references site(site_id)
 );
 
 create table bivariate_check (
@@ -68,10 +78,8 @@ create table bivariate_check (
 	lambda DOUBLE,
 	intercept DOUBLE,
 	slope DOUBLE,
-	sd_residuals DOUBLE,
-	sd_densities DOUBLE,
-	sd_residuals_threshold DOUBLE,
-	sd_densities_threshold DOUBLE,
+	residual_threshold DOUBLE,
+	density_threshold DOUBLE,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	foreign key(dataset_id_1) references dataset (dataset_id),
 	foreign key(dataset_id_2) references dataset (dataset_id)

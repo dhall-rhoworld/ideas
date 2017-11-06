@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 <head> 
-    <title>RhoVer Studies</title> 
+    <title>RhoVer Sites</title> 
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" href="/rhover.css"/>
 </head>
@@ -15,25 +15,23 @@
 			<li><a href="#">Search</a></li>
 		</ul>
 	</div>
-		
+	
+	<div id="breadcrumbs">
+		<a href="/browse/studies">Browse</a> >
+		<strong><span th:text="${study.studyName}"/></strong>
+	</div>
     <div id="content">
-   		<h2>Browse by Study</h2>
    		<table class="wide">
    			<tr>
-   				<th>Study</th>
+   				<th>Site</th>
    				<th>Un-Viewed Anomalies</th>
    				<th>Total Anomalies</th>
-   				<th>View Anomalies By</th>
    			</tr>
    			<tr th:each="summary : ${summaries}">
-   				<td><span th:text="${summary.entityName}"/></td>
+   				<td><a th:href="@{/browse/data_fields(dataset_id=${summary.entityId})}"
+   					th:text="${summary.entityName}"/></td>
    				<td th:class="${summary.numUnviewedAnomalies} > 0? attention : plain" th:text="${summary.numUnviewedAnomalies}"/>
    				<td th:text="${summary.numAnomalies}"/>
-   				<td>
-   					<a th:href="@{/browse/datasets(study_id=${summary.entityId})}">Dataset</a> |
-   					<a th:href="@{/browse/sites(study_id=${summary.entityId})}">Site</a> |
-   					<a href="#">Subject</a>
-   				</td>
    			</tr>
    		</table>
     </div>
