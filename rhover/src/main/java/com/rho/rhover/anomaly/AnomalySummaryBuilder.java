@@ -11,6 +11,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
+import com.rho.rhover.study.Site;
+import com.rho.rhover.study.Study;
+
 /**
  * Builds summmaries of anomalies by querying the anomaly database.
  * @author dhall
@@ -56,7 +59,7 @@ public class AnomalySummaryBuilder {
 		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
 	}
 	
-	public Iterable<AnomalySummary> getDatasetSummaries(Long studyId) {
+	public Iterable<AnomalySummary> getDatasetSummaries(Study study) {
 		String sql =
 				"select ds.dataset_id, ds.dataset_name,\r\n" + 
 				"(\r\n" + 
@@ -75,7 +78,31 @@ public class AnomalySummaryBuilder {
 				"	and a.has_been_viewed = 0\r\n" + 
 				")\r\n" + 
 				"from dataset ds \r\n" + 
-				"where ds.study_id = " + studyId;
+				"where ds.study_id = " + study.getStudyId();
+		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
+	}
+	
+	public Iterable<AnomalySummary> getDatasetSummaries(Site site) {
+		String sql = "select ds.dataset_id, ds.dataset_name,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from anomaly a\r\n" + 
+				"	join data_field df on df.data_field_id = a.data_field_id\r\n" + 
+				"	where df.dataset_id = ds.dataset_id\r\n" + 
+				"	and a.site_id = " + site.getSiteId() + "\r\n" + 
+				"    and a.is_an_issue = 1\r\n" + 
+				") site_total,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from anomaly a\r\n" + 
+				"	join data_field df on df.data_field_id = a.data_field_id\r\n" + 
+				"	where df.dataset_id = ds.dataset_id\r\n" + 
+				"    and a.is_an_issue = 1\r\n" + 
+				"	and a.has_been_viewed = 0\r\n" + 
+				"	and a.site_id = " + site.getSiteId() + "\r\n" + 
+				") site_unviewed\r\n" + 
+				"from dataset ds\r\n" + 
+				"where ds.study_id = " + site.getStudy().getStudyId();
 		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
 	}
 	

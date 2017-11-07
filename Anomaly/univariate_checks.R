@@ -18,6 +18,7 @@ files <- list.files(clinical.dir, pattern = "*.sas7bdat")
 #files <- list.files(clinical.dir)
 
 # Run univariate checks in each file
+source("outlier_scout.R")
 for (file in files) {
   path <- paste(clinical.dir, "/", file, sep = "")
   message("Processing file: ", path)

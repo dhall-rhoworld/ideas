@@ -1,5 +1,8 @@
 package com.rho.rhover.anomaly;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Aggregate counts of anomalies associated with some entity, which may be a study, dataset, or data field
  * @author dhall
@@ -55,4 +58,5 @@ public class AnomalySummary {
 	public void setNumUnviewedAnomalies(Integer numUnviewedAnomalies) {
 		this.numUnviewedAnomalies = numUnviewedAnomalies;
 	}
+
 }

@@ -30,7 +30,7 @@
    				<td th:class="${summary.numUnviewedAnomalies} > 0? attention : plain" th:text="${summary.numUnviewedAnomalies}"/>
    				<td th:text="${summary.numAnomalies}"/>
    				<td>
-   					<a th:href="@{/browse/datasets(study_id=${summary.entityId})}">Dataset</a> |
+   					<a th:href="@{/browse/datasets(study_id=${summary.entityId})}">All</a> |
    					<a th:href="@{/browse/sites(study_id=${summary.entityId})}">Site</a> |
    					<a href="#">Subject</a>
    				</td>

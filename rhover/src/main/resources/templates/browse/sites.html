@@ -17,8 +17,8 @@
 	</div>
 	
 	<div id="breadcrumbs">
-		<a href="/browse/studies">Browse</a> >
-		<strong><span th:text="${study.studyName}"/></strong>
+		<a href="/browse/studies">All Studies</a> >
+		<strong>All <span th:text="${study.studyName}"/> Sites</strong>
 	</div>
     <div id="content">
    		<table class="wide">
@@ -28,7 +28,7 @@
    				<th>Total Anomalies</th>
    			</tr>
    			<tr th:each="summary : ${summaries}">
-   				<td><a th:href="@{/browse/data_fields(dataset_id=${summary.entityId})}"
+   				<td><a th:href="@{/browse/datasets(site_id=${summary.entityId})}"
    					th:text="${summary.entityName}"/></td>
    				<td th:class="${summary.numUnviewedAnomalies} > 0? attention : plain" th:text="${summary.numUnviewedAnomalies}"/>
    				<td th:text="${summary.numAnomalies}"/>

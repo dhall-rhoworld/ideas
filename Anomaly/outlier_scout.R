@@ -174,6 +174,22 @@ loadSite <- function(studyId, siteName, con) {
   return (siteId)
 }
 
+loadSubject <- function(studyId, subjectName, con) {
+  sql = sprintf("select subject_id from subject where study_id = %d and subject_name = '%s'", studyId, subjectName);
+  rs <- dbSendQuery(con, sql);
+  result <- dbFetch(rs);
+  if (nrow(result) == 0) {
+    message("Subject ", subjectName, " not in database.  Loading.")
+    sql <- sprintf("insert into subject(subject_name, study_id) values ('%s', %d)", subjectName, studyId);
+    dbSendQuery(con, sql)
+    subjectId <- dbGetQuery(con, "select last_insert_id()")[1, 1]
+  }
+  else {
+    subjectId <- result[1, 1]
+  }
+  return (subjectId)
+}
+
 loadBivariateCheck <- function(datasetId1, datasetId2, fieldName1, fieldName2, filePath, con) {
   sql <- sprintf("select bivariate_check_id from bivariate_check where dataset_id_1 = %d and dataset_id_2 = %d and data_field_1 = '%s' and data_field_2 = '%s'",
                  datasetId1, datasetId2, fieldName1, fieldName2);
@@ -265,8 +281,11 @@ findAndLoadUnivariateOutliers <- function(df, studyName, formName, datasetVersio
       recruitId <- df[j, "RecruitID"]
       siteName <- df[j, "Site"]
       siteId <- loadSite(studyId, siteName, con)
+      subjectId <- loadSubject(studyId, recruitId, con)
       event <- df[j, "event"]
       fieldValue <- df[j, i]
+      
+      # TODO: Change query to use subject_id instead of recruit_id
       sql <- paste(
         "select anomaly_id ",
         "from anomaly ",
@@ -280,12 +299,15 @@ findAndLoadUnivariateOutliers <- function(df, studyName, formName, datasetVersio
       result <- dbFetch(rs)
       if (nrow(result) == 0) {
         totalNew <- totalNew + 1
+        
+        # TODO: Remove recruit_id from insert
         sql <- paste(
-          "insert into anomaly(anomaly_type, data_field_id, field_value, recruit_id, event, site_id, version_first_seen_in, version_last_seen_in) ",
-          "values('U', ", dataFieldId, ", '", fieldValue, "', '", recruitId, "', '",
+          "insert into anomaly(anomaly_type, data_field_id, field_value, recruit_id, subject_id, event, site_id, version_first_seen_in, version_last_seen_in) ",
+          "values('U', ", dataFieldId, ", '", fieldValue, "', '", recruitId, "', ", subjectId, ", '",
           event, "', ", siteId, ", ", datasetVersionId, ", ", datasetVersionId, ")",
           sep = ""
         )
+        #message(sql)
         dbSendQuery(con, sql)
       }
       else {

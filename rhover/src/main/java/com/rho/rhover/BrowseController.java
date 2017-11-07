@@ -14,6 +14,8 @@ import com.rho.rhover.anomaly.BivariateCheck;
 import com.rho.rhover.anomaly.BivariateCheckRepository;
 import com.rho.rhover.study.Dataset;
 import com.rho.rhover.study.DatasetRepository;
+import com.rho.rhover.study.Site;
+import com.rho.rhover.study.SiteRepository;
 import com.rho.rhover.study.Study;
 import com.rho.rhover.study.StudyRepository;
 
@@ -28,6 +30,9 @@ public class BrowseController {
 	private StudyRepository studyRepository;
 	
 	@Autowired
+	private SiteRepository siteRepository;
+	
+	@Autowired
 	private DatasetRepository datasetRepository;
 	
 	@Autowired
@@ -40,12 +45,20 @@ public class BrowseController {
     }
     
     @RequestMapping("/datasets")
-    public String datasets(
-	    		@RequestParam("study_id") Long studyId,
+    public String studyDatasets(
+	    		@RequestParam(name="study_id", required=false, defaultValue="-1") Long studyId,
+	    		@RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
 	    		Model model) {
-    	Study study = studyRepository.findOne(studyId);
-		model.addAttribute("summaries", anomalySummaryBuilder.getDatasetSummaries(studyId));
-		model.addAttribute("study", study);
+    	if (studyId != -1) {
+    		Study study = studyRepository.findOne(studyId);
+    		model.addAttribute("study", study);
+        	model.addAttribute("summaries", anomalySummaryBuilder.getDatasetSummaries(study));
+    	}
+    	if (siteId != -1) {
+    		Site site = siteRepository.findOne(siteId);
+    		model.addAttribute("site", site);
+    		model.addAttribute("summaries", anomalySummaryBuilder.getDatasetSummaries(site));
+    	}
 		return "browse/datasets";
     }
     
@@ -62,6 +75,7 @@ public class BrowseController {
     @RequestMapping("/data_fields")
     public String dataField(
     			@RequestParam("dataset_id") Long datasetId,
+    			@RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
     			Model model) {
     	Dataset dataset = datasetRepository.findOne(datasetId);
     	List<BivariateCheck> checks = new ArrayList<BivariateCheck>();
@@ -70,6 +84,10 @@ public class BrowseController {
 		model.addAttribute("summaries", anomalySummaryBuilder.getDataFieldSummaries(datasetId));
 		model.addAttribute("dataset", dataset);
 		model.addAttribute("bivariate_checks", checks);
+		if (siteId != -1) {
+			Site site = siteRepository.findOne(siteId);
+			model.addAttribute("site", site);
+		}
 		return "browse/data_fields";
     }
 }

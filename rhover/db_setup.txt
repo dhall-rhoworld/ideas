@@ -48,23 +48,36 @@ create table site (
 	foreign key(study_id) references study(study_id)
 );
 
-create table anomaly (
-	anomaly_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-	anomaly_type CHAR,
-	data_field_id BIGINT,
-	field_value VARCHAR(100),
-	version_first_seen_in BIGINT,
-	version_last_seen_in BIGINT,
-	recruit_id VARCHAR(100),
-	event VARCHAR(100),
-	site_id BIGINT,
-	has_been_viewed TINYINT DEFAULT 0,
-	is_an_issue TINYINT DEFAULT 1,
+create table subject (
+	subject_id BIGINT AUTO_INCREMENT NOT NULL,
+	subject_name VARCHAR(50) NOT NULL,
+	study_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-	foreign key(data_field_id) references data_field(data_field_id),
-	foreign key(version_first_seen_in) references dataset_version(dataset_version_id),
-	foreign key(version_last_seen_in) references dataset_version(dataset_version_id),
-	foreign key(site_id) references site(site_id)
+	CONSTRAINT PK_SUBJECT PRIMARY KEY (subject_id),
+	CONSTRAINT FK_SUBJECT_2_STUDY FOREIGN KEY (study_id) REFERENCES study(study_id)
+);
+
+/* TODO: Remove recruit_id */
+create table anomaly (
+	anomaly_id BIGINT AUTO_INCREMENT NOT NULL,
+	anomaly_type CHAR NOT NULL,
+	data_field_id BIGINT NOT NULL,
+	field_value VARCHAR(100) NOT NULL,
+	version_first_seen_in BIGINT NOT NULL,
+	version_last_seen_in BIGINT NOT NULL,
+	recruit_id VARCHAR(100) NOT NULL,
+	subject_id BIGINT NOT NULL,
+	event VARCHAR(100) NOT NULL,
+	site_id BIGINT NOT NULL,
+	has_been_viewed TINYINT DEFAULT 0 NOT NULL,
+	is_an_issue TINYINT DEFAULT 1 NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT PK_ANOMALY PRIMARY KEY (anomaly_id),
+	CONSTRAINT FK_ANOMALY_2_DATA_FIELD FOREIGN KEY (data_field_id) REFERENCES data_field(data_field_id),
+	CONSTRAINT FK_ANOMALY_2_DATASET_VERSION_1 FOREIGN KEY (version_first_seen_in) REFERENCES dataset_version(dataset_version_id),
+	CONSTRAINT FK_ANOMALY_2_DATASET_VERSION_2 FOREIGN KEY (version_last_seen_in) REFERENCES dataset_version(dataset_version_id),
+	CONSTRAINT FK_ANOAMLY_2_SITE FOREIGN KEY (site_id) REFERENCES site(site_id),
+	CONSTRAINT FK_ANOMALY_2_SUBJECT FOREIGN KEY (subject_id) REFERENCES subject(subject_id)
 );
 
 create table bivariate_check (
