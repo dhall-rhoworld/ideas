@@ -21,14 +21,17 @@
    		<table class="wide">
    			<tr>
    				<th>Study</th>
-   				<th>Un-Viewed Anomalies</th>
    				<th>Total Anomalies</th>
    				<th>View Anomalies By</th>
    			</tr>
    			<tr th:each="summary : ${summaries}">
    				<td><span th:text="${summary.entityName}"/></td>
-   				<td th:class="${summary.numUnviewedAnomalies} > 0? attention : plain" th:text="${summary.numUnviewedAnomalies}"/>
-   				<td th:text="${summary.numAnomalies}"/>
+   				<td>
+   					<span th:text="${summary.numAnomalies}"/>
+   					<span th:if="${summary.numUnviewedAnomalies > 0}">
+   						&nbsp; (<span class="attention" th:text="${summary.numUnviewedAnomalies}"/> unviewed)
+   					</span>
+   				</td>
    				<td>
    					<a th:href="@{/browse/datasets(study_id=${summary.entityId})}">All</a> |
    					<a th:href="@{/browse/sites(study_id=${summary.entityId})}">Site</a> |

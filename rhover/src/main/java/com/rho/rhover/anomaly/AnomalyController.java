@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.rho.rhover.study.DataField;
 import com.rho.rhover.study.DataFieldRepository;
+import com.rho.rhover.study.Site;
 import com.rho.rhover.study.SiteRepository;
 import com.rho.rhover.study.StudyDataRepository;
 
@@ -48,7 +49,14 @@ public class AnomalyController {
 			Model model) {
     	DataField dataField = dataFieldRepository.findOne(dataFieldId);
     	model.addAttribute("data_field", dataField);
-    	model.addAttribute("site", siteRepository.findOne(siteId));
+    	if (siteId == -1) {
+    		model.addAttribute("site_name", "-1");
+    	}
+    	else {
+    		Site site = siteRepository.findOne(siteId);
+    		model.addAttribute("site_name", site.getSiteName());
+    		model.addAttribute("site", site);
+    	}
     	return "anomaly/beeswarm";
     }
     

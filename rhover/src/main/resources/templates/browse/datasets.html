@@ -17,18 +17,18 @@
 	</div>
 	
 	<div id="breadcrumbs">
-		<a href="/browse/studies">All Studies</a>
+		<a href="/browse/studies">Studies</a>
 		>
 		<span th:if="${study}">
 			<strong>
-				<span th:text="'All ' + ${study.studyName} + ' Anomalies'"/>
+				<span th:text="${study.studyName}"/>
 			</strong>
 		</span>
 		<span th:if="${site}">
-			<a th:href="@{/browse/sites(study_id=${site.study.studyId})}" th:text="'All ' + ${site.study.studyName} + ' Sites'"/>
+			<a th:href="@{/browse/sites(study_id=${site.study.studyId})}" th:text="${site.study.studyName} + ' Sites'"/>
 			>
 			<strong>
-				<span th:if="${site}" th:text="'Site ' + ${site.siteName} + ' Anomalies'"/>
+				<span th:if="${site}" th:text="'Site ' + ${site.siteName}"/>
 			</strong>
 		</span>
 	</div>
@@ -36,16 +36,20 @@
    		<table class="wide">
    			<tr>
    				<th>Dataset</th>
-   				<th>Un-Viewed Anomalies</th>
-   				<th>Total Anomalies</th>
+   				<th th:if="${study}" th:text="'Total ' + ${study.studyName} + ' Anomalies'"/>
+   				<th th:if="${site}" th:text="'Total Site ' + ${site.siteName} + ' Anomalies'"/>
    			</tr>
    			<tr th:each="summary : ${summaries}">
    				<td>
    					<a th:if="${study}" th:href="@{/browse/data_fields(dataset_id=${summary.entityId})}" th:text="${summary.entityName}"/>
    					<a th:if="${site}" th:href="@{/browse/data_fields(dataset_id=${summary.entityId}, site_id=${site.siteId})}" th:text="${summary.entityName}"/>
    				</td>
-   				<td th:class="${summary.numUnviewedAnomalies} > 0? attention : plain" th:text="${summary.numUnviewedAnomalies}"/>
-   				<td th:text="${summary.numAnomalies}"/>
+   				<td>
+   					<span th:text="${summary.numAnomalies}"/>
+   					<span th:if="${summary.numUnviewedAnomalies > 0}">
+   						&nbsp; (<span class="attention" th:text="${summary.numUnviewedAnomalies}"/> unviewed)
+   					</span>
+   				</td>
    			</tr>
    		</table>
     </div>

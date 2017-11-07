@@ -146,7 +146,7 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 				return d["anomaly_id"] == 0 || (d["value"] >= lowerThresh && d["value"] <= upperThresh)
 			})
 			.classed("background", function(d) {
-				return siteId != -1 && d["Site"] != siteId;
+				return siteName != "-1" && d["Site"] != siteName;
 			});
 		
 		// Draw threshold lines
@@ -276,7 +276,7 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 					const x = d3.select(this).attr("cx");
 					const y = dataMidPoint + parseInt(d3.select(this).attr("cy"));
 					if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
-						if (d["Site"] == siteId) {
+						if (siteName == "-1" || d["Site"] == siteName) {
 							let node = d3.select(this);
 							node.classed("data-selected", true);
 							if (node.classed("outlier")) {
@@ -309,11 +309,16 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 let hmtl = "";
 
 function onExport() {
-	html = "<table class='wide'><tr><th>RecruitID</th><th>Event</th><th>"
+	html = "<table class='wide'><tr><th>Site</th><th>RecruitID</th><th>Event</th><th>"
 		+ dataFieldName + "</th></tr>";
 	dataArea.selectAll(".data-selected").each(function(d) {
-		let row = "<tr><td>" + d.RecruitID + "</td><td>" + d.event + "</td><td>"
-			+ d.value + "</td></tr>";
+		let row =
+			"<tr>" +
+			"<td>" + d.Site + "</td>" +
+			"<td>" + d.RecruitID + "</td>" +
+			"<td>" + d.event + "</td>" +
+			"<td>" + d.value + "</td>" +
+			"</tr>";
 		html += row;
 	});
 	hmtl += "</table>"
