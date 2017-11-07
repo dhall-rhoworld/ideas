@@ -40,9 +40,11 @@ public class AnomalyController {
     @RequestMapping("/beeswarm")
     public String beeswarm(
 		    @RequestParam("data_field_id") Long dataFieldId,
+		    @RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
 			Model model) {
     	DataField dataField = dataFieldRepository.findOne(dataFieldId);
     	model.addAttribute("data_field", dataField);
+    	model.addAttribute("site_id", siteId);
     	return "anomaly/beeswarm";
     }
     

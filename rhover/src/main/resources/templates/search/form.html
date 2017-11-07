@@ -20,6 +20,7 @@
    		Study
    		<select id="select_study">
    			<option value="-1">---Select---</option>
+   			<option th:each="study : ${studies}" th:value="${study.studyId}" th:text="${study.studyName}"/>
    		</select>
    		&nbsp;&nbsp;
    		Site

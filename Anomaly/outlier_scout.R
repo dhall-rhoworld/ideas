@@ -231,7 +231,7 @@ updateBivariateCheckHet <- function(bivariateCheckId, isHet, lambda, con) {
 writeNumeridAndPrimaryKeyFieldsToFile <- function(df, numericCol, studyName, formName, rootDir) {
   
   # Prepare data
-  outDf <- df[c("RecruitID", "event")]
+  outDf <- df[c("RecruitID", "event", "Site")]
   outDf$value <- df[,numericCol]
   outDf <- na.omit(outDf)
   outDf <- outDf[order(outDf$value),]

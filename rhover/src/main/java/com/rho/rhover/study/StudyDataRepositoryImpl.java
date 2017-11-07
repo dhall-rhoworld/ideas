@@ -56,7 +56,7 @@ public class StudyDataRepositoryImpl implements StudyDataRepository {
 				String record = reader.readLine();
 				while (record != null) {
 					String[] fields = record.split(",");
-					if (fields.length == 4) {
+					if (fields.length == 5) {
 						String key = fields[1] + fields[2];
 						String anomalyIdValue = ",0\n";
 						if (anomalies.containsKey(key)) {

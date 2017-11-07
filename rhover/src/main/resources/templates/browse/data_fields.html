@@ -12,7 +12,7 @@
 		<ul>
 			<li><a href="/">Home</a></li>
 			<li><a href="/browse/studies" class="active-menu-item">Browse</a></li>
-			<li><a href="#">Search</a></li>
+			<li><a href="/search/form">Search</a></li>
 		</ul>
 	</div>
 	
@@ -51,8 +51,11 @@
    					<span th:text="${summary.numAnomalies}"/>
    				</td>
    				<td>
-   					<a th:href="@{/anomaly/table(data_field_id=${summary.entityId})}">Table</a> |
-   					<a th:href="@{/anomaly/beeswarm(data_field_id=${summary.entityId})}">Beeswarm</a> |
+   					<a th:href="@{/anomaly/table(data_field_id=${summary.entityId})}">Table</a>
+   					|
+   					<a th:if="${site == null}" th:href="@{/anomaly/beeswarm(data_field_id=${summary.entityId})}">Beeswarm</a>
+   					<a th:if="${site}" th:href="@{/anomaly/beeswarm(data_field_id=${summary.entityId}, site_id=${site.siteId})}">Beeswarm</a>
+   					|
    					<a th:href="@{/anomaly/boxplot(data_field_id=${summary.entityId})}">Boxplot</a>
    				</td>
    			</tr>

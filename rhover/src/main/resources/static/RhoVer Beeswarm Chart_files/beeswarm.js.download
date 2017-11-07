@@ -276,17 +276,15 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 					const x = d3.select(this).attr("cx");
 					const y = dataMidPoint + parseInt(d3.select(this).attr("cy"));
 					if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
-						if (d["Site"] == siteId) {
-							let node = d3.select(this);
-							node.classed("data-selected", true);
-							if (node.classed("outlier")) {
-								node.classed("outlier-selected", true);
-							}
-							else if (node.classed("inlier")) {
-								node.classed("inlier-selected", true)
-							}
-							dataAreSelected = true;
+						let node = d3.select(this);
+						node.classed("data-selected", true);
+						if (node.classed("outlier")) {
+							node.classed("outlier-selected", true);
 						}
+						else if (node.classed("inlier")) {
+							node.classed("inlier-selected", true)
+						}
+						dataAreSelected = true;
 					}
 				});
 				if (dataAreSelected) {
