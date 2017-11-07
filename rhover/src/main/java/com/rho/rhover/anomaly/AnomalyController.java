@@ -34,10 +34,15 @@ public class AnomalyController {
     @RequestMapping("/table")
     public String anomalyTable(
     			@RequestParam("data_field_id") Long dataFieldId,
+    			@RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
     			Model model) {
     	DataField dataField = dataFieldRepository.findOne(dataFieldId);
     	model.addAttribute("anomalies", anomalyRepository.getCurrentAnomalies(dataFieldId));
     	model.addAttribute("data_field", dataField);
+    	if (siteId != -1) {
+    		Site site = siteRepository.findOne(siteId);
+    		model.addAttribute("site", site);
+    	}
     	studyDataRepository.markAnomaliesAsViewed(dataFieldId);
     	return "anomaly/table";
     }

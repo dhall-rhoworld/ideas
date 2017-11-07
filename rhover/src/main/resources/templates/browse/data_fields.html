@@ -51,7 +51,8 @@
    					</span>
    				</td>
    				<td>
-   					<a th:href="@{/anomaly/table(data_field_id=${summary.entityId})}">Table</a>
+   					<a th:if="${site == null}" th:href="@{/anomaly/table(data_field_id=${summary.entityId})}">Table</a>
+   					<a th:if="${site}" th:href="@{/anomaly/table(data_field_id=${summary.entityId}, site_id=${site.siteId})}">Table</a>
    					|
    					<a th:if="${site == null}" th:href="@{/anomaly/beeswarm(data_field_id=${summary.entityId})}">Beeswarm</a>
    					<a th:if="${site}" th:href="@{/anomaly/beeswarm(data_field_id=${summary.entityId}, site_id=${site.siteId})}">Beeswarm</a>
