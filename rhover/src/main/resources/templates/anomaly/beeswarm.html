@@ -13,9 +13,21 @@
 	<div class="page-header">RhoVer (Prototype)</div>
 	
 	<div id="breadcrumbs">
-		<a href="/browse/studies">Browse</a> >
-		<a th:href="@{/browse/datasets(study_id=${data_field.dataset.study.studyId})}"><span th:text="${data_field.dataset.study.studyName}"/></a> >
-		<a th:href="@{/browse/data_fields(dataset_id=${data_field.dataset.datasetId})}"><span th:text="${data_field.dataset.datasetName}"/></a> >
+		<a href="/browse/studies">All Studies</a>
+		>
+		<span th:if="${site == null and subject == null}">
+			<a th:href="@{/browse/datasets(study_id=${data_field.dataset.study.studyId})}" th:text="'All ' + ${data_field.dataset.study.studyName} + ' Anomalies'"/>
+			>
+			<a th:href="@{/browse/data_fields(dataset_id=${data_field.dataset.datasetId})}" th:text="${data_field.dataset.datasetName}"/>
+		</span>
+		<span th:if="${site}">
+			<a th:href="@{/browse/sites(study_id=${site.study.studyId})}" th:text="'All ' + ${site.study.studyName} + ' Sites'"/>
+			>
+			<a th:href="@{/browse/datasets(site_id=${site.siteId})}" th:text="'Site ' + ${site.siteName} + ' Anomalies'"/>
+			>
+			<a th:href="@{/browse/data_fields(dataset_id=${data_field.dataset.datasetId}, site_id=${site.siteId})}" th:text="${data_field.dataset.datasetName}"/>
+		</span>
+		>
 		<strong><span th:text="${data_field.dataFieldName}"/></strong>
 	</div>
 		
@@ -48,7 +60,7 @@
 	dataFieldId = [[${data_field.dataFieldId}]];
 	lowerThreshold = [[${data_field.lowerThreshold}]];
 	upperThreshold = [[${data_field.upperThreshold}]];
-	siteId = [[${site_id}]];
+	siteId = [[${site.siteId}]];
 </script>
 
 <script src="/beeswarm.js"></script>

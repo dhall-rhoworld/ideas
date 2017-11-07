@@ -146,7 +146,7 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 				return d["anomaly_id"] == 0 || (d["value"] >= lowerThresh && d["value"] <= upperThresh)
 			})
 			.classed("background", function(d) {
-				return d["Site"] != siteId;
+				return siteId != -1 && d["Site"] != siteId;
 			});
 		
 		// Draw threshold lines
