@@ -134,3 +134,26 @@ from dataset ds
 where ds.study_id = 11
 limit 5
 offset 10
+
+select ds.dataset_id, ds.dataset_name,
+(
+	select count(*)
+	from anomaly a
+	join data_field df on df.data_field_id = a.data_field_id
+	where df.dataset_id = ds.dataset_id
+	and a.subject_id = 1
+    and a.is_an_issue = 1
+) total,
+(
+	select count(*)
+	from anomaly a
+	join data_field df on df.data_field_id = a.data_field_id
+	where df.dataset_id = ds.dataset_id
+	and a.subject_id = 1
+	and a.is_an_issue = 1
+	and a.has_been_viewed = 0
+) unviewed
+from dataset ds
+where ds.study_id = 11
+limit 5
+offset 10

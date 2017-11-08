@@ -36,9 +36,12 @@
    			</tr>
    			<tr th:each="summary : ${summaries}">
    				<td th:text="${summary.attribute}"/>
-   				<td th:text="${summary.entityName}"/>
+   				<td> <a th:href="@{/browse/datasets(subject_id=${summary.entityId})}" th:text="${summary.entityName}"/></td>
    				<td>
    					<span th:text="${summary.numAnomalies}"/>
+   					<span th:if="${summary.numUnviewedAnomalies > 0}">
+   						&nbsp; (<span class="attention" th:text="${summary.numUnviewedAnomalies}"/> unviewed)
+   					</span>
    				</td>
    			</tr>
    		</table>

@@ -25,4 +25,4 @@ nbdist/
 .Rproj.user
 
 *.class
-*.xml
+rhover/target

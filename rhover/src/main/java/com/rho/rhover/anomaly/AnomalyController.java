@@ -11,6 +11,8 @@ import com.rho.rhover.study.DataFieldRepository;
 import com.rho.rhover.study.Site;
 import com.rho.rhover.study.SiteRepository;
 import com.rho.rhover.study.StudyDataRepository;
+import com.rho.rhover.study.Subject;
+import com.rho.rhover.study.SubjectRepository;
 
 @Controller
 @RequestMapping("/anomaly")
@@ -30,22 +32,30 @@ public class AnomalyController {
 	
 	@Autowired
 	private SiteRepository siteRepository;
+	
+	@Autowired
+	private SubjectRepository subjectRepository;
     
     @RequestMapping("/table")
     public String anomalyTable(
     			@RequestParam("data_field_id") Long dataFieldId,
     			@RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
+    			@RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
     			Model model) {
     	DataField dataField = dataFieldRepository.findOne(dataFieldId);
-    	
     	model.addAttribute("data_field", dataField);
-    	if (siteId == -1) {
+    	if (siteId == -1 && subjectId == -1) {
     		model.addAttribute("anomalies", anomalyRepository.getCurrentAnomalies(dataFieldId));
     	}
-    	else {
+    	if (siteId != -1) {
     		Site site = siteRepository.findOne(siteId);
     		model.addAttribute("site", site);
-    		model.addAttribute("anomalies", anomalyRepository.getCurrentAnomalies(dataFieldId, siteId));
+    		model.addAttribute("anomalies", anomalyRepository.getCurrentAnomalies(dataFieldId, site));
+    	}
+    	if (subjectId != -1) {
+    		Subject subject = subjectRepository.findOne(subjectId);
+    		model.addAttribute("subject", subject);
+    		model.addAttribute("anomalies", anomalyRepository.getCurrentAnomalies(dataFieldId, subject));
     	}
     	studyDataRepository.markAnomaliesAsViewed(dataFieldId);
     	return "anomaly/table";
@@ -55,6 +65,7 @@ public class AnomalyController {
     public String beeswarm(
 		    @RequestParam("data_field_id") Long dataFieldId,
 		    @RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
+		    @RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
 			Model model) {
     	DataField dataField = dataFieldRepository.findOne(dataFieldId);
     	model.addAttribute("data_field", dataField);
@@ -73,6 +84,7 @@ public class AnomalyController {
     public String boxplot(
 		    @RequestParam("data_field_id") Long dataFieldId,
 		    @RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
+		    @RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
 			Model model) {
     	DataField dataField = dataFieldRepository.findOne(dataFieldId);
     	model.addAttribute("data_field", dataField);

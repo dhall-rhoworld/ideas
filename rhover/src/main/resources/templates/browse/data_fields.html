@@ -19,13 +19,24 @@
 	<div id="breadcrumbs">
 		<a href="/browse/studies">Studies</a>
 		>
+		
+		<!-- Showing all anomalies from study -->
 		<span th:if="${site == null and subject == null}">
 			<a th:href="@{/browse/datasets(study_id=${dataset.study.studyId})}" th:text="${dataset.study.studyName}"/>
 		</span>
+		
+		<!-- Showing anomalies from one site -->
 		<span th:if="${site}">
 			<a th:href="@{/browse/sites(study_id=${site.study.studyId})}" th:text="${site.study.studyName}"/>
 			>
 			<a th:href="@{/browse/datasets(site_id=${site.siteId})}" th:text="'Site ' + ${site.siteName}"/>
+		</span>
+		
+		<!-- Showing anomalies from one subject -->
+		<span th:if="${subject}">
+			<a th:href="@{/browse/subjects(study_id=${subject.site.study.studyId})}" th:text="${subject.site.study.studyName} + ' Subjects'"/>
+			>
+			<a th:href="@{/browse/datasets(subject_id=${subject.subjectId})}" th:text="'Subject ' + ${subject.subjectName}"/>
 		</span>
 		>
 		<strong><span th:text="${dataset.datasetName}"/></strong>
@@ -38,6 +49,7 @@
    				<th>Label</th>
    				<th th:if="${site == null and subject == null}" th:text="'Total ' + ${dataset.study.studyName} + ' Anomalies'"/>
    				<th th:if="${site}" th:text="'Site ' + ${site.siteName} + ' Anomalies'"/>
+   				<th th:if="${subject}" th:text="'Subject ' + ${subject.subjectName} + ' Anomalies'"/>
    				<th>View</th>
    			</tr>
    			<tr th:each="summary : ${summaries}">
@@ -51,14 +63,17 @@
    					</span>
    				</td>
    				<td>
-   					<a th:if="${site == null}" th:href="@{/anomaly/table(data_field_id=${summary.entityId})}">Table</a>
+   					<a th:if="${site == null and subject == null}" th:href="@{/anomaly/table(data_field_id=${summary.entityId})}">Table</a>
    					<a th:if="${site}" th:href="@{/anomaly/table(data_field_id=${summary.entityId}, site_id=${site.siteId})}">Table</a>
+   					<a th:if="${subject}" th:href="@{/anomaly/table(data_field_id=${summary.entityId}, subject_id=${subject.subjectId})}">Table</a>
    					|
-   					<a th:if="${site == null}" th:href="@{/anomaly/beeswarm(data_field_id=${summary.entityId})}">Beeswarm</a>
+   					<a th:if="${site == null and subject == null}" th:href="@{/anomaly/beeswarm(data_field_id=${summary.entityId})}">Beeswarm</a>
    					<a th:if="${site}" th:href="@{/anomaly/beeswarm(data_field_id=${summary.entityId}, site_id=${site.siteId})}">Beeswarm</a>
+   					<a th:if="${subject}" th:href="@{/anomaly/beeswarm(data_field_id=${summary.entityId}, subject_id=${subject.subjectId})}">Beeswarm</a>
    					|
-   					<a th:if="${site == null}" th:href="@{/anomaly/boxplot(data_field_id=${summary.entityId})}">Boxplot</a>
+   					<a th:if="${site == null and subject == null}" th:href="@{/anomaly/boxplot(data_field_id=${summary.entityId})}">Boxplot</a>
    					<a th:if="${site}" th:href="@{/anomaly/boxplot(data_field_id=${summary.entityId}, site_id=${site.siteId})}">Boxplot</a>
+   					<a th:if="${subject}" th:href="@{/anomaly/boxplot(data_field_id=${summary.entityId}, site_id=${subject.subjectId})}">Boxplot</a>
    				</td>
    			</tr>
    		</table>

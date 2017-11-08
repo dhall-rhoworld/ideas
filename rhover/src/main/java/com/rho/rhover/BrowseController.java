@@ -21,6 +21,8 @@ import com.rho.rhover.study.Site;
 import com.rho.rhover.study.SiteRepository;
 import com.rho.rhover.study.Study;
 import com.rho.rhover.study.StudyRepository;
+import com.rho.rhover.study.Subject;
+import com.rho.rhover.study.SubjectRepository;
 
 @Controller
 @RequestMapping("browse")
@@ -39,6 +41,9 @@ public class BrowseController {
 	private DatasetRepository datasetRepository;
 	
 	@Autowired
+	private SubjectRepository subjectRepository;
+	
+	@Autowired
 	private BivariateCheckRepository bivariateCheckRepository;
 	
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -53,6 +58,7 @@ public class BrowseController {
     public String studyDatasets(
 	    		@RequestParam(name="study_id", required=false, defaultValue="-1") Long studyId,
 	    		@RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
+	    		@RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
 	    		Model model) {
     	if (studyId != -1) {
     		Study study = studyRepository.findOne(studyId);
@@ -63,6 +69,11 @@ public class BrowseController {
     		Site site = siteRepository.findOne(siteId);
     		model.addAttribute("site", site);
     		model.addAttribute("summaries", anomalySummaryBuilder.getDatasetSummaries(site));
+    	}
+    	if (subjectId != -1) {
+    		Subject subject = subjectRepository.findOne(subjectId);
+    		model.addAttribute("subject", subject);
+    		model.addAttribute("summaries", anomalySummaryBuilder.getDatasetSummaries(subject));
     	}
 		return "browse/datasets";
     }
@@ -93,17 +104,17 @@ public class BrowseController {
     	model.addAttribute("to", offset + summaries.size());
     	int numSubjects = anomalySummaryBuilder.numSubjectsWithAnomalies(studyId);
     	model.addAttribute("total", numSubjects);
-    	logger.debug("Offset: " + offset);
+    	//logger.debug("Offset: " + offset);
     	if (offset > 0) {
     		int previousOffset = offset - limit;
-    		logger.debug("Previous offset: " + previousOffset);
+    		//logger.debug("Previous offset: " + previousOffset);
     		if (previousOffset < 0) {
     			previousOffset = 0;
     		}
     		model.addAttribute("previous_offset", previousOffset);
     	}
 		int nextOffset = offset + limit;
-		logger.debug("Next offset: " + nextOffset);
+		//logger.debug("Next offset: " + nextOffset);
 		if (nextOffset < numSubjects - 1) {
 			model.addAttribute("next_offset", nextOffset);
 		}
@@ -114,17 +125,26 @@ public class BrowseController {
     public String dataField(
     			@RequestParam("dataset_id") Long datasetId,
     			@RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
+    			@RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
     			Model model) {
     	Dataset dataset = datasetRepository.findOne(datasetId);
     	List<BivariateCheck> checks = new ArrayList<BivariateCheck>();
     	checks.addAll(bivariateCheckRepository.findByDataset1(dataset));
     	checks.addAll(bivariateCheckRepository.findByDataset2(dataset));
-		model.addAttribute("summaries", anomalySummaryBuilder.getDataFieldSummaries(datasetId));
 		model.addAttribute("dataset", dataset);
 		model.addAttribute("bivariate_checks", checks);
+		if (siteId == -1 && subjectId == -1) {
+			model.addAttribute("summaries", anomalySummaryBuilder.getDataFieldSummaries(datasetId));
+		}
 		if (siteId != -1) {
 			Site site = siteRepository.findOne(siteId);
 			model.addAttribute("site", site);
+			model.addAttribute("summaries", anomalySummaryBuilder.getDataFieldSummaries(datasetId, site));
+		}
+		if (subjectId != -1) {
+			Subject subject = subjectRepository.findOne(subjectId);
+			model.addAttribute("subject", subject);
+			model.addAttribute("summaries", anomalySummaryBuilder.getDataFieldSummaries(datasetId, subject));
 		}
 		return "browse/data_fields";
     }
