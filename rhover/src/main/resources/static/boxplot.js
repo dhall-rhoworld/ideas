@@ -40,9 +40,10 @@ function computeCaretPoints(x) {
 }
 
 function renderBoxplot(dataUrl, fieldName, lowerThresh, upperThresh, firstQuartile,
-		secondQuartile, thirdQuartile, siteName) {
+		secondQuartile, thirdQuartile, siteName, subjectName) {
 	
 	d3.csv(dataUrl, function(data) {
+		//console.log(data);
 		
 		// Set extent of data and chart areas on the screen
 		const min = data[0][fieldName];
@@ -61,17 +62,6 @@ function renderBoxplot(dataUrl, fieldName, lowerThresh, upperThresh, firstQuarti
 		const axisArea = svg.append("g")
 			.attr("transform", "translate(" + BORDER + ", " + axisY + ")");
 		
-		/*
-		console.log("svgHeight: " + svgHeight + ", dataMidPoint: " + dataMidPoint + ", axisY: " + axisY + ", dataAreaWidth: " + dataAreaWidth);
-		svg.append("line").attr("x1", "0").attr("y1", "0").attr("x2", SVG_WIDTH).attr("y2", "0").attr("stroke", "black").attr("stroke-width", "1");
-		svg.append("line").attr("x1", "0").attr("y1", svgHeight).attr("x2", SVG_WIDTH).attr("y2", svgHeight).attr("stroke", "black").attr("stroke-width", "1");
-		svg.append("line").attr("x1", "0").attr("y1", BORDER).attr("x2", SVG_WIDTH).attr("y2", BORDER).attr("stroke", "black").attr("stroke-width", "1");
-		svg.append("line").attr("x1", "0").attr("y1", svgHeight - BORDER).attr("x2", SVG_WIDTH).attr("y2", svgHeight - BORDER).attr("stroke", "black").attr("stroke-width", "1");
-		svg.append("line").attr("x1", "0").attr("y1", axisY).attr("x2", SVG_WIDTH).attr("y2", axisY).attr("stroke", "black").attr("stroke-width", "1");
-		svg.append("line").attr("x1", "0").attr("y1", dataMidPoint).attr("x2", SVG_WIDTH).attr("y2", dataMidPoint).attr("stroke", "black").attr("stroke-width", "1");
-		svg.append("line").attr("x1", "200").attr("y1", dataMidPoint - dataHeight / 2).attr("x2", "200").attr("y2", dataMidPoint).attr("stroke", "black").attr("stroke-width", "1");
-		*/
-			
 		// Draw axis
 		const xAxis = d3.axisBottom().scale(xScale);
 		axisArea.call(xAxis);
@@ -82,7 +72,8 @@ function renderBoxplot(dataUrl, fieldName, lowerThresh, upperThresh, firstQuarti
 			.enter()
 			.append("circle")
 			.filter(function(d) {
-					if (siteName != "-1" && siteName != d["Site"]) {
+				//console.log("subjectName: " + subjectName + ", RecruitID: " + d["RecruitID"])
+					if ((siteName != "-1" && siteName != d["Site"]) || (subjectName != "-1" && subjectName != d["RecruitID"])) {
 						return false;
 					}
 					return d[fieldName] <= lowerThreshold || d[fieldName] >= upperThreshold;
@@ -364,4 +355,4 @@ function onSave() {
 }
 
 const url = "/rest/anomaly/data/univariate?data_field_id=" + dataFieldId;
-renderBoxplot(url, "value", lowerThreshold, upperThreshold, firstQuartile, secondQuartile, thirdQuartile, siteName);
+renderBoxplot(url, "value", lowerThreshold, upperThreshold, firstQuartile, secondQuartile, thirdQuartile, siteName, subjectName);

@@ -15,17 +15,30 @@
 	<div id="breadcrumbs">
 		<a href="/browse/studies">Studies</a>
 		>
+		
+		<!--  Showing all anomalies from study -->
 		<span th:if="${site == null and subject == null}">
 			<a th:href="@{/browse/datasets(study_id=${data_field.dataset.study.studyId})}" th:text="${data_field.dataset.study.studyName}"/>
 			>
 			<a th:href="@{/browse/data_fields(dataset_id=${data_field.dataset.datasetId})}" th:text="${data_field.dataset.datasetName}"/>
 		</span>
+		
+		<!-- Showing anomalies from one site -->
 		<span th:if="${site}">
 			<a th:href="@{/browse/sites(study_id=${site.study.studyId})}" th:text="${site.study.studyName}"/>
 			>
 			<a th:href="@{/browse/datasets(site_id=${site.siteId})}" th:text="'Site ' + ${site.siteName}"/>
 			>
 			<a th:href="@{/browse/data_fields(dataset_id=${data_field.dataset.datasetId}, site_id=${site.siteId})}" th:text="${data_field.dataset.datasetName}"/>
+		</span>
+		
+		<!-- Showing anomalies from one subject -->
+		<span th:if="${subject}">
+			<a th:href="@{/browse/subjects(study_id=${subject.site.study.studyId})}" th:text="${subject.site.study.studyName}"/>
+			>
+			<a th:href="@{/browse/datasets(subject_id=${subject.subjectId})}" th:text="'Subject ' + ${subject.subjectName}"/>
+			>
+			<a th:href="@{/browse/data_fields(dataset_id=${data_field.dataset.datasetId}, subject_id=${subject.subjectId})}" th:text="${data_field.dataset.datasetName}"/>
 		</span>
 		>
 		<strong><span th:text="${data_field.dataFieldName}"/></strong>
@@ -64,6 +77,7 @@
 	secondQuartile = [[${data_field.secondQuartile}]];
 	thirdQuartile = [[${data_field.thirdQuartile}]];
 	siteName = [[${site_name}]];
+	subjectName = [[${subject_name}]];
 </script>
 
 <script src="/boxplot.js"></script>

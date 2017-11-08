@@ -73,7 +73,7 @@
    					|
    					<a th:if="${site == null and subject == null}" th:href="@{/anomaly/boxplot(data_field_id=${summary.entityId})}">Boxplot</a>
    					<a th:if="${site}" th:href="@{/anomaly/boxplot(data_field_id=${summary.entityId}, site_id=${site.siteId})}">Boxplot</a>
-   					<a th:if="${subject}" th:href="@{/anomaly/boxplot(data_field_id=${summary.entityId}, site_id=${subject.subjectId})}">Boxplot</a>
+   					<a th:if="${subject}" th:href="@{/anomaly/boxplot(data_field_id=${summary.entityId}, subject_id=${subject.subjectId})}">Boxplot</a>
    				</td>
    			</tr>
    		</table>

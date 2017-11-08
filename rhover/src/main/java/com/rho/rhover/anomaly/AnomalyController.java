@@ -69,7 +69,7 @@ public class AnomalyController {
 			Model model) {
     	DataField dataField = dataFieldRepository.findOne(dataFieldId);
     	model.addAttribute("data_field", dataField);
-    	if (siteId == -1) {
+    	if (siteId == -1 && subjectId == -1) {
     		model.addAttribute("site_name", "-1");
     		model.addAttribute("subject_name", "-1");
     	}
@@ -96,13 +96,20 @@ public class AnomalyController {
 			Model model) {
     	DataField dataField = dataFieldRepository.findOne(dataFieldId);
     	model.addAttribute("data_field", dataField);
-    	if (siteId == -1) {
+    	if (siteId == -1 && subjectId == -1) {
     		model.addAttribute("site_name", "-1");
     	}
     	if (siteId != -1) {
     		Site site = siteRepository.findOne(siteId);
     		model.addAttribute("site", site);
     		model.addAttribute("site_name", site.getSiteName());
+    		model.addAttribute("subject_name", "-1");
+    	}
+    	if (subjectId != -1) {
+    		Subject subject = subjectRepository.findOne(subjectId);
+    		model.addAttribute("subject", subject);
+    		model.addAttribute("subject_name", subject.getSubjectName());
+    		model.addAttribute("site_name", "-1");
     	}
     	return "anomaly/boxplot";
     }
