@@ -8,13 +8,17 @@ public class Anomaly {
 	private final String fieldValue;
 	private final String versionFirstSeenIn;
 	
-	public Anomaly(Long anomalyId, String recruitId, String event, String fieldValue, String versionFirstSeenIn) {
+	// TODO: Consider creating Site entity and make this a many-to-one
+	private final String siteName;
+	
+	public Anomaly(Long anomalyId, String recruitId, String event, String fieldValue, String versionFirstSeenIn, String siteName) {
 		super();
 		this.anomalyId = anomalyId;
 		this.recruitId = recruitId;
 		this.event = event;
 		this.fieldValue = fieldValue;
 		this.versionFirstSeenIn = versionFirstSeenIn;
+		this.siteName = siteName;
 	}
 	
 	public Long getAnomalyId() {
@@ -35,6 +39,10 @@ public class Anomaly {
 
 	public String getVersionFirstSeenIn() {
 		return versionFirstSeenIn;
+	}
+
+	public String getSiteName() {
+		return siteName;
 	}
 
 }

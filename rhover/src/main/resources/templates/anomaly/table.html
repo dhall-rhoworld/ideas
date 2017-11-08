@@ -48,6 +48,7 @@
    		<table class="wide">
    			<tr>
    				<th><input type="checkbox"/></th>
+   				<th>Site</th>
    				<th>Recruit ID</th>
    				<th>Event</th>
    				<th>Value<br/>Inliers: [<span th:text="${data_field.lowerThresholdFormatted}"/>, <span th:text="${data_field.upperThresholdFormatted}"/>]</th>
@@ -55,6 +56,7 @@
    			</tr>
    			<tr th:each="anomaly : ${anomalies}">
    				<th><input type="checkbox"/></th>
+   				<td th:text="${anomaly.siteName}"/>
    				<td th:text="${anomaly.recruitId}"/>
    				<td th:text="${anomaly.event}"/>
    				<td th:text="${anomaly.fieldValue}"/>
