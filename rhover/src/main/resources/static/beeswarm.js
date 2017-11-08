@@ -91,7 +91,7 @@ function computeCaretPoints(x) {
 	return p1 + " " + p2 + " " + p3;
 }
 
-function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
+function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh, siteName, subjectName) {
 	
 	d3.csv(dataUrl, function(data) {
 		//console.log(data);
@@ -146,7 +146,8 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 				return d["anomaly_id"] == 0 || (d["value"] >= lowerThresh && d["value"] <= upperThresh)
 			})
 			.classed("background", function(d) {
-				return siteName != "-1" && d["Site"] != siteName;
+				return (siteName != "-1" && d["Site"] != siteName) ||
+					(subjectName != "-1" && d["RecruitID"] != subjectName)
 			});
 		
 		// Draw threshold lines
@@ -276,7 +277,7 @@ function renderBeeswarm(dataUrl, fieldName, lowerThresh, upperThresh) {
 					const x = d3.select(this).attr("cx");
 					const y = dataMidPoint + parseInt(d3.select(this).attr("cy"));
 					if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
-						if (siteName == "-1" || d["Site"] == siteName) {
+						if ((siteName == "-1" && subjectName == "-1") || d["Site"] == siteName || d["RecruitID"] == subjectName) {
 							let node = d3.select(this);
 							node.classed("data-selected", true);
 							if (node.classed("outlier")) {
@@ -404,4 +405,4 @@ function onSave() {
 }
 
 const url = "/rest/anomaly/data/univariate?data_field_id=" + dataFieldId;
-renderBeeswarm(url, "value", lowerThreshold, upperThreshold);
+renderBeeswarm(url, "value", lowerThreshold, upperThreshold, siteName, subjectName);

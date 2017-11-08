@@ -71,11 +71,19 @@ public class AnomalyController {
     	model.addAttribute("data_field", dataField);
     	if (siteId == -1) {
     		model.addAttribute("site_name", "-1");
+    		model.addAttribute("subject_name", "-1");
     	}
-    	else {
+    	if (siteId != -1) {
     		Site site = siteRepository.findOne(siteId);
     		model.addAttribute("site_name", site.getSiteName());
+    		model.addAttribute("subject_name", "-1");
     		model.addAttribute("site", site);
+    	}
+    	if (subjectId != -1) {
+    		Subject subject = subjectRepository.findOne(subjectId);
+    		model.addAttribute("subject_name", subject.getSubjectName());
+    		model.addAttribute("site_name", "-1");
+    		model.addAttribute("subject", subject);
     	}
     	return "anomaly/beeswarm";
     }
