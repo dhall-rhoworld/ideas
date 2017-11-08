@@ -72,9 +72,18 @@ public class AnomalyController {
     @RequestMapping("/boxplot")
     public String boxplot(
 		    @RequestParam("data_field_id") Long dataFieldId,
+		    @RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
 			Model model) {
     	DataField dataField = dataFieldRepository.findOne(dataFieldId);
     	model.addAttribute("data_field", dataField);
+    	if (siteId == -1) {
+    		model.addAttribute("site_name", "-1");
+    	}
+    	if (siteId != -1) {
+    		Site site = siteRepository.findOne(siteId);
+    		model.addAttribute("site", site);
+    		model.addAttribute("site_name", site.getSiteName());
+    	}
     	return "anomaly/boxplot";
     }
     

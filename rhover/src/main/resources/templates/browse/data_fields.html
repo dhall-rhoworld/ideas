@@ -57,7 +57,8 @@
    					<a th:if="${site == null}" th:href="@{/anomaly/beeswarm(data_field_id=${summary.entityId})}">Beeswarm</a>
    					<a th:if="${site}" th:href="@{/anomaly/beeswarm(data_field_id=${summary.entityId}, site_id=${site.siteId})}">Beeswarm</a>
    					|
-   					<a th:href="@{/anomaly/boxplot(data_field_id=${summary.entityId})}">Boxplot</a>
+   					<a th:if="${site == null}" th:href="@{/anomaly/boxplot(data_field_id=${summary.entityId})}">Boxplot</a>
+   					<a th:if="${site}" th:href="@{/anomaly/boxplot(data_field_id=${summary.entityId}, site_id=${site.siteId})}">Boxplot</a>
    				</td>
    			</tr>
    		</table>

@@ -13,9 +13,21 @@
 	<div class="page-header">RhoVer (Prototype)</div>
 	
 	<div id="breadcrumbs">
-		<a href="/browse/studies">Browse</a> >
-		<a th:href="@{/browse/datasets(study_id=${data_field.dataset.study.studyId})}"><span th:text="${data_field.dataset.study.studyName}"/></a> >
-		<a th:href="@{/browse/data_fields(dataset_id=${data_field.dataset.datasetId})}"><span th:text="${data_field.dataset.datasetName}"/></a> >
+		<a href="/browse/studies">Studies</a>
+		>
+		<span th:if="${site == null and subject == null}">
+			<a th:href="@{/browse/datasets(study_id=${data_field.dataset.study.studyId})}" th:text="${data_field.dataset.study.studyName}"/>
+			>
+			<a th:href="@{/browse/data_fields(dataset_id=${data_field.dataset.datasetId})}" th:text="${data_field.dataset.datasetName}"/>
+		</span>
+		<span th:if="${site}">
+			<a th:href="@{/browse/sites(study_id=${site.study.studyId})}" th:text="${site.study.studyName}"/>
+			>
+			<a th:href="@{/browse/datasets(site_id=${site.siteId})}" th:text="'Site ' + ${site.siteName}"/>
+			>
+			<a th:href="@{/browse/data_fields(dataset_id=${data_field.dataset.datasetId}, site_id=${site.siteId})}" th:text="${data_field.dataset.datasetName}"/>
+		</span>
+		>
 		<strong><span th:text="${data_field.dataFieldName}"/></strong>
 	</div>
 		
@@ -51,6 +63,7 @@
 	firstQuartile = [[${data_field.firstQuartile}]];
 	secondQuartile = [[${data_field.secondQuartile}]];
 	thirdQuartile = [[${data_field.thirdQuartile}]];
+	siteName = [[${site_name}]];
 </script>
 
 <script src="/boxplot.js"></script>

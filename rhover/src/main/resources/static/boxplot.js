@@ -40,7 +40,7 @@ function computeCaretPoints(x) {
 }
 
 function renderBoxplot(dataUrl, fieldName, lowerThresh, upperThresh, firstQuartile,
-		secondQuartile, thirdQuartile) {
+		secondQuartile, thirdQuartile, siteName) {
 	
 	d3.csv(dataUrl, function(data) {
 		
@@ -82,6 +82,9 @@ function renderBoxplot(dataUrl, fieldName, lowerThresh, upperThresh, firstQuarti
 			.enter()
 			.append("circle")
 			.filter(function(d) {
+					if (siteName != "-1" && siteName != d["Site"]) {
+						return false;
+					}
 					return d[fieldName] <= lowerThreshold || d[fieldName] >= upperThreshold;
 				})
 			.attr("cx", function(d) {return xScale(d[fieldName]);})
@@ -361,4 +364,4 @@ function onSave() {
 }
 
 const url = "/rest/anomaly/data/univariate?data_field_id=" + dataFieldId;
-renderBoxplot(url, "value", lowerThreshold, upperThreshold, firstQuartile, secondQuartile, thirdQuartile);
+renderBoxplot(url, "value", lowerThreshold, upperThreshold, firstQuartile, secondQuartile, thirdQuartile, siteName);
