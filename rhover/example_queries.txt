@@ -82,6 +82,35 @@ select s.site_name,
 from site s
 where s.study_id = 11
 
+select s.subject_id, s.subject_name,
+(
+	select count(*)
+	from anomaly a
+	where a.subject_id = s.subject_id
+) total,
+(
+	select count(*)
+	from anomaly a
+	where a.subject_id = s.subject_id
+	and a.has_been_viewed = 0
+),
+si.site_name
+from subject s
+join site si on si.site_id = s.site_id
+where si.study_id = 11
+order by total desc
+limit 10 offset 1
+
+select count(*)
+from anomaly a
+join site s on s.site_id = a.site_id
+where s.study_id = 11
+
+select count(distinct(a.subject_id))
+from anomaly a
+join site s on s.site_id = a.site_id
+where s.study_id = 11
+
 
 select ds.dataset_id, ds.dataset_name,
 (

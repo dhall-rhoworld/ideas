@@ -3,6 +3,7 @@ package com.rho.rhover.anomaly;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +36,7 @@ public class AnomalySummaryBuilder {
 	 * Get anomaly summaries across all studies.
 	 * @return Zero or more anomaly summaries.
 	 */
-	public Iterable<AnomalySummary> getStudySummaries() {
+	public List<AnomalySummary> getStudySummaries() {
 		String sql =
 				"select s.study_id, s.study_name,\r\n" + 
 				"(\r\n" + 
@@ -59,7 +60,7 @@ public class AnomalySummaryBuilder {
 		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
 	}
 	
-	public Iterable<AnomalySummary> getDatasetSummaries(Study study) {
+	public List<AnomalySummary> getDatasetSummaries(Study study) {
 		String sql =
 				"select ds.dataset_id, ds.dataset_name,\r\n" + 
 				"(\r\n" + 
@@ -82,7 +83,7 @@ public class AnomalySummaryBuilder {
 		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
 	}
 	
-	public Iterable<AnomalySummary> getDatasetSummaries(Site site) {
+	public List<AnomalySummary> getDatasetSummaries(Site site) {
 		String sql = "select ds.dataset_id, ds.dataset_name,\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
@@ -106,7 +107,7 @@ public class AnomalySummaryBuilder {
 		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
 	}
 	
-	public Iterable<AnomalySummary> getSiteSummaries(Long studyId) {
+	public List<AnomalySummary> getSiteSummaries(Long studyId) {
 		String sql = "select s.site_id, s.site_name,\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
@@ -125,7 +126,29 @@ public class AnomalySummaryBuilder {
 		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
 	}
 	
-	public Iterable<AnomalySummary> getDataFieldSummaries(Long datasetId) {
+	public List<AnomalySummary> getSubjectSummaries(Long studyId, int limit, int offset) {
+		String sql = "select s.subject_id, s.subject_name,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from anomaly a\r\n" + 
+				"	where a.subject_id = s.subject_id\r\n" + 
+				") total,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from anomaly a\r\n" + 
+				"	where a.subject_id = s.subject_id\r\n" + 
+				"	and a.has_been_viewed = 0\r\n" + 
+				"),\r\n" + 
+				"si.site_name\r\n" + 
+				"from subject s\r\n" + 
+				"join site si on si.site_id = s.site_id\r\n" + 
+				"where si.study_id = " + studyId + "\r\n" + 
+				"order by total desc\r\n" + 
+				"limit " + limit + " offset " + offset;
+		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapperWithAttribute()));
+	}
+	
+	public List<AnomalySummary> getDataFieldSummaries(Long datasetId) {
 		String sql =
 				"select df.data_field_id, df.data_field_name,\r\n" + 
 				"(\r\n" + 
@@ -146,7 +169,15 @@ public class AnomalySummaryBuilder {
 		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
 	}
 	
-	private Iterable<AnomalySummary> removeEmpties(Iterable<AnomalySummary> summaries) {
+	public int numSubjectsWithAnomalies(Long studyId) {
+		String sql = "select count(distinct(a.subject_id))\r\n" + 
+				"from anomaly a\r\n" + 
+				"join site s on s.site_id = a.site_id\r\n" + 
+				"where s.study_id = " + studyId;
+		return jdbcTemplate.queryForObject(sql, Integer.class);
+	}
+	
+	private List<AnomalySummary> removeEmpties(List<AnomalySummary> summaries) {
 		Iterator<AnomalySummary> it = summaries.iterator();
 		while (it.hasNext()) {
 			AnomalySummary summary = it.next();
@@ -160,6 +191,12 @@ public class AnomalySummaryBuilder {
 	private static class AnomalySummaryRowMapper implements RowMapper<AnomalySummary> {
 		public AnomalySummary mapRow(ResultSet rs, int p) throws SQLException {
 			return new AnomalySummary(rs.getLong(1), rs.getString(2), rs.getInt(3), rs.getInt(4));
+		}
+	}
+	
+	private static class AnomalySummaryRowMapperWithAttribute implements RowMapper<AnomalySummary> {
+		public AnomalySummary mapRow(ResultSet rs, int p) throws SQLException {
+			return new AnomalySummary(rs.getLong(1), rs.getString(2), rs.getInt(3), rs.getInt(4), rs.getString(5));
 		}
 	}
 }

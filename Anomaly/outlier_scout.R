@@ -174,13 +174,13 @@ loadSite <- function(studyId, siteName, con) {
   return (siteId)
 }
 
-loadSubject <- function(studyId, subjectName, con) {
-  sql = sprintf("select subject_id from subject where study_id = %d and subject_name = '%s'", studyId, subjectName);
+loadSubject <- function(siteId, subjectName, con) {
+  sql = sprintf("select subject_id from subject where site_id = %d and subject_name = '%s'", siteId, subjectName);
   rs <- dbSendQuery(con, sql);
   result <- dbFetch(rs);
   if (nrow(result) == 0) {
     message("Subject ", subjectName, " not in database.  Loading.")
-    sql <- sprintf("insert into subject(subject_name, study_id) values ('%s', %d)", subjectName, studyId);
+    sql <- sprintf("insert into subject(subject_name, site_id) values ('%s', %d)", subjectName, siteId);
     dbSendQuery(con, sql)
     subjectId <- dbGetQuery(con, "select last_insert_id()")[1, 1]
   }
@@ -281,7 +281,7 @@ findAndLoadUnivariateOutliers <- function(df, studyName, formName, datasetVersio
       recruitId <- df[j, "RecruitID"]
       siteName <- df[j, "Site"]
       siteId <- loadSite(studyId, siteName, con)
-      subjectId <- loadSubject(studyId, recruitId, con)
+      subjectId <- loadSubject(siteId, recruitId, con)
       event <- df[j, "event"]
       fieldValue <- df[j, i]
       

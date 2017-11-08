@@ -3,12 +3,15 @@ package com.rho.rhover;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.rho.rhover.anomaly.AnomalySummary;
 import com.rho.rhover.anomaly.AnomalySummaryBuilder;
 import com.rho.rhover.anomaly.BivariateCheck;
 import com.rho.rhover.anomaly.BivariateCheckRepository;
@@ -37,6 +40,8 @@ public class BrowseController {
 	
 	@Autowired
 	private BivariateCheckRepository bivariateCheckRepository;
+	
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @RequestMapping("/studies")
     public String studies(Model model) {
@@ -70,6 +75,39 @@ public class BrowseController {
 		model.addAttribute("summaries", anomalySummaryBuilder.getSiteSummaries(studyId));
 		model.addAttribute("study", study);
     	return "browse/sites";
+    }
+    
+    @RequestMapping("/subjects")
+    public String subjects(
+    		@RequestParam("study_id") Long studyId,
+    		@RequestParam(name="limit", required=false, defaultValue="100") Integer limit,
+    		@RequestParam(name="offset", required=false, defaultValue="0") Integer offset,
+    		Model model) {
+    	Study study = studyRepository.findOne(studyId);
+    	model.addAttribute("study", study);
+    	List<AnomalySummary> summaries = anomalySummaryBuilder.getSubjectSummaries(studyId, limit, offset);
+    	model.addAttribute("summaries", summaries);
+    	model.addAttribute("limit", limit);
+    	model.addAttribute("offset", offset);
+    	model.addAttribute("from", offset + 1);
+    	model.addAttribute("to", offset + summaries.size());
+    	int numSubjects = anomalySummaryBuilder.numSubjectsWithAnomalies(studyId);
+    	model.addAttribute("total", numSubjects);
+    	logger.debug("Offset: " + offset);
+    	if (offset > 0) {
+    		int previousOffset = offset - limit;
+    		logger.debug("Previous offset: " + previousOffset);
+    		if (previousOffset < 0) {
+    			previousOffset = 0;
+    		}
+    		model.addAttribute("previous_offset", previousOffset);
+    	}
+		int nextOffset = offset + limit;
+		logger.debug("Next offset: " + nextOffset);
+		if (nextOffset < numSubjects - 1) {
+			model.addAttribute("next_offset", nextOffset);
+		}
+    	return "browse/subjects";
     }
     
     @RequestMapping("/data_fields")

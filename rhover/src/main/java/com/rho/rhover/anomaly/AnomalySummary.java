@@ -2,6 +2,7 @@ package com.rho.rhover.anomaly;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Aggregate counts of anomalies associated with some entity, which may be a study, dataset, or data field
@@ -14,6 +15,7 @@ public class AnomalySummary {
 	private String entityName;
 	private Integer numAnomalies;
 	private Integer numUnviewedAnomalies;
+	private String attribute;
 	
 	public AnomalySummary() {
 		
@@ -25,6 +27,11 @@ public class AnomalySummary {
 		this.entityName = entityName;
 		this.numAnomalies = numAnomalies;
 		this.numUnviewedAnomalies = numUnviewedAnomalies;
+	}
+	
+	public AnomalySummary(Long entityId, String entityName, Integer numAnomalies, Integer numUnviewedAnomalies, String attribute) {
+		this(entityId, entityName, numAnomalies, numUnviewedAnomalies);
+		this.setAttribute(attribute);
 	}
 
 	public Long getEntityId() {
@@ -59,4 +66,11 @@ public class AnomalySummary {
 		this.numUnviewedAnomalies = numUnviewedAnomalies;
 	}
 
+	public String getAttribute() {
+		return attribute;
+	}
+
+	public void setAttribute(String attribute) {
+		this.attribute = attribute;
+	}
 }
