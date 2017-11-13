@@ -157,3 +157,21 @@ from dataset ds
 where ds.study_id = 11
 limit 5
 offset 10
+
+insert into data_check (data_check_code, data_check_name, description, num_variables)
+values ('UU', 'Unsupervised Univariate',
+	'Checks individual numeric variables for extreme values', 1);
+
+
+insert into study(study_name) values('PROSE');
+
+insert into study_folder(folder_path, study_id)
+values('S:/RhoFED/ICAC2/PROSE/Statistics/Data/Complete', 2);
+
+insert into global_parameters_version (data_check_id) values(1);
+
+insert into global_parameter(parameter_name, parameter_value, global_parameters_version_id)
+values ("lower_boundary_sd", "2", 1);
+
+insert into global_parameter(parameter_name, parameter_value, global_parameters_version_id)
+values ("upper_boundary_sd", "2", 1)

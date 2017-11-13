@@ -1,0 +1,125 @@
+/* MySQL root account: root@localhost/password */
+
+create database rhover;
+create user 'rhover'@'localhost' identified by 'rhover';
+grant all privileges on rhover.* to 'rhover'@'localhost';
+
+
+create table study_checks_run (
+	study_checks_run_id BIGINT AUTO_INCREMENT NOT NULL,
+	study_id BIGINT NOT NULL,
+	study_parameters_version_id BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	modified_by VARCHAR(50) DEFAULT 'SYSTEM',
+	CONSTRAINT pk_study_checks_run PRIMARY KEY (study_checks_run_id),
+	CONSTRAINT fk_study_checks_run_2_study FOREIGN KEY (study_id) REFERENCES study (study_id),
+	CONSTRAINT fk_study_checks_run_2_study_parameters_version
+		FOREIGN KEY (study_parameters_version_id) REFERENCES study_parameters_version (study_parameters_version_id)
+);
+
+create table dataset_parameters_version (
+	dataset_parameters_version_id BIGINT AUTO_INCREMENT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	modified_by VARCHAR(50),
+	CONSTRAINT pk_dataset_parameters_version PRIMARY KEY (dataset_parameters_version_id)
+);
+
+create table study_check_run (
+	study_check_run_id BIGINT AUTO_INCREMENT NOT NULL,
+	study_id BIGINT NOT NULL,
+	study_parameters_version_id BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	modified_by VARCHAR(50) DEFAULT 'SYSTEM',
+	CONSTRAINT pk_study_check_run PRIMARY KEY (study_check_run_id),
+	CONSTRAINT fk_study_check_run_2_study FOREIGN KEY (study_id) REFERENCES study (study_id),
+	CONSTRAINT fk_study_check_run_2_study_parameters_version
+		FOREIGN KEY (study_parameters_version_id REFERENCES study_parameters_version (study_parameters_version_id)
+);
+
+create table dataset_version (
+	dataset_version_id BIGINT AUTO_INCREMENT NOT NULL,
+	dataset_version_name VARCHAR(50) NOT NULL,
+	dataset_id BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_dataset_version PRIMARY KEY (dataset_version_id),
+	CONSTRAINT fk_dataset_version_2_dataset FOREIGN KEY (dataset_id) REFERENCES dataset(dataset_id)
+);
+
+/*
+create table data_field (
+	data_field_id BIGINT AUTO_INCREMENT NOT NULL,
+	data_field_name VARCHAR(200) NOT NULL,
+	dataset_id BIGINT NOT NULL,
+	lower_threshold DOUBLE,
+	upper_threshold DOUBLE,
+	is_fixed_threshold TINYINT DEFAULT 0,
+	first_quartile DOUBLE,
+	second_quartile DOUBLE,
+	third_quartile DOUBLE,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_data_field PRIMARY KEY (data_field_id),
+	CONSTRAINT fk_data_field_2_dataset FOREIGN KEY (dataset_id) REFERENCES dataset (dataset_id)
+);
+*/
+
+/* TODO: Remove recruit_id */
+create table anomaly (
+	anomaly_id BIGINT AUTO_INCREMENT NOT NULL,
+	anomaly_type CHAR NOT NULL,
+	data_field_id BIGINT NOT NULL,
+	field_value VARCHAR(100) NOT NULL,
+	version_first_seen_in BIGINT NOT NULL,
+	version_last_seen_in BIGINT NOT NULL,
+	recruit_id VARCHAR(100) NOT NULL,
+	subject_id BIGINT NOT NULL,
+	event VARCHAR(100) NOT NULL,
+	site_id BIGINT NOT NULL,
+	has_been_viewed TINYINT DEFAULT 0 NOT NULL,
+	is_an_issue TINYINT DEFAULT 1 NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_anomaly PRIMARY KEY (anomaly_id),
+	CONSTRAINT fk_anomaly_2_data_field FOREIGN KEY (data_field_id) REFERENCES data_field(data_field_id),
+	CONSTRAINT fk_anomaly_2_dataset_version_1 FOREIGN KEY (version_first_seen_in) REFERENCES dataset_version(dataset_version_id),
+	CONSTRAINT fk_anomaly_2_dataset_version_2 FOREIGN KEY (version_last_seen_in) REFERENCES dataset_version(dataset_version_id),
+	CONSTRAINT fk_anomaly_2_site FOREIGN KEY (site_id) REFERENCES site(site_id),
+	CONSTRAINT fk_anomaly_2_subject FOREIGN KEY (subject_id) REFERENCES subject(subject_id)
+);
+
+/* TODO: Move parameters to separate table */
+create table bivariate_check (
+	bivariate_check_id BIGINT AUTO_INCREMENT NOT NULL,
+	dataset_id_1 BIGINT NOT NULL,
+	dataset_id_2 BIGINT NOT NULL,
+	data_field_1 VARCHAR(200) NOT NULL,
+	data_field_2 VARCHAR(200) NOT NULL,
+	file_path VARCHAR(250) NOT NULL,
+	is_het TINYINT DEFAULT 0,
+	lambda DOUBLE,
+	intercept DOUBLE,
+	slope DOUBLE,
+	residual_threshold DOUBLE,
+	density_threshold DOUBLE,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_bivariate_check PRIMARY KEY (bivariate_check_id),
+	CONSTRAINT fk_bivariate_check_2_dataset_1 FOREIGN KEY (dataset_id_1) REFERENCES dataset (dataset_id),
+	CONSTRAINT fk_bivariate_check_2_dataset_2 FOREIGN KEY (dataset_id_2) REFERENCES dataset (dataset_id)
+);
+
+/* TODO: Replace recruit_id with subject_id */
+create table bivariate_outlier (
+	bivariate_outlier_id BIGINT AUTO_INCREMENT NOT NULL,
+	field_value_1 DOUBLE NOT NULL,
+	field_value_2 DOUBLE NOT NULL,
+	bivariate_check_id BIGINT NOT NULL,
+	version_first_seen_in BIGINT NOT NULL,
+	version_last_seen_in BIGINT NOT NULL,
+	recruit_id VARCHAR(100) NOT NULL,
+	event VARCHAR(100) NOT NULL,
+	has_been_viewed TINYINT NOT NULL DEFAULT 0,
+	is_an_issue TINYINT NOT NULL DEFAULT 1,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_bivariate_outlier PRIMARY KEY (bivariate_outlier_id),
+	CONSTRAINT fk_bivariate_outlier_2_bivariate_check FOREIGN KEY (bivariate_check_id) REFERENCES bivariate_check(bivariate_check_id),
+	CONSTRAINT fk_bivariate_outlier_2_dataset_version_1 FOREIGN KEY (version_first_seen_in) references dataset_version(dataset_version_id),
+	CONSTRAINT fk_bivariate_outlier_2_dataset_version_2 FOREIGN KEY (version_last_seen_in) references dataset_version(dataset_version_id)
+);

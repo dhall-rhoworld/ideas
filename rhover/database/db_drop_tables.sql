@@ -1,0 +1,13 @@
+drop table data_property;
+drop table check_instance;
+drop table check_param;
+drop table checks;
+drop table checker_message;
+drop table checker_run;
+drop table field;
+drop table dataset;
+drop table event;
+drop table subject;
+drop table site;
+drop table data_location;
+drop table study;
