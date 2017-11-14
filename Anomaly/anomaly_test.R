@@ -6,6 +6,11 @@ library(caret)
 library(lmtest)
 library(RMySQL)
 source("outlier_scout.R")
+source("rhover_io.R")
+
+ctotDir <- "S:/RhoFED/CTOT-SACCC/CTOT/CTOT-08-Abecassis/Stats/Data/Clinical"
+paths <- getAllSasFilePaths(ctotDir)
+commonVars <- getAllCommonVariables(paths)
 
 # Read in vital signs data
 path = "S:/RhoFED/ICAC2/PROSE/Statistics/Data/Complete/vsgp.sas7bdat"
@@ -24,6 +29,21 @@ for (i in 1:num.labels) {
   }
 }
 colnames(data) = gsub(" ", "_", labels)
+
+path = "S:/RhoFED/CTOT-SACCC/CTOT/CTOT-08-Abecassis/Stats/Data/Clinical/vitlmstr.sas7bdat"
+data = read.sas7bdat(path)
+numIndices <- findContinuousVariables(data)
+colnames(data)[which(numIndices)]
+htWt = data[, c("HT", "WT")]
+htWt = na.omit(htWt)
+cor(htWt)
+
+path2 = "S:/RhoFED/CTOT-SACCC/CTOT/CTOT-08-Abecassis/Stats/Data/Clinical/mimdmstr.sas7bdat"
+data2 =read.sas7bdat(path2)
+
+cnames1 = colnames(data)
+cnames2 = colnames(data2)
+intersect(cnames1, cnames2)
 
 source("outlier_scout.R")
 data[findUnivariateOutliers(data, 11), 11]

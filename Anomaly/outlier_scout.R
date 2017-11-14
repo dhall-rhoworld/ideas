@@ -84,6 +84,14 @@ findTrulyNumericVariables <- function(x) {
   return (var.is.numeric)
 }
 
+findContinuousVariables <- function(x) {
+  varIsContinuous <- logical(length = ncol(x))
+  for (i in 1:ncol(x)) {
+    varIsContinuous[i] <- isFloatingPoint(x, i)
+  }
+  return (varIsContinuous)
+}
+
 loadStudyName <- function(studyName, con) {
   sql <- sprintf("select study_id from study where study_name = '%s'", studyName)
   rs <- dbSendQuery(con, sql)
