@@ -1,0 +1,38 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>RhoVer Administer Studies</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="/rhover.css"/>
+</head>
+<body>
+	<div class="page-header">RhoVer (Prototype)</div>
+	
+	<div class="menu-bar">
+		<ul>
+			<li><a href="/">Home</a></li>
+			<li><a href="/browse/studies">Browse</a></li>
+			<li><a href="/search/form">Search</a></li>
+			<li><a href="/admin/study/all" class="active-menu-item">Admin</a></li>
+		</ul>
+	</div>
+		
+    <div id="content">
+   		<h2>Studies</h2>
+   		<table class="wide">
+   			<tr>
+   				<th>Study</th>
+   				<th>Data Folders</th>
+   				<th>Action</th>
+   			</tr>
+   			<tr th:each="study : ${studies}">
+   				<td th:text="${study.studyName}"/>
+   				<td>
+   					<div th:each="dataLocation : ${study.dataLocations}" th:text="${dataLocation.folderPath}"/>
+   				</td>
+   				<td><a href="#">Edit</a></td>
+   			</tr>
+   		</table>
+    </div>
+</body>
+</html>

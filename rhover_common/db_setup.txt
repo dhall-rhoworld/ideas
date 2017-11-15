@@ -10,6 +10,15 @@ create table study (
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+create table data_location (
+	data_location_id BIGINT AUTO_INCREMENT NOT NULL,
+	folder_path VARCHAR(400) NOT NULL,
+	study_id BIGINT NOT NULL,
+	CONSTRAINT pk_data_location PRIMARY KEY (data_location_id),
+	CONSTRAINT fk_data_location_2_study FOREIGN KEY (study_id)
+		REFERENCES study(study_id)
+);
+
 create table dataset (
 	dataset_id BIGINT AUTO_INCREMENT PRIMARY KEY,
 	dataset_name VARCHAR(50),

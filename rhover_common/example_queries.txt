@@ -157,3 +157,6 @@ from dataset ds
 where ds.study_id = 11
 limit 5
 offset 10
+
+insert into data_location(folder_path, study_id)
+values('S:/RhoFED/ICAC2/PROSE/Statistics/Data/Complete', 1)
