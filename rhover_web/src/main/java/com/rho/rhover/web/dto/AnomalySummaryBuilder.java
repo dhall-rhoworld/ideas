@@ -1,4 +1,4 @@
-package com.rho.rhover.common.anomaly;
+package com.rho.rhover.web.dto;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

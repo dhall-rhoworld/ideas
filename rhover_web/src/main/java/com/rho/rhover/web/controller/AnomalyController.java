@@ -1,4 +1,4 @@
-package com.rho.rhover.web;
+package com.rho.rhover.web.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;

@@ -8,6 +8,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import org.hibernate.annotations.Type;
+
 import com.rho.rhover.common.study.Study;
 
 @Entity
@@ -25,8 +27,27 @@ public class Dataset {
 	@JoinColumn(name="study_id")
 	private Study study;
 	
+	@Column(name="file_path")
+	private String filePath;
+	
+	@ManyToOne
+	@JoinColumn(name="data_location_id")
+	private DataLocation dataLocation;
+	
+	@Column(name="is_checked")
+	@Type(type="org.hibernate.type.NumericBooleanType")
+	private Boolean isChecked = Boolean.FALSE;
+	
 	public Dataset() {
 		
+	}
+
+	public Dataset(String datasetName, Study study, String filePath, DataLocation dataLocation) {
+		super();
+		this.datasetName = datasetName;
+		this.study = study;
+		this.filePath = filePath;
+		this.dataLocation = dataLocation;
 	}
 
 	public Long getDatasetId() {
@@ -52,4 +73,13 @@ public class Dataset {
 	public void setStudy(Study study) {
 		this.study = study;
 	}
+
+	public String getFilePath() {
+		return filePath;
+	}
+
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
+	}
+	
 }

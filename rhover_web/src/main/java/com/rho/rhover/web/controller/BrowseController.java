@@ -1,4 +1,4 @@
-package com.rho.rhover.web;
+package com.rho.rhover.web.controller;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,8 +11,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.rho.rhover.common.anomaly.AnomalySummary;
-import com.rho.rhover.common.anomaly.AnomalySummaryBuilder;
 import com.rho.rhover.common.anomaly.BivariateCheck;
 import com.rho.rhover.common.anomaly.BivariateCheckRepository;
 import com.rho.rhover.common.study.Dataset;
@@ -23,6 +21,8 @@ import com.rho.rhover.common.study.Study;
 import com.rho.rhover.common.study.StudyRepository;
 import com.rho.rhover.common.study.Subject;
 import com.rho.rhover.common.study.SubjectRepository;
+import com.rho.rhover.web.dto.AnomalySummary;
+import com.rho.rhover.web.dto.AnomalySummaryBuilder;
 
 @Controller
 @RequestMapping("browse")

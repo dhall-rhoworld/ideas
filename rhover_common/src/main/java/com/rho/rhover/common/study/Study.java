@@ -6,6 +6,7 @@ import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -27,7 +28,9 @@ public class Study {
 	@Column(name="study_name")
 	private String studyName;
 	
-	@OneToMany(mappedBy="study", cascade=CascadeType.ALL)
+	// TODO: Consider whether we need this collection.  Other many-to-one relationships
+	// only have the child to parent relationship.
+	@OneToMany(mappedBy="study", cascade=CascadeType.ALL, fetch=FetchType.EAGER)
 	private Set<DataLocation> dataLocations = new HashSet<>();
 	
 	public Study() {

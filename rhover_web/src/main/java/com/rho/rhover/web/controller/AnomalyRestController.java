@@ -1,4 +1,4 @@
-package com.rho.rhover.web;
+package com.rho.rhover.web.controller;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.rho.rhover.common.anomaly;
+package com.rho.rhover.web.dto;
 
 import java.util.ArrayList;
 import java.util.List;

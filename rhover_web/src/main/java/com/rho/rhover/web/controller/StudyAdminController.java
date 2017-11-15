@@ -1,4 +1,4 @@
-package com.rho.rhover.web;
+package com.rho.rhover.web.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
