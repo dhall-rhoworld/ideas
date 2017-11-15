@@ -1,4 +1,4 @@
-package com.rho.rhover.common.anomaly;
+package com.rho.rhover.web;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -6,6 +6,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.rho.rhover.common.anomaly.AnomalyRepository;
+import com.rho.rhover.common.anomaly.BivariateCheckRepository;
 import com.rho.rhover.common.study.DataField;
 import com.rho.rhover.common.study.DataFieldRepository;
 import com.rho.rhover.common.study.Site;

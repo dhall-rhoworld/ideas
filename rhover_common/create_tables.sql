@@ -5,30 +5,41 @@ create user 'rhover'@'localhost' identified by 'rhover';
 grant all privileges on rhover.* to 'rhover'@'localhost';
 
 create table study (
-	study_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-	study_name VARCHAR(50),
-	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+	study_id BIGINT AUTO_INCREMENT NOT NULL,
+	study_name VARCHAR(50) NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	modified_by VARCHAR(50),
+	CONSTRAINT pk_study PRIMARY KEY (study_id)
 );
 
 create table data_location (
 	data_location_id BIGINT AUTO_INCREMENT NOT NULL,
 	folder_path VARCHAR(400) NOT NULL,
 	study_id BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	modified_by VARCHAR(50),
 	CONSTRAINT pk_data_location PRIMARY KEY (data_location_id),
-	CONSTRAINT fk_data_location_2_study FOREIGN KEY (study_id)
-		REFERENCES study(study_id),
+	CONSTRAINT fk_data_location_2_study FOREIGN KEY (study_id) REFERENCES study(study_id),
 	CONSTRAINT u_data_location_folder_path_study_id UNIQUE (folder_path, study_id)
 );
 
 create table dataset (
-	dataset_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+	dataset_id BIGINT AUTO_INCREMENT NOT NULL,
 	dataset_name VARCHAR(50) NOT NULL,
+	file_path VARCHAR(400) NOT NULL,
+	is_checked TINYINT NOT NULL DEFAULT 0,
+	was_checkability_deduced TINYINT NOT NULL DEFAULT 0,
+	was_checkability_confirmed TINYINT NOT NULL DEFAULT 0,
 	study_id BIGINT NOT NULL,
 	data_location_id BIGINT NOT NULL,
-	ignore_dataset TINYINT NOT NULL DEFAULT 1,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-	foreign key(study_id) references study(study_id)
+	modified_by VARCHAR(50),
+	CONSTRAINT pk_dataset PRIMARY KEY (dataset_id),
+	CONSTRAINT fk_dataset_2_study FOREIGN KEY(study_id) REFERENCES study(study_id),
+	CONSTRAINT fk_dataset_2_data_location FOREIGN KEY (data_location_id) REFERENCES data_location(data_location_id)
 );
+
+----------------------
 
 create table dataset_version (
 	dataset_version_id BIGINT AUTO_INCREMENT PRIMARY KEY,
