@@ -1,0 +1,44 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>RhoVer Studies</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="/rhover.css"/>
+</head>
+<body>
+	<div class="page-header">RhoVer (Prototype)</div>
+	
+	<div class="menu-bar">
+		<ul>
+			<li><a href="/">Home</a></li>
+			<li><a href="/browse/studies" class="active-menu-item">Browse</a></li>
+			<li><a href="/search/form">Search</a></li>
+		</ul>
+	</div>
+		
+    <div id="content">
+   		<h2>Browse by Study</h2>
+   		<table class="wide">
+   			<tr>
+   				<th>Study</th>
+   				<th>Total Anomalies</th>
+   				<th>View Anomalies By</th>
+   			</tr>
+   			<tr th:each="summary : ${summaries}">
+   				<td><span th:text="${summary.entityName}"/></td>
+   				<td>
+   					<span th:text="${summary.numAnomalies}"/>
+   					<span th:if="${summary.numUnviewedAnomalies > 0}">
+   						&nbsp; (<span class="attention" th:text="${summary.numUnviewedAnomalies}"/> unviewed)
+   					</span>
+   				</td>
+   				<td>
+   					<a th:href="@{/browse/datasets(study_id=${summary.entityId})}">All</a> |
+   					<a th:href="@{/browse/sites(study_id=${summary.entityId})}">Site</a> |
+   					<a th:href="@{/browse/subjects(study_id=${summary.entityId})}">Subject</a>
+   				</td>
+   			</tr>
+   		</table>
+    </div>
+</body>
+</html>

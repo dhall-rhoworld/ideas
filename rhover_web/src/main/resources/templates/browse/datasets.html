@@ -1,0 +1,71 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>RhoVer Datasets</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="/rhover.css"/>
+</head>
+<body>
+	<div class="page-header">RhoVer (Prototype)</div>
+	
+	<div class="menu-bar">
+		<ul>
+			<li><a href="/">Home</a></li>
+			<li><a href="/browse/studies" class="active-menu-item">Browse</a></li>
+			<li><a href="/search/form">Search</a></li>
+		</ul>
+	</div>
+	
+	<div id="breadcrumbs">
+		<a href="/browse/studies">Studies</a>
+		>
+		<!-- Showing all anomalies -->
+		<span th:if="${study}">
+			<strong>
+				<span th:text="${study.studyName}"/>
+			</strong>
+		</span>
+		
+		<!-- Showing anomalies from a site -->
+		<span th:if="${site}">
+			<a th:href="@{/browse/sites(study_id=${site.study.studyId})}" th:text="${site.study.studyName} + ' Sites'"/>
+			>
+			<strong>
+				<span th:text="'Site ' + ${site.siteName}"/>
+			</strong>
+		</span>
+		
+		<!-- Showing anomalies from a subject -->
+		<span th:if="${subject}">
+			<a th:href="@{/browse/subjects(study_id=${subject.site.study.studyId})}" th:text="${subject.site.study.studyName} + ' Subjects'"/>
+			>
+			<strong>
+				<span th:text="'Subject ' + ${subject.subjectName}"/>
+			</strong>
+		</span>
+	</div>
+    <div id="content">
+   		<table class="wide">
+   			<tr>
+   				<th>Dataset</th>
+   				<th th:if="${study}" th:text="'Total ' + ${study.studyName} + ' Anomalies'"/>
+   				<th th:if="${site}" th:text="'Total Site ' + ${site.siteName} + ' Anomalies'"/>
+   				<th th:if="${subject}" th:text="'Subject ' + ${subject.subjectName} + ' Anomalies'"/>
+   			</tr>
+   			<tr th:each="summary : ${summaries}">
+   				<td>
+   					<a th:if="${study}" th:href="@{/browse/data_fields(dataset_id=${summary.entityId})}" th:text="${summary.entityName}"/>
+   					<a th:if="${site}" th:href="@{/browse/data_fields(dataset_id=${summary.entityId}, site_id=${site.siteId})}" th:text="${summary.entityName}"/>
+   					<a th:if="${subject}" th:href="@{/browse/data_fields(dataset_id=${summary.entityId}, subject_id=${subject.subjectId})}" th:text="${summary.entityName}"/>
+   				</td>
+   				<td>
+   					<span th:text="${summary.numAnomalies}"/>
+   					<span th:if="${summary.numUnviewedAnomalies > 0}">
+   						&nbsp; (<span class="attention" th:text="${summary.numUnviewedAnomalies}"/> unviewed)
+   					</span>
+   				</td>
+   			</tr>
+   		</table>
+    </div>
+</body>
+</html>
