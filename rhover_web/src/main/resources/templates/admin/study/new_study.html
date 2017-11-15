@@ -1,0 +1,37 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>RhoVer Edit Study</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="/rhover.css"/>
+</head>
+<body>
+	<div class="page-header">RhoVer (Prototype)</div>
+	
+	<div class="menu-bar">
+		<ul>
+			<li><a href="/">Home</a></li>
+			<li><a href="/browse/studies">Browse</a></li>
+			<li><a href="/search/form">Search</a></li>
+			<li><a href="/admin/study/all" class="active-menu-item">Admin</a></li>
+		</ul>
+	</div>
+	
+	<div id="breadcrumbs">
+		<a href="/admin/study/all">Studies</a>
+		>
+		<bold>New Study</bold>
+	</div>
+		
+    <div id="content">
+   		<form action="/admin/study/save_new" method="post">
+   			<p>
+   				Study Name: <input type="text" name="study_name"/>
+   			</p>
+   			<p>
+   				<button type="submit">Create Study</button>
+   			</p>
+   		</form>
+    </div>
+</body>
+</html>

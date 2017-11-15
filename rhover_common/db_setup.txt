@@ -16,7 +16,8 @@ create table data_location (
 	study_id BIGINT NOT NULL,
 	CONSTRAINT pk_data_location PRIMARY KEY (data_location_id),
 	CONSTRAINT fk_data_location_2_study FOREIGN KEY (study_id)
-		REFERENCES study(study_id)
+		REFERENCES study(study_id),
+	CONSTRAINT u_data_location_folder_path_study_id UNIQUE (folder_path, study_id)
 );
 
 create table dataset (

@@ -1,0 +1,52 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>RhoVer Edit Study</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="/rhover.css"/>
+</head>
+<body>
+	<div class="page-header">RhoVer (Prototype)</div>
+	
+	<div class="menu-bar">
+		<ul>
+			<li><a href="/">Home</a></li>
+			<li><a href="/browse/studies">Browse</a></li>
+			<li><a href="/search/form">Search</a></li>
+			<li><a href="/admin/study/all" class="active-menu-item">Admin</a></li>
+		</ul>
+	</div>
+	
+	<div id="breadcrumbs">
+		<a href="/admin/study/all">Studies</a>
+		>
+		<bold><span th:text="${study.studyName}"/></bold>
+	</div>
+		
+    <div id="content">
+    	<div th:if="${not #lists.isEmpty(study.dataLocations)}">
+	   		<table class="wide">
+	   			<tr>
+	   				<th>Data Folders</th>
+	   			</tr>
+	   			<tr th:each="dataLocation : ${study.dataLocations}">
+	   				<td th:text="${dataLocation.folderPath}"/>
+	   			</tr>
+	   		</table>
+	   	</div>
+	   	<form action="/admin/study/add_data_folder" method="post">
+	   		<p>
+	   		<input type="hidden" name="study_id" th:value="${study.studyId}"/>
+	   		Folder Path: <input type="text" name="folder_path" size="60"/>
+	   		</p>
+	   		
+	   		<p>
+	   		(e.g. S:/RhoFED/ICAC2/PROSE/Statistics/Data/Complete)
+	   		</p>
+	   		<p>
+	 			<button type="submit">Add Data Folder</button>
+	 		</p>
+ 		</form>
+    </div>
+</body>
+</html>

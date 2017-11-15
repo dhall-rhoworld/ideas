@@ -1,5 +1,6 @@
 package com.rho.rhover.common.study;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -27,7 +28,7 @@ public class Study {
 	private String studyName;
 	
 	@OneToMany(mappedBy="study", cascade=CascadeType.ALL)
-	private Set<DataLocation> dataLocations;
+	private Set<DataLocation> dataLocations = new HashSet<>();
 	
 	public Study() {
 		
