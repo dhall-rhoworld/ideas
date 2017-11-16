@@ -81,5 +81,20 @@ public class Dataset {
 	public void setFilePath(String filePath) {
 		this.filePath = filePath;
 	}
-	
+
+	public DataLocation getDataLocation() {
+		return dataLocation;
+	}
+
+	public void setDataLocation(DataLocation dataLocation) {
+		this.dataLocation = dataLocation;
+	}
+
+	public Boolean getIsChecked() {
+		return isChecked;
+	}
+
+	public void setIsChecked(Boolean isChecked) {
+		this.isChecked = isChecked;
+	}
 }

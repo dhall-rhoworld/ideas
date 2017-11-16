@@ -33,6 +33,10 @@ public class Study {
 	@OneToMany(mappedBy="study", cascade=CascadeType.ALL, fetch=FetchType.EAGER)
 	private Set<DataLocation> dataLocations = new HashSet<>();
 	
+	// TODO: Consider removing this.  Maybe a dataset could just be named by its file name?
+	@Column(name="form_field_name")
+	private String formFieldName;
+	
 	public Study() {
 		
 	}
@@ -59,6 +63,14 @@ public class Study {
 
 	public void setDataLocations(Set<DataLocation> dataLocations) {
 		this.dataLocations = dataLocations;
+	}
+
+	public String getFormFieldName() {
+		return formFieldName;
+	}
+
+	public void setFormFieldName(String formFieldName) {
+		this.formFieldName = formFieldName;
 	}
 	
 }

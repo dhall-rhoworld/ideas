@@ -45,10 +45,12 @@ public class StudyAdminController {
 	@RequestMapping(value="/save_new", method=RequestMethod.POST)
 	public String saveNew(
 			@RequestParam("study_name") String studyName,
+			@RequestParam("form_field_name") String formFieldName,
 			Model model) {
 		logger.debug("Saving new study: " + studyName);
 		Study study = new Study();
 		study.setStudyName(studyName);
+		study.setFormFieldName(formFieldName);
 		studyRepository.save(study);
 		model.addAttribute("study", study);
 		return "admin/study/edit_study";

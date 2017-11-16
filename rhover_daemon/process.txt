@@ -1,0 +1,25 @@
+--- Phase I: Bring study info up to date ---
+
+- Get list of modified datasets (new or updated)
+- If no modified datasets, exit
+- In a transaction
+	- For study db, set is_current = false where is_current == true
+	- Create new study db version and set is_current = true
+- For each modified dataset
+	- If new
+		- Save new record
+		- Notify user
+	- In a transaction
+		- Downgrade current dataset to not-current
+		- Save new dataset version and set to current
+	- For each field
+		- If field not in db
+			- Create
+			- Notify user
+		- Set last_dataset_version_id
+		
+--- Phase II: Run data checks
+
+- For each check
+	- For each check instance
+		- Run if any underlying dataset or parameter has changed

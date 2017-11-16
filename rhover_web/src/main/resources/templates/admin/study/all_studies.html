@@ -29,6 +29,7 @@
    			<tr>
    				<th>Study</th>
    				<th>Data Folders</th>
+   				<th>Data Stream Variable</th>
    				<th>Action</th>
    			</tr>
    			<tr th:each="study : ${studies}">
@@ -36,6 +37,7 @@
    				<td>
    					<div th:each="dataLocation : ${study.dataLocations}" th:text="${dataLocation.folderPath}"/>
    				</td>
+   				<td th:text="${study.formFieldName}"/>
    				<td><a th:href="@{/admin/study/edit_study(study_id=${study.studyId})}">Edit</a></td>
    			</tr>
    		</table>

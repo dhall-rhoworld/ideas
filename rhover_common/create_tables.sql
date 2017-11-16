@@ -7,6 +7,7 @@ grant all privileges on rhover.* to 'rhover'@'localhost';
 create table study (
 	study_id BIGINT AUTO_INCREMENT NOT NULL,
 	study_name VARCHAR(50) NOT NULL,
+	form_field_name VARCHAR(50) NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	modified_by VARCHAR(50),
 	CONSTRAINT pk_study PRIMARY KEY (study_id)
@@ -39,15 +40,19 @@ create table dataset (
 	CONSTRAINT fk_dataset_2_data_location FOREIGN KEY (data_location_id) REFERENCES data_location(data_location_id)
 );
 
-----------------------
-
 create table dataset_version (
-	dataset_version_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-	dataset_version_name VARCHAR(50),
-	dataset_id BIGINT,
+	dataset_version_id BIGINT AUTO_INCREMENT NOT NULL,
+	dataset_version_name VARCHAR(50) NOT NULL,
+	is_current TINYINT NOT NULL,
+	dataset_id BIGINT NOT NULL,
+	study_db_version_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-	foreign key(dataset_id) references dataset(dataset_id)
+	CONSTRAINT dataset_version PRIMARY KEY (dataset_version_id),
+	CONSTRAINT fk_dataset_version_2_dataset FOREIGN KEY (dataset_id) REFERENCES dataset(dataset_id),
+	CONSTRAINT fk_dataset_version_2_study_db_version FOREIGN KEY (study_db_version_id) REFERENCES study_db_version(study_db_version_id)
 );
+
+----------------------
 
 create table data_field (
 	data_field_id BIGINT AUTO_INCREMENT PRIMARY KEY,
