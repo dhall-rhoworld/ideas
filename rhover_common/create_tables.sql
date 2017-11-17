@@ -5,6 +5,7 @@ create table study (
 	form_field_name VARCHAR(50) NOT NULL,
 	site_field_name VARCHAR(50) NOT NULL,
 	subject_field_name VARCHAR(50) NOT NULL,
+	query_file_path VARCHAR(400),
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	modified_by VARCHAR(50),
 	CONSTRAINT pk_study PRIMARY KEY (study_id)

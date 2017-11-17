@@ -37,7 +37,16 @@ public class SasReaderTest {
 //		catch (Exception e) {
 //			e.printStackTrace();
 //		}
-//		DataFrame df = DataFrame.extractSasData(new File("\\S:\\RhoFED\\CTOT-SACCC\\CTOT\\CTOT-08-Abecassis\\Stats\\Data\\Clinical\\vitlmstr.sas7bdat"));
+		DataFrame df = DataFrame.extractSasData(new File("\\S:\\RhoFED\\CTOT-SACCC\\CTOT\\CTOT-08-Abecassis\\Stats\\Data\\Clinical\\itrtmstr.sas7bdat"));
+		List<?> vals = df.getField("CMENDA_RAW");
+		for (Object val : vals) {
+			if (val == null) {
+				System.out.println("It is null");
+			}
+			else {
+				System.out.println(val);
+			}
+		}
 //		//DataFrame df = DataFrame.extractSasData(new File("S:/RhoFED/ICAC2/PROSE/Statistics/Data/Complete/vsgp.sas7bdat"));
 //		List<String> colNames = df.getColNames();
 //		List<Class> dataTypes = df.getDataTypes();
@@ -49,8 +58,10 @@ public class SasReaderTest {
 //		for (Integer id : ids) {
 //			System.out.println(id);
 //		}
-		String s = "S:\\RhoFED\\CTOT";
-		System.out.println(s.replaceAll("\\", "/"));
+//		String s = "S:\\RhoFED\\CTOT";
+//		System.out.println(s.replaceAll("\\", "/"));
+//		Integer i = new Integer(5);
+//		System.out.println(i.getClass().getSimpleName());
 	}
 
 }

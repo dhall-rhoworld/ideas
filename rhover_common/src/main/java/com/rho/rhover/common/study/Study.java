@@ -42,6 +42,9 @@ public class Study {
 	@Column(name="subject_field_name")
 	private String subjectFieldName;
 	
+	@Column(name="query_file_path")
+	private String queryFilePath;
+	
 	public Study() {
 		
 	}
@@ -92,6 +95,14 @@ public class Study {
 
 	public void setSubjectFieldName(String subjectFieldName) {
 		this.subjectFieldName = subjectFieldName;
+	}
+
+	public String getQueryFilePath() {
+		return queryFilePath;
+	}
+
+	public void setQueryFilePath(String queryFilePath) {
+		this.queryFilePath = queryFilePath;
 	}
 	
 }

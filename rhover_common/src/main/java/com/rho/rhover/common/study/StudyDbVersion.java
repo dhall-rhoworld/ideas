@@ -42,6 +42,15 @@ public class StudyDbVersion {
 	public StudyDbVersion() {
 		
 	}
+	
+
+	public StudyDbVersion(String studyDbVersionName, Study study, Boolean isCurrent) {
+		super();
+		this.studyDbVersionName = studyDbVersionName;
+		this.study = study;
+		this.isCurrent = isCurrent;
+	}
+
 
 	public Long getStudyDbVersionId() {
 		return studyDbVersionId;
@@ -81,5 +90,10 @@ public class StudyDbVersion {
 
 	public void setDatasetVersions(Set<DatasetVersion> datasetVersions) {
 		this.datasetVersions = datasetVersions;
+	}
+
+
+	public void addDatasetVersion(DatasetVersion datasetVersion) {
+		datasetVersions.add(datasetVersion);
 	}
 }

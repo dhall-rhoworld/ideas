@@ -8,7 +8,9 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,6 +44,17 @@ public class StudyDbService {
 	public File[] getDataFiles(DataLocation dataLocation) {
 		File folder = new File(dataLocation.getFolderPath());
 		return folder.listFiles(new DataFileNameFilter());
+	}
+	
+	public Set<File> getDataFiles(Study study) {
+		Set<File> files = new HashSet<>();
+		for (DataLocation location : study.getDataLocations()) {
+			File[] fileArray = getDataFiles(location);
+			for (int i = 0; i < fileArray.length; i++) {
+				files.add(fileArray[i]);
+			}
+		}
+		return files;
 	}
 	
 	public Collection<File> getModifiedDataFiles(DataLocation dataLocation) {

@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.aspectj.apache.bcel.classfile.Unknown;
+
 import com.epam.parso.Column;
 import com.epam.parso.SasFileReader;
 import com.epam.parso.impl.SasFileReaderImpl;
@@ -49,31 +51,44 @@ public class DataFrame {
 			// Infer data types
 			Object[][] data = reader.readAll();
 			for (int j = 0; j < cols.size(); j++) {
-				boolean isNumeric = true;
-				boolean isContinuous = false;
-				boolean isDate = true;
-				boolean allNull = true;
+				int numericCount = 0;
+				int continuousCount = 0;
+				int dateCount = 0;
+				int nullCount = 0;
 				for (int i = 0; i < data.length; i++) {
 					Object datum = data[i][j];
-					if (datum != null) {
-						allNull = false;
-						isNumeric = isNumeric && datum.toString().matches("^[0-9\\.]+$");
-						isContinuous = isContinuous || datum.toString().matches("^[0-9]+\\.[0-9]+$");
-						isDate = isDate && datum.toString().toLowerCase().matches("^(mon|tue|wed|thu|fri|sat|sun).*[0-9]{4}$");
+					if (datum == null) {
+						nullCount++;
+					}
+					else {
+						if (datum.toString().matches("^[0-9\\.]+$")) {
+							numericCount++;
+						}
+						if (datum.toString().matches("^[0-9]+\\.[0-9]+$")) {
+							continuousCount++;
+						}
+						if (datum.toString().toLowerCase().matches("^(mon|tue|wed|thu|fri|sat|sun).*[0-9]{4}$")) {
+							dateCount++;
+						}
 					}
 				}
-				Class<?> type = String.class;
-				if (!allNull) {
-					if (isNumeric) {
-						if (isContinuous) {
+				Class<?> type = UnknownType.class;
+				if (nullCount < data.length) {
+					type = String.class;
+					int nonNullCount = data.length - nullCount;
+					if (numericCount == nonNullCount) {
+						if (continuousCount > 0) {
 							type = Double.class;
 						}
 						else {
 							type = Integer.class;
 						}
 					}
-					else if (isDate) {
+					else if (dateCount == nonNullCount) {
 						type = Date.class;
+					}
+					else if (numericCount > 0 || dateCount > 0) {
+						type = MixedType.class;
 					}
 				}
 				df.dataTypes.add(type);
@@ -85,7 +100,8 @@ public class DataFrame {
 				// Create column list
 				List<?> col = null;
 				Class<?> type = df.dataTypes.get(j);
-				if (type.equals(String.class) || type.equals(Date.class)) {
+				if (type.equals(String.class) || type.equals(Date.class) ||
+						type.equals(UnknownType.class) || type.equals(MixedType.class)) {
 					col = new ArrayList<String>();
 				}
 				else if (type.equals(Integer.class)) {
@@ -102,7 +118,8 @@ public class DataFrame {
 						col.add(null);
 					}
 					else {
-						if (type.equals(String.class) || type.equals(Date.class)) {
+						if (type.equals(String.class) || type.equals(Date.class) ||
+								type.equals(MixedType.class)) {
 							((ArrayList<String>)col).add(data[i][j].toString());
 						}
 						else if (type.equals(Integer.class)) {
@@ -143,4 +160,11 @@ public class DataFrame {
 		return s;
 	}
 	
+	public static class UnknownType {
+		
+	}
+	
+	public static class MixedType {
+		
+	}
 }

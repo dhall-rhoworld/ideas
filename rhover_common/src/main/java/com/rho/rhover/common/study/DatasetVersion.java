@@ -35,7 +35,7 @@ public class DatasetVersion {
 	private Dataset dataset;
 	
 	@ManyToMany
-	@JoinTable(name="dataset_version_stream", joinColumns = @JoinColumn(name="dataset_id"),
+	@JoinTable(name="dataset_version_stream", joinColumns = @JoinColumn(name="dataset_version_id"),
 			inverseJoinColumns = @JoinColumn(name="data_stream_id"))
 	private Set<DataStream> dataStreams = new HashSet<>();
 	
@@ -43,6 +43,9 @@ public class DatasetVersion {
 	@JoinTable(name="dataset_version_field", joinColumns = @JoinColumn(name="dataset_version_id"),
 			inverseJoinColumns = @JoinColumn(name="field_id"))
 	private Set<Field> fields = new HashSet<>();
+	
+	@ManyToMany(mappedBy = "datasetVersions")
+	private Set<StudyDbVersion> studyDbVersions = new HashSet<>();
 	
 	public DatasetVersion() {
 		
@@ -95,4 +98,31 @@ public class DatasetVersion {
 		this.dataStreams = dataStreams;
 	}
 	
+	public void addDataStream(DataStream dataStream) {
+		dataStreams.add(dataStream);
+	}
+	
+	public void addField(Field field) {
+		fields.add(field);
+	}
+
+	public Set<Field> getFields() {
+		return fields;
+	}
+
+	public void setFields(Set<Field> fields) {
+		this.fields = fields;
+	}
+
+	public Set<StudyDbVersion> getStudyDbVersions() {
+		return studyDbVersions;
+	}
+
+	public void setStudyDbVersions(Set<StudyDbVersion> studyDbVersions) {
+		this.studyDbVersions = studyDbVersions;
+	}
+	
+	public void addStudyDbVersion(StudyDbVersion studyDbVersion) {
+		this.studyDbVersions.add(studyDbVersion);
+	}
 }

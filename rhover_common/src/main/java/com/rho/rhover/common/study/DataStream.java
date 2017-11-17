@@ -27,8 +27,17 @@ public class DataStream {
 	@JoinColumn(name="study_id")
 	private Study study;
 	
+	@ManyToMany(mappedBy="dataStreams")
+	private Set<DatasetVersion> datasetVersions = new HashSet<>();
+	
 	public DataStream() {
 		
+	}
+
+	public DataStream(String dataStreamName, Study study) {
+		super();
+		this.dataStreamName = dataStreamName;
+		this.study = study;
 	}
 
 	public Long getDataStreamId() {
@@ -54,5 +63,16 @@ public class DataStream {
 	public void setStudy(Study study) {
 		this.study = study;
 	}
+
+	public Set<DatasetVersion> getDatasetVersions() {
+		return datasetVersions;
+	}
+
+	public void setDatasetVersions(Set<DatasetVersion> datasetVersions) {
+		this.datasetVersions = datasetVersions;
+	}
 	
+	public void addDatasetVersion(DatasetVersion datasetVersion) {
+		datasetVersions.add(datasetVersion);
+	}
 }
