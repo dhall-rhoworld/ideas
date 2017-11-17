@@ -122,7 +122,7 @@ public class StudyDbService {
 		return null;
 	}
 	
-	private String generateDatasetVersionName(File file) {
+	public String generateDatasetVersionName(File file) {
 		return formatter.format(new Date(file.lastModified()));
 	}
 	

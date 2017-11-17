@@ -26,6 +26,13 @@ public class Subject {
 	public Subject() {
 		
 	}
+	
+	public Subject(String subjectName, Site site) {
+		super();
+		this.subjectName = subjectName;
+		this.site = site;
+	}
+
 
 	public Long getSubjectId() {
 		return subjectId;

@@ -32,6 +32,13 @@ public class DatasetVersion {
 	public DatasetVersion() {
 		
 	}
+	
+	public DatasetVersion(String datasetVersionName, Boolean isCurrent, Dataset dataset) {
+		super();
+		this.datasetVersionName = datasetVersionName;
+		this.isCurrent = isCurrent;
+		this.dataset = dataset;
+	}
 
 	public Long getDatasetVersionId() {
 		return datasetVersionId;

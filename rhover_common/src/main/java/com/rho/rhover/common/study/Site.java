@@ -27,6 +27,12 @@ public class Site {
 		
 	}
 
+	public Site(String siteName, Study study) {
+		super();
+		this.siteName = siteName;
+		this.study = study;
+	}
+
 	public Long getSiteId() {
 		return siteId;
 	}

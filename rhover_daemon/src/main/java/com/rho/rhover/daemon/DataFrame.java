@@ -137,9 +137,10 @@ public class DataFrame {
 		return this.data.get(idx);
 	}
 	
-	public Set<String> getUniqueValues(String fieldName) {
+	public Set<?> getUniqueValues(String fieldName) {
 		Set s = new HashSet<>();
 		s.addAll(getField(fieldName));
 		return s;
 	}
+	
 }

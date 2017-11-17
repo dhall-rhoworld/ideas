@@ -46,11 +46,15 @@ public class StudyAdminController {
 	public String saveNew(
 			@RequestParam("study_name") String studyName,
 			@RequestParam("form_field_name") String formFieldName,
+			@RequestParam("site_field_name") String siteFieldName,
+			@RequestParam("subject_field_name") String subjectFieldName,
 			Model model) {
 		logger.debug("Saving new study: " + studyName);
 		Study study = new Study();
 		study.setStudyName(studyName);
 		study.setFormFieldName(formFieldName);
+		study.setSiteFieldName(siteFieldName);
+		study.setSubjectFieldName(subjectFieldName);
 		studyRepository.save(study);
 		model.addAttribute("study", study);
 		return "admin/study/edit_study";
