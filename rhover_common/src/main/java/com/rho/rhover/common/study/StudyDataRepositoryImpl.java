@@ -38,11 +38,11 @@ public class StudyDataRepositoryImpl implements StudyDataRepository {
 
 	@Override
 	public String getUnivariateData(Long dataFieldId) {
-		DataField dataField = dataFieldRepository.findOne(dataFieldId);
-		String fname = REPO_PATH
-				+ "/" + dataField.getDataset().getStudy().getStudyName()
-				+ "/" + dataField.getDataset().getDatasetName()
-				+ "/" + dataField.getDataFieldName() + ".csv";
+		Field dataField = dataFieldRepository.findOne(dataFieldId);
+		String fname = REPO_PATH;
+//				+ "/" + dataField.getDataset().getStudy().getStudyName()
+//				+ "/" + dataField.getDataset().getDatasetName()
+//				+ "/" + dataField.getDataFieldName() + ".csv";
 		String data = "";
 		BufferedReader reader = null;
 		Map<String, Long> anomalies = buildAnomalySet(dataFieldId);

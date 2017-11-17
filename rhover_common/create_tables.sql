@@ -1,8 +1,3 @@
-/* MySQL root account: root@localhost/password */
-
-create database rhover;
-create user 'rhover'@'localhost' identified by 'rhover';
-grant all privileges on rhover.* to 'rhover'@'localhost';
 
 create table study (
 	study_id BIGINT AUTO_INCREMENT NOT NULL,
@@ -95,28 +90,14 @@ create table subject (
 	CONSTRAINT u_subject_name_site_id UNIQUE (subject_name, site_id)
 );
 
-create table data_type (
-	data_type_id BIGINT AUTO_INCREMENT NOT NULL,
-	data_type_name VARCHAR(50) NOT NULL,
-	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-	CONSTRAINT pk_data_type PRIMARY KEY (data_type_id)
-);
-
-insert into data_type (data_type_name) values ('INTEGER');
-insert into data_type (data_type_name) values ('CONTINUOUS');
-insert into data_type (data_type_name) values ('CHARACTER');
-insert into data_type (data_type_name) values ('DATETIME');
-
 create table field (
 	field_id BIGINT AUTO_INCREMENT NOT NULL,
 	field_name VARCHAR(200) NOT NULL,
 	study_id BIGINT NOT NULL,
-	data_type_id BIGINT NOT NULL,
+	data_type VARCHAR(50) NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT pk_field PRIMARY KEY (field_id),
 	CONSTRAINT fk_field_2_study FOREIGN KEY (study_id) REFERENCES study (study_id),
-	CONSTRAINT fk_field_2_data_type FOREIGN KEY (data_type_id)
-		REFERENCES data_type(data_type_id),
 	CONSTRAINT u_field_name_study_id UNIQUE (field_name, study_id)
 );
 

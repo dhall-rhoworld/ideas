@@ -1,5 +1,6 @@
 package com.rho.rhover.common.study;
 
+// TODO: Do away with this.  Data will be stored in the database.
 public interface StudyDataRepository {
 
 	String getUnivariateData(Long dataFieldId);

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.rho.rhover.common.anomaly.AnomalyRepository;
 import com.rho.rhover.common.anomaly.BivariateCheckRepository;
-import com.rho.rhover.common.study.DataField;
+import com.rho.rhover.common.study.Field;
 import com.rho.rhover.common.study.DataFieldRepository;
 import com.rho.rhover.common.study.Site;
 import com.rho.rhover.common.study.SiteRepository;
@@ -44,7 +44,7 @@ public class AnomalyController {
     			@RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
     			@RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
     			Model model) {
-    	DataField dataField = dataFieldRepository.findOne(dataFieldId);
+    	Field dataField = dataFieldRepository.findOne(dataFieldId);
     	model.addAttribute("data_field", dataField);
     	if (siteId == -1 && subjectId == -1) {
     		model.addAttribute("anomalies", anomalyRepository.getCurrentAnomalies(dataFieldId));
@@ -69,7 +69,7 @@ public class AnomalyController {
 		    @RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
 		    @RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
 			Model model) {
-    	DataField dataField = dataFieldRepository.findOne(dataFieldId);
+    	Field dataField = dataFieldRepository.findOne(dataFieldId);
     	model.addAttribute("data_field", dataField);
     	if (siteId == -1 && subjectId == -1) {
     		model.addAttribute("site_name", "-1");
@@ -96,7 +96,7 @@ public class AnomalyController {
 		    @RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
 		    @RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
 			Model model) {
-    	DataField dataField = dataFieldRepository.findOne(dataFieldId);
+    	Field dataField = dataFieldRepository.findOne(dataFieldId);
     	model.addAttribute("data_field", dataField);
     	if (siteId == -1 && subjectId == -1) {
     		model.addAttribute("site_name", "-1");

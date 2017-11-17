@@ -1,11 +1,16 @@
 package com.rho.rhover.common.study;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 
 import org.hibernate.annotations.Type;
@@ -28,6 +33,16 @@ public class DatasetVersion {
 	@ManyToOne
 	@JoinColumn(name="dataset_id")
 	private Dataset dataset;
+	
+	@ManyToMany
+	@JoinTable(name="dataset_version_stream", joinColumns = @JoinColumn(name="dataset_id"),
+			inverseJoinColumns = @JoinColumn(name="data_stream_id"))
+	private Set<DataStream> dataStreams = new HashSet<>();
+	
+	@ManyToMany
+	@JoinTable(name="dataset_version_field", joinColumns = @JoinColumn(name="dataset_version_id"),
+			inverseJoinColumns = @JoinColumn(name="field_id"))
+	private Set<Field> fields = new HashSet<>();
 	
 	public DatasetVersion() {
 		
@@ -70,6 +85,14 @@ public class DatasetVersion {
 
 	public void setDataset(Dataset dataset) {
 		this.dataset = dataset;
+	}
+
+	public Set<DataStream> getDataStreams() {
+		return dataStreams;
+	}
+
+	public void setDataStreams(Set<DataStream> dataStreams) {
+		this.dataStreams = dataStreams;
 	}
 	
 }
