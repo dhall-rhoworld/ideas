@@ -24,6 +24,7 @@ import com.rho.rhover.common.study.DatasetRepository;
 import com.rho.rhover.common.study.DatasetVersion;
 import com.rho.rhover.common.study.DatasetVersionRepository;
 import com.rho.rhover.common.study.Study;
+import com.rho.rhover.common.study.StudyRepository;
 
 @Service
 public class StudyDbService {
@@ -62,7 +63,11 @@ public class StudyDbService {
 		File[] files = getDataFiles(dataLocation);
 		for (int i = 0; i < files.length; i++) {
 			File file = files[i];
-			Dataset dataset = datasetRepository.findByFilePath(file.getAbsolutePath());
+			String path = file.getAbsolutePath().replace("\\", "/");
+			if (path.equals(dataLocation.getStudy().getQueryFilePath())) {
+				continue;
+			}
+			Dataset dataset = datasetRepository.findByFilePath(path);
 			if (dataset != null) {
 				String versionName = generateDatasetVersionName(file);
 				DatasetVersion datasetVersion = datasetVersionRepository.findByDatasetAndIsCurrent(dataset, Boolean.TRUE);
@@ -87,7 +92,11 @@ public class StudyDbService {
 		File[] files = getDataFiles(dataLocation);
 		for (int i = 0; i < files.length; i++) {
 			File file = files[i];
-			Dataset dataset = datasetRepository.findByFilePath(file.getAbsolutePath());
+			String path = file.getAbsolutePath().replace("\\", "/");
+			if (path.equals(dataLocation.getStudy().getQueryFilePath())) {
+				continue;
+			}
+			Dataset dataset = datasetRepository.findByFilePath(path);
 			if (dataset == null) {
 				mods.add(file);
 			}

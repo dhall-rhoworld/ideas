@@ -23,12 +23,16 @@ public class DataFrame {
 	
 	private List<String> colNames = new ArrayList<>();
 	
+	private List<String> colLabels = new ArrayList<>();
+	
 	private Map<String, Integer> colIndex = new HashMap<>();
 	
 	// Possible values: String, Integer, Double, Date.  Note that currently
-	// data values are stored as strings as these values may be
+	// date values are stored as strings as these values may be
 	// formatted in many ways.
 	private List<Class> dataTypes = new ArrayList<>();
+	
+	private int numRecords;
 	
 	private DataFrame() {
 		
@@ -44,12 +48,18 @@ public class DataFrame {
 			int colNum = 0;
 			for (Column col : cols) {
 				df.colNames.add(col.getName());
+				String label = col.getLabel();
+				if (label == null) {
+					label = col.getName();
+				}
+				df.colLabels.add(label);
 				df.colIndex.put(col.getName(), colNum);
 				colNum++;
 			}
 			
 			// Infer data types
 			Object[][] data = reader.readAll();
+			df.numRecords = data.length;
 			for (int j = 0; j < cols.size(); j++) {
 				int numericCount = 0;
 				int continuousCount = 0;
@@ -105,7 +115,7 @@ public class DataFrame {
 					col = new ArrayList<String>();
 				}
 				else if (type.equals(Integer.class)) {
-					col = new ArrayList<Integer>();
+					col = new ArrayList<Long>();
 				}
 				else if (type.equals(Double.class)) {
 					col = new ArrayList<Double>();
@@ -123,7 +133,7 @@ public class DataFrame {
 							((ArrayList<String>)col).add(data[i][j].toString());
 						}
 						else if (type.equals(Integer.class)) {
-							((ArrayList<Integer>)col).add(Integer.parseInt(data[i][j].toString()));
+							((ArrayList<Long>)col).add(Long.parseLong(data[i][j].toString()));
 						}
 						else if (type.equals(Double.class)) {
 							((ArrayList<Double>)col).add(Double.parseDouble(data[i][j].toString()));
@@ -131,8 +141,10 @@ public class DataFrame {
 					}
 				}
 			}
-		} catch (FileNotFoundException e) {
-			throw new RuntimeException(e);
+		}
+		catch (Exception e) {
+			String message = "Error reading SAS file " + sasDataFile.getName();
+			throw new SourceDataException(message, e);
 		}
 		return df;
 	}
@@ -149,6 +161,10 @@ public class DataFrame {
 		return colNames;
 	}
 	
+	public List<String> getColLabels() {
+		return colLabels;
+	}
+
 	public List<?> getField(String fieldName) {
 		Integer idx = this.colIndex.get(fieldName);
 		return this.data.get(idx);
@@ -158,6 +174,10 @@ public class DataFrame {
 		Set s = new HashSet<>();
 		s.addAll(getField(fieldName));
 		return s;
+	}
+	
+	public int numRecords() {
+		return numRecords;
 	}
 	
 	public static class UnknownType {

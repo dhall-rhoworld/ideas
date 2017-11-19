@@ -43,6 +43,7 @@ create table dataset_version (
 	dataset_version_id BIGINT AUTO_INCREMENT NOT NULL,
 	dataset_version_name VARCHAR(50) NOT NULL,
 	is_current TINYINT NOT NULL,
+	num_records INT NOT NULL,
 	dataset_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT pk_dataset_version PRIMARY KEY (dataset_version_id),
@@ -94,6 +95,7 @@ create table subject (
 create table field (
 	field_id BIGINT AUTO_INCREMENT NOT NULL,
 	field_name VARCHAR(200) NOT NULL,
+	field_label VARCHAR(400) NOT NULL,
 	study_id BIGINT NOT NULL,
 	data_type VARCHAR(50) NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -131,4 +133,16 @@ create table study_db_version_config (
 	CONSTRAINT pk_study_db_version_config PRIMARY KEY(study_db_version_id, dataset_version_id),
 	CONSTRAINT fk_study_db_version_config_2_study_db_version FOREIGN KEY (study_db_version_id) REFERENCES study_db_version(study_db_version_id),
 	CONSTRAINT fk_study_db_version_config_2_dataset_version FOREIGN KEY (dataset_version_id) REFERENCES dataset_version(dataset_version_id)
+);
+
+create table loader_issue (
+	loader_issue_id BIGINT AUTO_INCREMENT NOT NULL,
+	message VARCHAR(500),
+	stack_trace TEXT,
+	issue_level VARCHAR(50) NOT NULL,
+	dataset_version_id BIGINT,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_loader_issue PRIMARY KEY (loader_issue_id),
+	CONSTRAINT fk_issue_2_dataset_version FOREIGN KEY (dataset_version_id)
+		REFERENCES dataset_version(dataset_version_id)
 );

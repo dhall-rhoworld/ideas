@@ -23,6 +23,9 @@ public class Field {
 	@Column(name="field_name")
 	private String fieldName;
 	
+	@Column(name="field_label")
+	private String fieldLabel;
+	
 	@ManyToOne
 	@JoinColumn(name="study_id")
 	private Study study;
@@ -37,9 +40,10 @@ public class Field {
 		
 	}
 
-	public Field(String fieldName, Study study, String dataType) {
+	public Field(String fieldName, String fieldLabel, Study study, String dataType) {
 		super();
 		this.fieldName = fieldName;
+		this.fieldLabel = fieldLabel;
 		this.study = study;
 		this.dataType = dataType;
 	}
@@ -87,4 +91,13 @@ public class Field {
 	public void addDatasetVersion(DatasetVersion datasetVersion) {
 		datasetVersions.add(datasetVersion);
 	}
+
+	public String getFieldLabel() {
+		return fieldLabel;
+	}
+
+	public void setFieldLabel(String fieldLabel) {
+		this.fieldLabel = fieldLabel;
+	}
+	
 }

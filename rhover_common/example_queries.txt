@@ -160,3 +160,17 @@ offset 10
 
 insert into data_location(folder_path, study_id)
 values('S:/RhoFED/ICAC2/PROSE/Statistics/Data/Complete', 1)
+
+select f.field_name, count(*) total
+from dataset_version_field dvf
+join field f on f.field_id = dvf.field_id
+group by f.field_name
+order by total desc
+limit 50;
+
+select f.field_name, f.data_type
+from dataset ds
+join dataset_version dv on dv.dataset_id = ds.dataset_id
+join dataset_version_field dvf on dvf.dataset_version_id = dv.dataset_version_id
+join field f on f.field_id = dvf.field_id
+where ds.dataset_id = 78;

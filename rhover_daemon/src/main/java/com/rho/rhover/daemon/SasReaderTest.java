@@ -2,6 +2,8 @@ package com.rho.rhover.daemon;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -37,16 +39,16 @@ public class SasReaderTest {
 //		catch (Exception e) {
 //			e.printStackTrace();
 //		}
-		DataFrame df = DataFrame.extractSasData(new File("\\S:\\RhoFED\\CTOT-SACCC\\CTOT\\CTOT-08-Abecassis\\Stats\\Data\\Clinical\\itrtmstr.sas7bdat"));
-		List<?> vals = df.getField("CMENDA_RAW");
-		for (Object val : vals) {
-			if (val == null) {
-				System.out.println("It is null");
-			}
-			else {
-				System.out.println(val);
-			}
-		}
+//		DataFrame df = DataFrame.extractSasData(new File("\\S:\\RhoFED\\CTOT-SACCC\\CTOT\\CTOT-08-Abecassis\\Stats\\Data\\Clinical\\itrtmstr.sas7bdat"));
+//		List<?> vals = df.getField("CMENDA_RAW");
+//		for (Object val : vals) {
+//			if (val == null) {
+//				System.out.println("It is null");
+//			}
+//			else {
+//				System.out.println(val);
+//			}
+//		}
 //		//DataFrame df = DataFrame.extractSasData(new File("S:/RhoFED/ICAC2/PROSE/Statistics/Data/Complete/vsgp.sas7bdat"));
 //		List<String> colNames = df.getColNames();
 //		List<Class> dataTypes = df.getDataTypes();
@@ -62,6 +64,15 @@ public class SasReaderTest {
 //		System.out.println(s.replaceAll("\\", "/"));
 //		Integer i = new Integer(5);
 //		System.out.println(i.getClass().getSimpleName());
+		try {
+			Integer i = Integer.parseInt("fred");
+		}
+		catch (NumberFormatException e) {
+			StringWriter stringWriter = new StringWriter();
+			PrintWriter printWriter = new PrintWriter(stringWriter);
+			e.printStackTrace(printWriter);
+			System.out.println(stringWriter.toString());
+		}
 	}
 
 }

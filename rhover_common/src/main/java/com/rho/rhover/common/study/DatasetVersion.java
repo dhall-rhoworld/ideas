@@ -30,6 +30,9 @@ public class DatasetVersion {
 	@Type(type="org.hibernate.type.NumericBooleanType")
 	private Boolean isCurrent = Boolean.FALSE;
 	
+	@Column(name="num_records")
+	private Integer numRecords;
+	
 	@ManyToOne
 	@JoinColumn(name="dataset_id")
 	private Dataset dataset;
@@ -51,11 +54,12 @@ public class DatasetVersion {
 		
 	}
 	
-	public DatasetVersion(String datasetVersionName, Boolean isCurrent, Dataset dataset) {
+	public DatasetVersion(String datasetVersionName, Boolean isCurrent, Dataset dataset, Integer numRecords) {
 		super();
 		this.datasetVersionName = datasetVersionName;
 		this.isCurrent = isCurrent;
 		this.dataset = dataset;
+		this.numRecords = numRecords;
 	}
 
 	public Long getDatasetVersionId() {
@@ -125,4 +129,13 @@ public class DatasetVersion {
 	public void addStudyDbVersion(StudyDbVersion studyDbVersion) {
 		this.studyDbVersions.add(studyDbVersion);
 	}
+
+	public Integer getNumRecords() {
+		return numRecords;
+	}
+
+	public void setNumRecords(Integer numRecords) {
+		this.numRecords = numRecords;
+	}
+	
 }

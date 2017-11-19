@@ -13,4 +13,12 @@ public class SourceDataException extends RuntimeException {
 		super(message);
 	}
 
+	public SourceDataException(Throwable cause) {
+		super(cause);
+	}
+
+	public SourceDataException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
 }

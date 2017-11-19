@@ -1,6 +1,8 @@
 package com.rho.rhover.daemon;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
@@ -23,6 +25,9 @@ import com.rho.rhover.common.study.DataStreamRepository;
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.DatasetRepository;
 import com.rho.rhover.common.study.DatasetVersion;
+import com.rho.rhover.common.study.LoaderIssue;
+import com.rho.rhover.common.study.LoaderIssue.IssueLevel;
+import com.rho.rhover.common.study.LoaderIssueRepository;
 import com.rho.rhover.common.study.DatasetVersionRepository;
 import com.rho.rhover.common.study.Field;
 import com.rho.rhover.common.study.FieldRepository;
@@ -34,8 +39,6 @@ import com.rho.rhover.common.study.StudyDbVersionRepository;
 import com.rho.rhover.common.study.StudyRepository;
 import com.rho.rhover.common.study.Subject;
 import com.rho.rhover.common.study.SubjectRepository;
-import com.rho.rhover.daemon.DataFrame.MixedType;
-import com.rho.rhover.daemon.DataFrame.UnknownType;
 
 @Service
 public class DataLoaderServiceImpl implements DataLoaderService {
@@ -71,6 +74,9 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 	
 	@Autowired
 	private FieldRepository fieldRepository;
+	
+	@Autowired
+	private LoaderIssueRepository loaderIssueRepository;
 
 	@Override
 	@Transactional
@@ -120,6 +126,9 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		
 		// Add unmodified files to study DB version
 		for (String filePath : fileChecklist.keySet()) {
+			if (study.getQueryFilePath() != null && filePath.equals(study.getQueryFilePath())) {
+				continue;
+			}
 			if (fileChecklist.get(filePath).equals(Boolean.FALSE)) {
 				Dataset dataset = datasetRepository.findByFilePath(filePath);
 				DatasetVersion datasetVersion = datasetVersionRepository.findByDatasetAndIsCurrent(dataset, Boolean.TRUE);
@@ -152,19 +161,36 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		return dataset;
 	}
 	
+	
+	// TODO: If there is a SAS read error, do not create dataset version
 	private void updateDatasetAndStudy(Dataset dataset, Study study, File file, StudyDbVersion studyDbVersion) {
 		
 		// Save new dataset version
 		DatasetVersion datasetVersion = createAndSaveNewDatasetVersion(file, dataset, studyDbVersion);
 		
-		// Add data streams and fields to dataset version
-		DataFrame df = DataFrame.extractSasData(file);
-		addDataStreams(datasetVersion, df, file);
-		addFields(datasetVersion, df, file);
-		
-		// Add new sites and subjects to study
-		addAnyNewSubjectsAndSites(study, df, file);
-		studyRepository.save(study);
+		try {
+			DataFrame df = DataFrame.extractSasData(file);
+			datasetVersion.setNumRecords(df.numRecords());
+			datasetVersionRepository.save(datasetVersion);
+			
+			// Add data streams and fields to dataset version
+			addDataStreams(datasetVersion, df, file);
+			addFields(datasetVersion, df, file);
+			
+			// Add new sites and subjects to study
+			addAnyNewSubjectsAndSites(study, df, file);
+			studyRepository.save(study);
+		}
+		catch (SourceDataException e) {
+			StringWriter stringWriter = new StringWriter();
+			PrintWriter printWriter = new PrintWriter(stringWriter);
+			e.getCause().printStackTrace(printWriter);
+			String stackTrace = printWriter.toString();
+			logger.error(stackTrace);
+			LoaderIssue issue = new LoaderIssue(e.getMessage(), stackTrace, IssueLevel.DATASET_VERSION);
+			issue.setDatasetVersion(datasetVersion);
+			loaderIssueRepository.save(issue);
+		}
 	}
 	
 	private DatasetVersion createAndSaveNewDatasetVersion(File file, Dataset dataset, StudyDbVersion studyDbVersion) {
@@ -174,7 +200,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 			oldVersion.setIsCurrent(Boolean.FALSE);
 			datasetVersionRepository.save(oldVersion);
 		}
-		DatasetVersion datasetVersion = new DatasetVersion(datasetVersionName, Boolean.TRUE, dataset);
+		DatasetVersion datasetVersion = new DatasetVersion(datasetVersionName, Boolean.TRUE, dataset, 0);
 		datasetVersion.addStudyDbVersion(studyDbVersion);
 		datasetVersionRepository.save(datasetVersion);
 		studyDbVersion.addDatasetVersion(datasetVersion);
@@ -213,15 +239,17 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 	
 	private void addFields(DatasetVersion datasetVersion, DataFrame df, File file) {
 		List<String> fields = df.getColNames();
+		List<String> labels = df.getColLabels();
 		List<Class> dataTypes = df.getDataTypes();
 		Study study = datasetVersion.getDataset().getStudy();
 		for (int i = 0; i < fields.size(); i++) {
 			String fieldName = fields.get(i);
+			String fieldLabel = labels.get(i);
 			String colType = dataTypes.get(i).getSimpleName();
 			Field field = fieldRepository.findByStudyAndFieldName(study, fieldName);
 			if (field == null) {
 				logger.info("Saving field " + fieldName);
-				field = new Field(fieldName, study, colType);
+				field = new Field(fieldName, fieldLabel, study, colType);
 				fieldRepository.save(field);
 			}
 			else {
@@ -259,6 +287,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 	private void addAnyNewSubjectsAndSites(Study study, DataFrame df, File file) {
 		
 		// Make sure data contains site and subject fields
+		// TODO: Perform these checks early in process
 		if (!df.getColNames().contains(study.getSiteFieldName())) {
 			String message = "File " + file.getName() + " does not contain site field " + study.getSiteFieldName();
 			throw new SourceDataException(message);
