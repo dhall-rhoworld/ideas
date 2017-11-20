@@ -137,6 +137,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 				studyDbVersion.addDatasetVersion(datasetVersion);
 			}
 		}
+		study.setIsInitialized(Boolean.TRUE);
 		studyDbVersionRepository.save(studyDbVersion);
 	}
 
@@ -185,7 +186,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 			StringWriter stringWriter = new StringWriter();
 			PrintWriter printWriter = new PrintWriter(stringWriter);
 			e.getCause().printStackTrace(printWriter);
-			String stackTrace = printWriter.toString();
+			String stackTrace = stringWriter.toString();
 			logger.error(stackTrace);
 			LoaderIssue issue = new LoaderIssue(e.getMessage(), stackTrace, IssueLevel.DATASET_VERSION);
 			issue.setDatasetVersion(datasetVersion);

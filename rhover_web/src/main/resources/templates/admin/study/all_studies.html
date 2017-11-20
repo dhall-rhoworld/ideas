@@ -28,17 +28,17 @@
    		<table class="wide">
    			<tr>
    				<th>Study</th>
-   				<th>Data Folders</th>
-   				<th>Data Stream Variable</th>
-   				<th>Action</th>
+   				<th>View/Edit</th>
    			</tr>
    			<tr th:each="study : ${studies}">
    				<td th:text="${study.studyName}"/>
    				<td>
-   					<div th:each="dataLocation : ${study.dataLocations}" th:text="${dataLocation.folderPath}"/>
+   					<a href="#">Study Properties</a> |
+   					<a th:href="@{/admin/study/data_locations(study_id=${study.studyId})}">Data Folders</a> |
+   					<a th:href="@{/admin/study/identifying_fields(study_id=${study.studyId})}">Identifying Variables</a> |
+   					<a href="#">Data Checks</a> |
+   					<a href="#">Data Checker Reports</a>
    				</td>
-   				<td th:text="${study.formFieldName}"/>
-   				<td><a th:href="@{/admin/study/edit_study(study_id=${study.studyId})}">Edit</a></td>
    			</tr>
    		</table>
    		<p>

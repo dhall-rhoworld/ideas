@@ -12,6 +12,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 
+import org.hibernate.annotations.Type;
+
 @Entity
 public class Field {
 
@@ -32,6 +34,10 @@ public class Field {
 	
 	@Column(name="data_type")
 	private String dataType;
+	
+	@Column(name="is_identifying")
+	@Type(type="org.hibernate.type.NumericBooleanType")
+	private Boolean isIdentifying = Boolean.FALSE;
 	
 	@ManyToMany(mappedBy = "fields")
 	private Set<DatasetVersion> datasetVersions = new HashSet<>();
@@ -98,6 +104,14 @@ public class Field {
 
 	public void setFieldLabel(String fieldLabel) {
 		this.fieldLabel = fieldLabel;
+	}
+
+	public Boolean getIsIdentifying() {
+		return isIdentifying;
+	}
+
+	public void setIsIdentifying(Boolean isIdentifying) {
+		this.isIdentifying = isIdentifying;
 	}
 	
 }

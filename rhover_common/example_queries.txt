@@ -174,3 +174,21 @@ join dataset_version dv on dv.dataset_id = ds.dataset_id
 join dataset_version_field dvf on dvf.dataset_version_id = dv.dataset_version_id
 join field f on f.field_id = dvf.field_id
 where ds.dataset_id = 78;
+
+select dvf.field_id as field_id, count(*) as total
+from dataset_version_field dvf
+join dataset_version dv on dv.dataset_version_id = dvf.dataset_version_id
+join study_db_version_config sdvc on sdvc.dataset_version_id = dv.dataset_version_id
+join study_db_version sdv on sdv.study_db_version_id = sdvc.study_db_version_id
+join dataset ds on ds.dataset_id = dv.dataset_id
+where sdv.study_id = 1
+and sdv.is_current = 1
+group by dvf.field_id
+limit 25;
+
+select count(*)
+from study_db_version_config sdvc
+join study_db_version sdv on sdv.study_db_version_id = sdvc.study_db_version_id
+where sdv.study_id = 1
+and sdv.is_current = 1;
+

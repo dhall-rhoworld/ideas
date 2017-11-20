@@ -1,0 +1,62 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>RhoVer Identifying Fields</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="/rhover.css"/>
+    
+    <script>
+    	function onDone() {
+    		document.location.href = "/admin/study/all";
+    	}
+    </script>
+</head>
+<body>
+	<div class="page-header">RhoVer (Prototype)</div>
+	
+	<div class="menu-bar">
+		<ul>
+			<li><a href="/">Home</a></li>
+			<li><a href="/browse/studies">Browse</a></li>
+			<li><a href="/search/form">Search</a></li>
+			<li><a href="/admin/study/all" class="active-menu-item">Admin</a></li>
+		</ul>
+	</div>
+	
+	<div id="breadcrumbs">
+		<a href="/admin/study/all">Studies</a>
+		>
+		<bold><span th:text="${study.studyName}"/> Identifying Variables</bold>
+	</div>
+		
+    <div id="content">
+    	<p class="message_box">
+	    	Please select the <strong>MINIMUM</strong> set of variables that uniquely identifies an observation within a dataset.
+	    	Normally this will be the combination of subject ID and and the event or phase.  There is no need to select
+	    	the form name or data stream if those variables appear. These identifiers are used to
+	    	attach an anomaly to a specific data point.
+	    </p>
+	   	<form action="/admin/study/save_identifying_fields" method="post">
+	   		<input type="hidden" name="study_id" th:value="${study.studyId}"/>
+	   		<table class="wide">
+	   			<tr>
+	   				<th></th>
+	   				<th>Variable Name</th>
+	   				<th>Label</th>
+	   			</tr>
+	   			<tr th:each="field : ${fields}">
+	   				<td><input type="checkbox" th:name="'field-' + ${field.fieldId}"/></td>
+	   				<td th:text="${field.fieldName}"/>
+	   				<td th:text="${field.fieldLabel}"/>
+	   			</tr>
+	   		</table>
+	   		
+	   		<p>
+	   			<button type="submit">Select</button>
+	   			&nbsp;&nbsp;
+	   			<button type="button">Cancel</button>
+	   		</p>
+ 		</form>
+    </div>
+</body>
+</html>

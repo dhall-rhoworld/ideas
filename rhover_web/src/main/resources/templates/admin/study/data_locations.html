@@ -4,6 +4,12 @@
     <title>RhoVer Edit Study</title> 
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" href="/rhover.css"/>
+    
+    <script>
+    	function onDone() {
+    		document.location.href = "/admin/study/all";
+    	}
+    </script>
 </head>
 <body>
 	<div class="page-header">RhoVer (Prototype)</div>
@@ -24,6 +30,8 @@
 	</div>
 		
     <div id="content">
+    	<div th:if="${message}" class="message_box" th:text="${message}"/>
+    
     	<div th:if="${not #lists.isEmpty(study.dataLocations)}">
 	   		<table class="wide">
 	   			<tr>
@@ -39,12 +47,10 @@
 	   		<input type="hidden" name="study_id" th:value="${study.studyId}"/>
 	   		Folder Path: <input type="text" name="folder_path" size="60"/>
 	   		</p>
-	   		
-	   		<p>
-	   		(e.g. S:/RhoFED/ICAC2/PROSE/Statistics/Data/Complete)
-	   		</p>
 	   		<p>
 	 			<button type="submit">Add Data Folder</button>
+	 			&nbsp; &nbsp;
+	 			<button type="button" onclick="onDone()">Done</button>
 	 		</p>
  		</form>
     </div>

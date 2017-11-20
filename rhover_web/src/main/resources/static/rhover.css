@@ -127,3 +127,29 @@ table.wide tr:nth-child(even) {
 	stroke: black;
 	stroke-width: 2;
 }
+
+table.invisible {
+	border: none;
+	margin: auto;
+	border-spacing: 0px;
+}
+
+table.invisible tr, td {
+	border: none;
+	margin: 5px;
+	padding: 8px;
+}
+
+.required_field {
+	color: red;
+}
+
+.message_box {
+	padding: 20px;
+	border-style: solid;
+	border-color: red;
+	border-width: 2px;
+	color: black;
+	margin-bottom: 15px;
+	text-align: left;
+}

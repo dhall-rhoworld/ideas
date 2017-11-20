@@ -12,6 +12,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
+import org.hibernate.annotations.Type;
+
 /**
  * Represents a research study.
  * @author dhall
@@ -44,6 +46,10 @@ public class Study {
 	
 	@Column(name="query_file_path")
 	private String queryFilePath;
+	
+	@Column(name="is_initialized")
+	@Type(type="org.hibernate.type.NumericBooleanType")
+	private Boolean isInitialized = Boolean.FALSE;
 	
 	public Study() {
 		
@@ -103,6 +109,14 @@ public class Study {
 
 	public void setQueryFilePath(String queryFilePath) {
 		this.queryFilePath = queryFilePath;
+	}
+
+	public Boolean getIsInitialized() {
+		return isInitialized;
+	}
+
+	public void setIsInitialized(Boolean isInitialized) {
+		this.isInitialized = isInitialized;
 	}
 	
 }

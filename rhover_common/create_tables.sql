@@ -6,9 +6,11 @@ create table study (
 	site_field_name VARCHAR(50) NOT NULL,
 	subject_field_name VARCHAR(50) NOT NULL,
 	query_file_path VARCHAR(400),
+	is_initialized TINYINT NOT NULL DEFAULT 0,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	modified_by VARCHAR(50),
-	CONSTRAINT pk_study PRIMARY KEY (study_id)
+	CONSTRAINT pk_study PRIMARY KEY (study_id),
+	CONSTRAINT u_study_name UNIQUE (study_name)
 );
 
 create table data_location (
@@ -96,6 +98,7 @@ create table field (
 	field_id BIGINT AUTO_INCREMENT NOT NULL,
 	field_name VARCHAR(200) NOT NULL,
 	field_label VARCHAR(400) NOT NULL,
+	is_identifying TINYINT NOT NULL DEFAULT 0,
 	study_id BIGINT NOT NULL,
 	data_type VARCHAR(50) NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -146,3 +149,6 @@ create table loader_issue (
 	CONSTRAINT fk_issue_2_dataset_version FOREIGN KEY (dataset_version_id)
 		REFERENCES dataset_version(dataset_version_id)
 );
+
+
+

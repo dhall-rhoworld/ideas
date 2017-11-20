@@ -4,6 +4,9 @@
     <title>RhoVer Edit Study</title> 
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" href="/rhover.css"/>
+    <link rel="stylesheet" href="/jquery-ui.css"/>
+    <script src="/jquery-3.2.1.min.js"></script>
+    <script src="/jquery-ui.js"></script>
 </head>
 <body>
 	<div class="page-header">RhoVer (Prototype)</div>
@@ -24,18 +27,52 @@
 	</div>
 		
     <div id="content">
-   		<form action="/admin/study/save_new" method="post">
+   		<form action="/admin/study/save" method="post">
+   			<table class="invisible">
+	   			<tr>
+		   			<td style="text-align:right">Study Name<span class="required_field">*</span></td>
+		   			<td><input type="text" name="study_name"/></td>
+		   			<td></td>
+	   			</tr>
+   				<tr>
+   					<td style="text-align:right">Name of Data Stream Variable<span class="required_field">*</span></td>
+   					<td><input type="text" name="form_field_name"/></td>
+   					<td>
+   						<img id="img_stream" src="/images/info.png" width="25" height="25"
+   						title="Name of variable in each data file that gives the name of the data stream or form.  Note that this is case sensitive."
+   						/>
+   					</td>
+   				</tr>
+   				<tr>
+   					<td style="text-align:right">Name of Site Variable<span class="required_field">*</span></td>
+   					<td><input type="text" name="site_field_name"/></td>
+   					<td>
+   						<img id="img_site" src="/images/info.png" width="25" height="25"
+   						title="Name of variable in each data file that gives the study site.  Note that this is case sensitive."
+   						/>
+   					</td>
+   				</tr>
+   				<tr>
+   					<td style="text-align:right">Name of Subect Variable<span class="required_field">*</span></td>
+   					<td><input type="text" name="subject_field_name"/></td>
+   					<td>
+   						<img id="img_subject" src="/images/info.png" width="25" height="25"
+   						title="Name of variable in each study that gives the subject ID.  Note that this is case sensitive."
+   						/>
+   					</td>
+   				</tr>
+   				<tr>
+   					<td style="text-align:right">Query File Path</td>
+   					<td><input type="text" name="query_file_path"/></td>
+   					<td>
+   						<img id="img_query" src="/images/info.png" width="25" height="25"
+   						title="Absolute path to data file that contains query information. Example: S:/RhoFED/CTOT-SACCC/CTOT/CTOT-08-Abecassis/Stats/Data/Clinical/query.sas7bdat"
+   						/>
+   					</td>
+   				</tr>
+   			</table>
    			<p>
-   				Study Name: <input type="text" name="study_name"/>
-   			</p>
-   			<p>
-   				Name of Data Stream Variable: <input type="text" name="form_field_name"/>
-   			</p>
-   			<p>
-   				Name of Site Variable: <input type="text" name="site_field_name"/>
-   			</p>
-   			<p>
-   				Name of Subect Variable: <input type="text" name="subject_field_name"/>
+   				<span class="required_field">*Required Field</span>
    			</p>
    			<p>
    				<button type="submit">Create Study</button>
@@ -43,4 +80,10 @@
    		</form>
     </div>
 </body>
+<script>
+	$("#img_stream").tooltip();
+	$("#img_site").tooltip();
+	$("#img_subject").tooltip();
+	$("#img_query").tooltip();
+</script>
 </html>
