@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="/rhover.css"/>
     
     <script>
-    	function onDone() {
+    	function onCancel() {
     		document.location.href = "/admin/study/all";
     	}
     </script>
@@ -45,7 +45,7 @@
 	   				<th>Label</th>
 	   			</tr>
 	   			<tr th:each="field : ${fields}">
-	   				<td><input type="checkbox" th:name="'field-' + ${field.fieldId}"/></td>
+	   				<td><input type="checkbox" th:name="'field-' + ${field.fieldId}" th:checked="${field.isIdentifying}"/></td>
 	   				<td th:text="${field.fieldName}"/>
 	   				<td th:text="${field.fieldLabel}"/>
 	   			</tr>
@@ -54,7 +54,7 @@
 	   		<p>
 	   			<button type="submit">Select</button>
 	   			&nbsp;&nbsp;
-	   			<button type="button">Cancel</button>
+	   			<button type="button" onclick="onCancel()">Cancel</button>
 	   		</p>
  		</form>
     </div>

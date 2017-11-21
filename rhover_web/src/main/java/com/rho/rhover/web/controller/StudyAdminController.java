@@ -13,11 +13,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.rho.rhover.common.check.CheckRepository;
 import com.rho.rhover.common.study.DataLocation;
-import com.rho.rhover.common.study.Field;
+import com.rho.rhover.common.study.DatasetVersionRepository;
 import com.rho.rhover.common.study.FieldRepository;
 import com.rho.rhover.common.study.FieldService;
 import com.rho.rhover.common.study.Study;
+import com.rho.rhover.common.study.StudyDbVersionRepository;
 import com.rho.rhover.common.study.StudyRepository;
 
 @Controller
@@ -34,6 +36,15 @@ public class StudyAdminController {
 	
 	@Autowired
 	private FieldRepository fieldRepository;
+	
+	@Autowired
+	private CheckRepository checkRepository;
+	
+	@Autowired
+	private StudyDbVersionRepository studyDbVersionRepository;
+	
+	@Autowired
+	private DatasetVersionRepository datasetVersionRepository;
 
 	@RequestMapping("/all")
 	public String viewAll(Model model) {
@@ -70,6 +81,16 @@ public class StudyAdminController {
 		return "admin/study/new_study";
 	}
 	
+	@RequestMapping("/checks")
+	public String showChecks(
+			@RequestParam(name="study_id") Long studyId,
+			Model model) {
+		Study study = studyRepository.findOne(studyId);
+		model.addAttribute("study", study);
+		model.addAttribute("studyDbVersion", studyDbVersionRepository.findByStudyAndIsCurrent(study, Boolean.TRUE));	
+		return "admin/study/checks";
+	}
+	
 	@RequestMapping(value="/save", method=RequestMethod.POST)
 	public String saveNew(
 			@RequestParam(name="study_id", required=false, defaultValue="-1") Long studyId,
@@ -84,7 +105,7 @@ public class StudyAdminController {
 		if (studyId != -1) {
 			logger.debug("Updating study: " + studyId);
 			study = studyRepository.findOne(studyId);
-			nextPage = "admin/study/all";;
+			nextPage = "admin/study/all";
 		}
 		else {
 			logger.debug("Saving new study: " + studyName);

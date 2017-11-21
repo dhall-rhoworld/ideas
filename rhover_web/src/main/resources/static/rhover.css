@@ -153,3 +153,7 @@ table.invisible tr, td {
 	margin-bottom: 15px;
 	text-align: left;
 }
+
+.configured-check {
+	color: red;
+}

@@ -36,8 +36,8 @@
    					<a href="#">Study Properties</a> |
    					<a th:href="@{/admin/study/data_locations(study_id=${study.studyId})}">Data Folders</a> |
    					<a th:href="@{/admin/study/identifying_fields(study_id=${study.studyId})}">Identifying Variables</a> |
-   					<a href="#">Data Checks</a> |
-   					<a href="#">Data Checker Reports</a>
+   					<a th:href="@{/admin/study/checks(study_id=${study.studyId})}">Data Check Params</a> |
+   					<a th:href="@{/admin/study/checks(study_id=${study.studyId})}">Quick On/Off Switch</a>
    				</td>
    			</tr>
    		</table>

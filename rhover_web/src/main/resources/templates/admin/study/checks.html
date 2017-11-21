@@ -1,0 +1,86 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>RhoVer Data Checks</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="/rhover.css"/>
+    <link rel="stylesheet" href="/jquery-ui.css"/>
+    <script src="/jquery-3.2.1.min.js"></script>
+    <script src="/jquery-ui.js"></script>
+    
+</head>
+<body>
+	<div class="page-header">RhoVer (Prototype)</div>
+	
+	<div class="menu-bar">
+		<ul>
+			<li><a href="/">Home</a></li>
+			<li><a href="/browse/studies">Browse</a></li>
+			<li><a href="/search/form">Search</a></li>
+			<li><a href="/admin/study/all" class="active-menu-item">Admin</a></li>
+		</ul>
+	</div>
+		
+    <div id="content">
+    	<input type="hidden" id="study_id" name="study_id" th:value="${study.studyId}"/>
+    	<h3>Full Data Check Configuration</h3>
+    	<p>
+	    	Dataset: 
+	   		<select name="select_dataset" id="select_dataset" onchange="onSelect(event)">
+	   			<option value="-1">All Datasets</option>
+	   			<option th:each="datasetVersionOption : ${studyDbVersion.datasetVersions}"
+	   				th:value="${datasetVersionOption.datasetVersionId}" th:text="${datasetVersionOption.dataset.datasetName}"
+	   				th:selected="${datasetVersionOption.datasetVersionId == optionValue}"/>
+	   		</select>
+	   		&nbsp; &nbsp;
+	   		Variable:
+	   		<select>
+	   			<option value="-1">Default Checks</option>
+	   		</select>
+   		</p>
+   		
+ 		<h4>Univariate Outlier Check</h4>
+		<table class="wide">
+			<tr>
+				<th>Parameter Name</th>
+				<th>Parameter Value</th>
+			</tr>
+			<tr>
+				<td>Targets</td>
+				<td style="text-align: left">
+				 	<input type="radio" name="targets" value="off"/> Do not run by default<br/>
+					<input type="radio" name="targets" value="numeric"/> Run on all numeric variables by default<br/>
+					<input type="radio" name="targets" value="continuous" checked="true"/> Run on all continuous numeric variables by default
+				</td>
+			</tr>
+			<tr>
+				<td>Upper Threshold</td>
+				<td style="text-align: left">
+					<input type="text" name="upper_threshold" size="3" value="2"/>
+				</td>
+			</tr>
+			<tr>
+				<td>Lower Threshold</td>
+				<td style="text-align: left">
+					<input type="text" name="lower_threshold" size="3" value="2"/>
+				</td>
+			</tr>
+			<tr>
+				<td>Threshold Units</td>
+				<td style="text-align: left">
+					<input type="radio" name="units" value="sd"/> Standard deviations from the mean<br/>
+					<input type="radio" name="units" value="abs" checked="true"/> Absolute numeric value
+				</td>
+			</tr>
+		</table>
+		
+		<p>
+			<button type="button">Save</button>
+		</p>
+   	</div>
+</body>
+
+<script>
+	
+</script>
+</html>

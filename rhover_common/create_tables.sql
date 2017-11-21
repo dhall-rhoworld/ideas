@@ -150,5 +150,32 @@ create table loader_issue (
 		REFERENCES dataset_version(dataset_version_id)
 );
 
+create table checks (
+	check_id BIGINT AUTO_INCREMENT NOT NULL,
+	check_name VARCHAR(50) NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_checks PRIMARY KEY (check_id),
+	CONSTRAINT u_check_name UNIQUE (check_name)
+);
 
+insert into checks(check_name)
+values('UNIVARIATE_OUTLIER');
 
+create table check_param (
+	check_param_id BIGINT AUTO_INCREMENT NOT NULL,
+	param_name VARCHAR(50) NOT NULL,
+	param_value VARCHAR(50) NOT NULL,
+	param_scope VARCHAR(50) NOT NULL,
+	study_id BIGINT,
+	dataset_id BIGINT,
+	field_id BIGINT,
+	check_id BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	modified_by VARCHAR(50),
+	CONSTRAINT pk_check_param PRIMARY KEY (check_param_id),
+	CONSTRAINT fk_check_param_2_study FOREIGN KEY (study_id) REFERENCES study(study_id),
+	CONSTRAINT fk_check_param_2_dataset FOREIGN KEY (dataset_id) REFERENCES dataset(dataset_id),
+	CONSTRAINT fk_check_param_2_field FOREIGN KEY (field_id) REFERENCES field(field_id),
+	CONSTRAINT fk_check_param_2_checks FOREIGN KEY (check_id) REFERENCES checks(check_id),
+	CONSTRAINT u_check_id_param_name UNIQUE (check_id, param_name)
+);

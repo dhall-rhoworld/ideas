@@ -1,3 +1,5 @@
+drop table check_param;
+drop table checks;
 drop table loader_issue;
 drop table study_db_version_config;
 drop table study_db_version;
