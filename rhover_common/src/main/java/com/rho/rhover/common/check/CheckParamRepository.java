@@ -1,5 +1,7 @@
 package com.rho.rhover.common.check;
 
+import java.util.List;
+
 import org.springframework.data.repository.CrudRepository;
 
 import com.rho.rhover.common.study.Dataset;
@@ -8,9 +10,12 @@ import com.rho.rhover.common.study.Study;
 
 public interface CheckParamRepository extends CrudRepository<CheckParam, Long> {
 
-	CheckParam findByParamNameAndStudy(String paramName, Study study);
+	List<CheckParam> findByCheckAndStudy(Check check, Study study);
 	
-	CheckParam findByParamNameAndDataset(String paramName, Dataset dataset);
+	List<CheckParam> findByCheckAndDataset(Check check, Dataset dataset);
 	
-	CheckParam findByParamNameAndField(String paramName, Field field);
+	List<CheckParam> findByCheckAndField(Check check, Field field);
+	
+	List<CheckParam> findByCheckAndParamScope(Check check, String paramScope);
+	
 }

@@ -16,6 +16,9 @@ public class Check {
 	@Column(name="check_id")
 	private Long checkId;
 	
+	@Column(name="check_name")
+	private String checkName;
+	
 	public Check() {
 		
 	}
@@ -26,5 +29,13 @@ public class Check {
 
 	public void setCheckId(Long checkId) {
 		this.checkId = checkId;
+	}
+
+	public String getCheckName() {
+		return checkName;
+	}
+
+	public void setCheckName(String checkName) {
+		this.checkName = checkName;
 	}
 }

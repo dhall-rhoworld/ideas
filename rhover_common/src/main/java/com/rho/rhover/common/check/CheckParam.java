@@ -41,6 +41,10 @@ public class CheckParam {
 	@JoinColumn(name="field_id")
 	private Field field;
 	
+	@ManyToOne
+	@JoinColumn(name="check_id")
+	private Check check;
+	
 	public CheckParam() {
 		
 	}
@@ -99,5 +103,13 @@ public class CheckParam {
 
 	public void setField(Field field) {
 		this.field = field;
+	}
+
+	public Check getCheck() {
+		return check;
+	}
+
+	public void setCheck(Check check) {
+		this.check = check;
 	}
 }

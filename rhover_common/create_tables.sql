@@ -176,6 +176,17 @@ create table check_param (
 	CONSTRAINT fk_check_param_2_study FOREIGN KEY (study_id) REFERENCES study(study_id),
 	CONSTRAINT fk_check_param_2_dataset FOREIGN KEY (dataset_id) REFERENCES dataset(dataset_id),
 	CONSTRAINT fk_check_param_2_field FOREIGN KEY (field_id) REFERENCES field(field_id),
-	CONSTRAINT fk_check_param_2_checks FOREIGN KEY (check_id) REFERENCES checks(check_id),
-	CONSTRAINT u_check_id_param_name UNIQUE (check_id, param_name)
+	CONSTRAINT fk_check_param_2_checks FOREIGN KEY (check_id) REFERENCES checks(check_id)
 );
+
+insert into check_param (param_name, param_value, param_scope, check_id)
+values('targets', 'off', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));
+
+insert into check_param (param_name, param_value, param_scope, check_id)
+values('upper_threshold', '2', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));
+
+insert into check_param (param_name, param_value, param_scope, check_id)
+values('lower_threshold', '2', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));
+
+insert into check_param (param_name, param_value, param_scope, check_id)
+values('units', 'sd', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));
