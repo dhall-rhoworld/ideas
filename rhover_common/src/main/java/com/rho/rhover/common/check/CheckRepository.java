@@ -4,4 +4,6 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface CheckRepository extends CrudRepository<Check, Long> {
 
+	Check findByCheckName(String checkName);
+
 }

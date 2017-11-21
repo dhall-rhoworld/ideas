@@ -2,15 +2,27 @@ function populateFields(data) {
 	for (let i = 0; i < data.length; i++) {
 		const paramName = data[i].paramName;
 		const paramValue = data[i].paramValue;
-		const checkName = data[i].check.checkName;
-		const type = $("[name='" + paramName + "']").attr("type");
+		const checkName = data[i].checkName;
+		const inputName = checkName + "-" + paramName;
+		const type = $("[name='" + inputName + "']").attr("type");
 		if (type == "text") {
-			$("[name='" + paramName + "']").val(paramValue);
+			$("[name='" + inputName + "']").val(paramValue);
 		}
 		else if (type == "radio") {
-			$("input[name='" + paramName + "'][value='" + paramValue + "']").attr("checked", "checked");
+			$("input[name='" + inputName + "'][value='" + paramValue + "']").attr("checked", "checked");
 		}
 	}
+}
+
+function onSave() {
+	const data = $("form").serialize();
+	$.post("/rest/admin/study/save_check_params", data)
+		.done(function(data) {
+			console.log("Saved " + data + " parameters");
+		})
+		.fail(function() {
+			console.log("Problem");
+		});
 }
 
 function fetchChecks() {
@@ -18,13 +30,12 @@ function fetchChecks() {
 	const datasetId = $("#select_dataset").val();
 	const fieldId = $("#select_field").val();
 	const url = "/rest/admin/study/check_params?study_id=" + studyId + "&dataset_id=" + datasetId + "&field_id=" + fieldId;
-	console.log(url);
 	$.get(url)
 		.done(function(data) {
 			populateFields(data);
 		})
-		.fail(function() {
-			console.log("Problem");
+		.fail(function(error) {
+			console.log(error);
 		});
 }
 
@@ -33,6 +44,9 @@ function fetchChecks() {
  */
 $(function() {
 
+	$("#button_save").click(function() {
+		onSave();
+	});
 	fetchChecks();
 	
 });

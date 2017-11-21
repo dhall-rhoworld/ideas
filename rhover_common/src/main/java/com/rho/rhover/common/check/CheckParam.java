@@ -49,6 +49,14 @@ public class CheckParam {
 		
 	}
 
+	public CheckParam(String paramName, String paramScope, Check check) {
+		super();
+		this.paramName = paramName;
+		this.paramScope = paramScope;
+		this.check = check;
+	}
+
+
 	public Long getCheckParamId() {
 		return checkParamId;
 	}
