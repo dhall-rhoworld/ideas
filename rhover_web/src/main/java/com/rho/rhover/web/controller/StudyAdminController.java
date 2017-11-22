@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.rho.rhover.common.check.Check;
+import com.rho.rhover.common.check.CheckParamRepository;
+import com.rho.rhover.common.check.CheckParamService;
 import com.rho.rhover.common.check.CheckRepository;
 import com.rho.rhover.common.study.DataLocation;
 import com.rho.rhover.common.study.DatasetRepository;
@@ -49,6 +52,12 @@ public class StudyAdminController {
 	
 	@Autowired
 	private DatasetRepository datasetRepository;
+	
+	@Autowired
+	private CheckParamRepository checkParamRepository;
+	
+	@Autowired
+	private CheckParamService checkParamService;
 
 	@RequestMapping("/all")
 	public String viewAll(Model model) {
@@ -93,6 +102,31 @@ public class StudyAdminController {
 		model.addAttribute("study", study);
 		model.addAttribute("studyDbVersion", studyDbVersionRepository.findByStudyAndIsCurrent(study, Boolean.TRUE));	
 		return "admin/study/checks";
+	}
+	
+	@RequestMapping("/study_checks")
+	public String showStudyChecks(
+			@RequestParam(name="study_id") Long studyId,
+			Model model) {
+		Study study = studyRepository.findOne(studyId);
+		model.addAttribute("study", study);
+		model.addAttribute("studyDbVersion", studyDbVersionRepository.findByStudyAndIsCurrent(study, Boolean.TRUE));
+		Check check = checkRepository.findByCheckName("UNIVARIATE_OUTLIER");
+		model.addAttribute("data_types", checkParamService.getCheckParam(check, "data_types", study));
+		model.addAttribute("filter_non_key", checkParamService.getCheckParam(check, "filter_non_key", study));
+		model.addAttribute("filter_identifying", checkParamService.getCheckParam(check, "filter_identifying", study));
+		model.addAttribute("sd", checkParamService.getCheckParam(check, "sd", study));
+		return "admin/study/study_checks";
+	}
+	
+	@RequestMapping("/dataset_checks")
+	public String showDatasetChecks(
+			@RequestParam(name="study_id") Long studyId,
+			Model model) {
+		Study study = studyRepository.findOne(studyId);
+		model.addAttribute("study", study);
+		model.addAttribute("studyDbVersion", studyDbVersionRepository.findByStudyAndIsCurrent(study, Boolean.TRUE));	
+		return "admin/study/dataset_checks";
 	}
 	
 	@RequestMapping(value="/save", method=RequestMethod.POST)

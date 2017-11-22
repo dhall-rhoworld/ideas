@@ -180,13 +180,13 @@ create table check_param (
 );
 
 insert into check_param (param_name, param_value, param_scope, check_id)
-values('targets', 'off', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));
+values('data_types', 'continuous', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));
 
 insert into check_param (param_name, param_value, param_scope, check_id)
-values('upper_threshold', '2', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));
+values('filter_non_key', 'off', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));
 
 insert into check_param (param_name, param_value, param_scope, check_id)
-values('lower_threshold', '2', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));
+values('filter_identifying', 'on', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));
 
 insert into check_param (param_name, param_value, param_scope, check_id)
-values('units', 'sd', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));
+values('sd', '2', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));

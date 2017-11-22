@@ -23,4 +23,6 @@ public interface CheckParamRepository extends CrudRepository<CheckParam, Long> {
 	CheckParam findByCheckAndDatasetAndParamName(Check check, Dataset dataset, String paramName);
 	
 	CheckParam findByCheckAndStudyAndParamName(Check check, Study study, String paramName);
+
+	CheckParam findByCheckAndParamScopeAndParamName(Check check, String string, String paramName);
 }

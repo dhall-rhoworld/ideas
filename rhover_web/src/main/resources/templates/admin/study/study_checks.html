@@ -1,0 +1,80 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>RhoVer Univariate Settings</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="/rhover.css"/>
+    <link rel="stylesheet" href="/jquery-ui.css"/>
+    <script src="/jquery-3.2.1.min.js"></script>
+    <script src="/jquery-ui.js"></script>
+</head>
+<body>
+	<div class="page-header">RhoVer (Prototype)</div>
+	
+	<div class="menu-bar">
+		<ul>
+			<li><a href="/">Home</a></li>
+			<li><a href="/browse/studies">Browse</a></li>
+			<li><a href="/search/form">Search</a></li>
+			<li><a href="/admin/study/all" class="active-menu-item">Admin</a></li>
+		</ul>
+	</div>
+		
+    <div id="content">
+    	<p>
+    		<strong>Study-Level Settings</strong> |
+    		<a th:href="@{/admin/study/dataset_checks(study_id=${study.studyId})}">Individual Dataset Settings</a>
+    	</p>
+    	
+    	<form>
+    	<input type="hidden" id="study_id" name="study_id" th:value="${study.studyId}"/>
+    	
+		<table class="wide">
+			<tr>
+				<th colspan="2" style="background-color: CornflowerBlue; color: white">Study-Level Defaults</th>
+			</tr>
+			<tr>
+				<td>Run Checks On</td>
+				<td style="text-align: left">
+					<input type="radio" name="data_types" value="numeric" th:checked="${data_types.paramValue} == numeric"/> All numeric variables<br/>
+					<input type="radio" name="data_types" value="continuous" th:checked="${data_types.paramValue} == continuous"/> Only continuous numeric variables
+				</td>
+			</tr>
+			<tr>
+				<td>Additional Filters</td>
+				<td style="text-align: left">
+					<input type="checkbox" name="filter_non_key" th:checked="${filter_non_key.paramValue} == 'on'"/> Omit non-key variables<br/>
+					<input type="checkbox" name="filter_identifying" th:checked="${filter_identifying.paramValue} == 'on'"/> Omit identifying variables
+				</td>
+			</tr>
+			<tr>
+				<td>Inlier Boundary Value</td>
+				<td style="text-align: left">
+					<input type="text" name="sd" size="3" th:value="${sd.paramValue}"/>&nbsp;&nbsp;
+					Standard Deviations from Mean
+				</td>
+			</tr>
+		</table>
+		</form>
+		
+		<h3>Select Datasets to Check</h3>
+		<div style="column-count: 4; text-align: left; line-height: 40px;">
+			<div th:each="datasetVersion : ${studyDbVersion.datasetVersions}">
+				<input type="checkbox" class="radio-dataset" th:name="'check_dataset-' + datasetVersion.dataset.datasetId" th:id="'cb-' + ${datasetVersion.dataset.datasetId}"/>
+				<label th:for="'cb-' + ${datasetVersion.dataset.datasetId}" th:text="${datasetVersion.dataset.datasetName}" style="width: 150px"/>
+			</div>
+		</div>
+		
+		<p>
+			<button type="button" id="button_save">Save</button>
+		</p>
+   	</div>
+</body>
+
+<script>
+	$(function() {
+		$(".radio-dataset").checkboxradio();
+	});
+</script>
+
+</html>
