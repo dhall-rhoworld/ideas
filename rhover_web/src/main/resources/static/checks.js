@@ -39,6 +39,14 @@ function fetchChecks() {
 		});
 }
 
+function onChangeDataset() {
+	const datasetVersionId 
+}
+
+function onChangeField() {
+	console.log("Changing field");
+}
+
 /**
  * jQuery init function
  */
@@ -47,6 +55,15 @@ $(function() {
 	$("#button_save").click(function() {
 		onSave();
 	});
+	
+	$("#select_dataset").change(function() {
+		onChangeDataset();
+	});
+	
+	$("#select_field").change(function() {
+		onChangeField();
+	});
+	
 	fetchChecks();
 	
 });

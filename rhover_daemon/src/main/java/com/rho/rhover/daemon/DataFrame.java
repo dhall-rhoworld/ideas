@@ -27,7 +27,7 @@ public class DataFrame {
 	
 	private Map<String, Integer> colIndex = new HashMap<>();
 	
-	// Possible values: String, Integer, Double, Date.  Note that currently
+	// Possible values: String, Integer, Double, Date, Mixed, and Unknown.  Note that currently
 	// date values are stored as strings as these values may be
 	// formatted in many ways.
 	private List<Class> dataTypes = new ArrayList<>();

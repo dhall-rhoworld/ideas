@@ -5,5 +5,4 @@ import org.springframework.data.repository.CrudRepository;
 public interface DatasetVersionRepository extends CrudRepository<DatasetVersion, Long> {
 
 	DatasetVersion findByDatasetAndIsCurrent(Dataset dataset, Boolean isCurrent);
-
 }

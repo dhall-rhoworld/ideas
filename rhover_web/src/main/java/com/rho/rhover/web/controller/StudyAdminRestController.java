@@ -20,11 +20,14 @@ import com.rho.rhover.common.check.CheckParamRepository;
 import com.rho.rhover.common.check.CheckRepository;
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.DatasetRepository;
+import com.rho.rhover.common.study.DatasetVersion;
+import com.rho.rhover.common.study.DatasetVersionRepository;
 import com.rho.rhover.common.study.Field;
 import com.rho.rhover.common.study.FieldRepository;
 import com.rho.rhover.common.study.Study;
 import com.rho.rhover.common.study.StudyRepository;
 import com.rho.rhover.web.dto.CheckParamDto;
+import com.rho.rhover.web.dto.FieldDtoGroup;
 
 @RestController
 @RequestMapping("/rest/admin/study")
@@ -46,6 +49,9 @@ public class StudyAdminRestController {
 	
 	@Autowired
 	private CheckParamRepository checkParamRepository;
+	
+	@Autowired
+	private DatasetVersionRepository datasetVersionRepository;
 
 	// TODO: Move this business logic to a service bean
 	@RequestMapping("/check_params")
@@ -136,5 +142,12 @@ public class StudyAdminRestController {
 			}
 		}
 		return numParams;
+	}
+	
+	@RequestMapping("/fields")
+	public List<FieldDtoGroup> getFields(@RequestParam("dataset_id") Long datasetId) {
+		Dataset dataset = datasetRepository.findOne(datasetId);
+		DatasetVersion datasetVersion = datasetVersionRepository.findByDatasetAndIsCurrent(dataset, Boolean.TRUE);
+		return FieldDtoGroup.toDtoGroups(datasetVersion.getFields());
 	}
 }

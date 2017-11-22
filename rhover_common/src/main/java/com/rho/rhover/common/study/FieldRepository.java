@@ -9,5 +9,4 @@ public interface FieldRepository extends CrudRepository<Field, Long>{
 	Iterable<Field> findByStudyAndIsIdentifying(Study study, Boolean isIdentifying);
 
 	Iterable<Field> findByStudy(Study study);
-	
 }
