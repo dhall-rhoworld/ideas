@@ -157,3 +157,7 @@ table.invisible tr, td {
 .configured-check {
 	color: red;
 }
+
+.deactivated {
+	color: LightGray;
+}

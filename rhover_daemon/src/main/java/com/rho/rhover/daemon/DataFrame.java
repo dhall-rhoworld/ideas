@@ -27,7 +27,7 @@ public class DataFrame {
 	
 	private Map<String, Integer> colIndex = new HashMap<>();
 	
-	// Possible values: String, Integer, Double, Date, Mixed, and Unknown.  Note that currently
+	// Possible values: String, Integer, Double, Date, Mixed, Boolean, and Unknown.  Note that currently
 	// date values are stored as strings as these values may be
 	// formatted in many ways.
 	private List<Class> dataTypes = new ArrayList<>();
@@ -61,6 +61,7 @@ public class DataFrame {
 			Object[][] data = reader.readAll();
 			df.numRecords = data.length;
 			for (int j = 0; j < cols.size(); j++) {
+				Set<String> values = new HashSet<>();
 				int numericCount = 0;
 				int continuousCount = 0;
 				int dateCount = 0;
@@ -71,6 +72,7 @@ public class DataFrame {
 						nullCount++;
 					}
 					else {
+						values.add(datum.toString());
 						if (datum.toString().matches("^[0-9\\.]+$")) {
 							numericCount++;
 						}
@@ -84,21 +86,26 @@ public class DataFrame {
 				}
 				Class<?> type = UnknownType.class;
 				if (nullCount < data.length) {
-					type = String.class;
-					int nonNullCount = data.length - nullCount;
-					if (numericCount == nonNullCount) {
-						if (continuousCount > 0) {
-							type = Double.class;
-						}
-						else {
-							type = Integer.class;
-						}
+					if (values.size() == 2) {
+						type = Boolean.class;
 					}
-					else if (dateCount == nonNullCount) {
-						type = Date.class;
-					}
-					else if (numericCount > 0 || dateCount > 0) {
-						type = MixedType.class;
+					else {
+						type = String.class;
+						int nonNullCount = data.length - nullCount;
+						if (numericCount == nonNullCount) {
+							if (continuousCount > 0) {
+								type = Double.class;
+							}
+							else {
+								type = Integer.class;
+							}
+						}
+						else if (dateCount == nonNullCount) {
+							type = Date.class;
+						}
+						else if (numericCount > 0 || dateCount > 0) {
+							type = MixedType.class;
+						}
 					}
 				}
 				df.dataTypes.add(type);
@@ -111,7 +118,7 @@ public class DataFrame {
 				List<?> col = null;
 				Class<?> type = df.dataTypes.get(j);
 				if (type.equals(String.class) || type.equals(Date.class) ||
-						type.equals(UnknownType.class) || type.equals(MixedType.class)) {
+						type.equals(UnknownType.class) || type.equals(MixedType.class) || type.equals(Boolean.class)) {
 					col = new ArrayList<String>();
 				}
 				else if (type.equals(Integer.class)) {
@@ -129,7 +136,7 @@ public class DataFrame {
 					}
 					else {
 						if (type.equals(String.class) || type.equals(Date.class) ||
-								type.equals(MixedType.class)) {
+								type.equals(MixedType.class) || type.equals(Boolean.class)) {
 							((ArrayList<String>)col).add(data[i][j].toString());
 						}
 						else if (type.equals(Integer.class)) {

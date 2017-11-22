@@ -17,8 +17,9 @@ public class FieldDtoGroup implements Comparable<FieldDtoGroup> {
 		DATA_TYPE_ORDINALS.put("Integer", 2);
 		DATA_TYPE_ORDINALS.put("String", 3);
 		DATA_TYPE_ORDINALS.put("Date", 4);
-		DATA_TYPE_ORDINALS.put("MixedType", 5);
-		DATA_TYPE_ORDINALS.put("UnknownType", 6);
+		DATA_TYPE_ORDINALS.put("Boolean", 5);
+		DATA_TYPE_ORDINALS.put("MixedType", 6);
+		DATA_TYPE_ORDINALS.put("UnknownType", 7);
 	}
 
 	private String dataType;

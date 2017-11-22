@@ -1,8 +1,5 @@
 package com.rho.rhover.web.dto;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.rho.rhover.common.study.Field;
 
 public class FieldDto implements Comparable<FieldDto> {
@@ -11,20 +8,25 @@ public class FieldDto implements Comparable<FieldDto> {
 	
 	private String fieldName;
 	
+	private String fieldLabel = "";
+	
 	private String dataType;
 	
 	private Boolean isIdentifying;
 
-	public FieldDto(Long fieldId, String fieldName, String dataType, Boolean isIdentifying) {
+	public FieldDto(Long fieldId, String fieldName, String fieldLabel, String dataType, Boolean isIdentifying) {
 		super();
 		this.fieldId = fieldId;
 		this.fieldName = fieldName;
+		if (!fieldName.equals(fieldLabel)) {
+			this.fieldLabel = fieldLabel;
+		}
 		this.dataType = dataType;
 		this.isIdentifying = isIdentifying;
 	}
 
 	public FieldDto(Field field) {
-		this(field.getFieldId(), field.getFieldName(), field.getDataType(), field.getIsIdentifying());
+		this(field.getFieldId(), field.getFieldName(), field.getFieldLabel(), field.getDataType(), field.getIsIdentifying());
 	}
 
 	public Long getFieldId() {
@@ -41,6 +43,14 @@ public class FieldDto implements Comparable<FieldDto> {
 
 	public void setFieldName(String fieldName) {
 		this.fieldName = fieldName;
+	}
+
+	public String getFieldLabel() {
+		return fieldLabel;
+	}
+
+	public void setFieldLabel(String fieldLabel) {
+		this.fieldLabel = fieldLabel;
 	}
 
 	public String getDataType() {

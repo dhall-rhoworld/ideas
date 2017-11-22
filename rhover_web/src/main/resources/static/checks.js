@@ -4,8 +4,11 @@ const dataTypeMappings = {
 	String : "Character Variables",
 	Date : "Date Variables",
 	MixedType : "Mixed Type Variables",
-	UnknownType : "Unknown Type Variables"
+	UnknownType : "Unknown Type Variables",
+	Boolean : "TRUE/FALSE"
 };
+
+const MAX_LABEL = 50;
 
 function populateFields(data) {
 	for (let i = 0; i < data.length; i++) {
@@ -50,30 +53,49 @@ function fetchChecks() {
 
 function onChangeDataset() {
 	const datasetId = $("#select_dataset").val();
-	const url = "/rest/admin/study/fields?dataset_id=" + datasetId;
-	$.get(url)
-		.done(function(data) {
-			console.log(data);
-			let html = "<option value='-1'>Dataset Defaults</html>";
-			for (let i = 0; i < data.length; i++) {
-				const group = data[i];
-				const dataType = dataTypeMappings[group.dataType];
-				html += "<optgroup label='---" + dataType + "---'>"
-				for (let j = 0; j < group.fieldDtos.length; j++) {
-					field = group.fieldDtos[j];
-					let fieldName = field.fieldName;
-					if (field.isIdentifying) {
-						fieldName = "[ID] " + field.fieldName;
+	if (datasetId == -1) {
+		
+	}
+	else {
+		const url = "/rest/admin/study/fields?dataset_id=" + datasetId;
+		$.get(url)
+			.done(function(data) {
+				console.log(data);
+				let html = "<option value='-1'>Dataset Defaults</html>";
+				for (let i = 0; i < data.length; i++) {
+					const group = data[i];
+					const dataType = dataTypeMappings[group.dataType];
+					html += "<optgroup label='---" + dataType + "---'>"
+					for (let j = 0; j < group.fieldDtos.length; j++) {
+						field = group.fieldDtos[j];
+						let fieldName = field.fieldName;
+						if (field.isIdentifying) {
+							fieldName = "[ID] " + field.fieldName;
+						}
+						if (field.fieldLabel.length > 0) {
+							fieldLabel = field.fieldLabel;
+							if (fieldLabel.length > MAX_LABEL) {
+								const segLength = MAX_LABEL / 2;
+								p = fieldLabel.length - segLength;
+								q = fieldLabel.length;
+								fieldLabel = fieldLabel.substring(0, segLength) + " ... " + fieldLabel.substring(p, q);
+							}
+							fieldName += " (" + fieldLabel + ")";
+						}
+						html += "<option>" + fieldName + "</option>"
 					}
-					html += "<option>" + fieldName + "</option>"
+					html += "</optgroup>"
 				}
-				html += "</optgroup>"
-			}
-			$("#select_field").html(html);
-		})
-		.fail(function(error) {
-			console.log("Error");
-		});
+				$("#select_field").html(html);
+				$("#label_identifying").removeClass("deactivated");
+				$("#label_key").removeClass("deactivated");
+				$("#checkbox_identifying").removeAttr("disabled");
+				$("#checkbox_key").removeAttr("disabled");
+			})
+			.fail(function(error) {
+				console.log("Error");
+			});
+	}
 }
 
 function onChangeField() {

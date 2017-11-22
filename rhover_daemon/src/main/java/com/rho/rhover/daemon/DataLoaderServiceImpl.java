@@ -257,7 +257,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 				String fieldType = field.getDataType();
 				if (!fieldType.equals(colType) && !colType.equals("UnknownType")) {
 					String conversionType = null;
-					if (fieldType == "UnknownType") {
+					if (fieldType.equals("UnknownType") || fieldType.equals("Boolean")) {
 						conversionType = colType;
 					}
 					if (fieldType.equals("Integer") || fieldType.equals("Double")) {

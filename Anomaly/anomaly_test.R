@@ -8,6 +8,11 @@ library(RMySQL)
 source("outlier_scout.R")
 source("rhover_io.R")
 
+path <- "S:/RhoFED/ICAC2/PROSE/Statistics/Data/Complete/pdr.sas7bdat";
+data = read.sas7bdat(path)
+colnames(data)
+head(data$PDR_q7a1c)
+
 ctotDir <- "S:/RhoFED/CTOT-SACCC/CTOT/CTOT-08-Abecassis/Stats/Data/Clinical"
 paths <- getAllSasFilePaths(ctotDir)
 commonVars <- getAllCommonVariables(paths)
