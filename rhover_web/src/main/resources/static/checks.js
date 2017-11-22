@@ -1,3 +1,12 @@
+const dataTypeMappings = {
+	Double : "Continuous Variables",
+	Integer : "Integer Variables",
+	String : "Character Variables",
+	Date : "Date Variables",
+	MixedType : "Mixed Type Variables",
+	UnknownType : "Unknown Type Variables"
+};
+
 function populateFields(data) {
 	for (let i = 0; i < data.length; i++) {
 		const paramName = data[i].paramName;
@@ -40,7 +49,31 @@ function fetchChecks() {
 }
 
 function onChangeDataset() {
-	const datasetVersionId 
+	const datasetId = $("#select_dataset").val();
+	const url = "/rest/admin/study/fields?dataset_id=" + datasetId;
+	$.get(url)
+		.done(function(data) {
+			console.log(data);
+			let html = "<option value='-1'>Dataset Defaults</html>";
+			for (let i = 0; i < data.length; i++) {
+				const group = data[i];
+				const dataType = dataTypeMappings[group.dataType];
+				html += "<optgroup label='---" + dataType + "---'>"
+				for (let j = 0; j < group.fieldDtos.length; j++) {
+					field = group.fieldDtos[j];
+					let fieldName = field.fieldName;
+					if (field.isIdentifying) {
+						fieldName = "[ID] " + field.fieldName;
+					}
+					html += "<option>" + fieldName + "</option>"
+				}
+				html += "</optgroup>"
+			}
+			$("#select_field").html(html);
+		})
+		.fail(function(error) {
+			console.log("Error");
+		});
 }
 
 function onChangeField() {

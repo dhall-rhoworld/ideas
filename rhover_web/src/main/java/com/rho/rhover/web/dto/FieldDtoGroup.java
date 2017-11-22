@@ -68,6 +68,9 @@ public class FieldDtoGroup implements Comparable<FieldDtoGroup> {
 			groups.add(groupMap.get(dataType));
 		}
 		Collections.sort(groups);
+		for (FieldDtoGroup group : groups) {
+			Collections.sort(group.getFieldDtos());
+		}
 		return groups;
 	}
 }

@@ -1,0 +1,55 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>RhoVer Anomaly Settings</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="/rhover.css"/>
+    <link rel="stylesheet" href="/jquery-ui.css"/>
+    <script src="/jquery-3.2.1.min.js"></script>
+    <script src="/jquery-ui.js"></script>
+</head>
+<body>
+	<div class="page-header">RhoVer (Prototype)</div>
+	
+	<div class="menu-bar">
+		<ul>
+			<li><a href="/">Home</a></li>
+			<li><a href="/browse/studies">Browse</a></li>
+			<li><a href="/search/form">Search</a></li>
+			<li><a href="/admin/study/all" class="active-menu-item">Admin</a></li>
+		</ul>
+	</div>
+		
+    <div id="content">
+    	<h3>Univariate Settings: Study Defaults</h3>
+    	<p>
+    	<fieldset>
+    		<legend>Check which variables by default?</legend>
+    		
+    		<label for="radio_which_none">None</label>
+    		<input type="radio" name="which" id="radio_which_none" value="none"/>
+    		
+    		<label for="radio_which_numeric">All numeric</label>
+    		<input type="radio" name="which" id="radio_which_numeric" value="numeric"/>
+    		
+    		<label for="radio_which_continuous">All continuous numeric</label>
+    		<input type="radio" name="which" id="radio_which_continuous" value="continuous"/>
+    	</fieldset>
+    	</p>
+    	
+    	<p>
+    	<fieldset>
+    		<legend>Parameters</legend>
+    		<label for="text_sd">Standard deviations from mean</label>
+    		<input type="text" name="sd" id="text_sd" value="2"/>
+    	</fieldset>
+    	</p>
+   	</div>
+</body>
+
+<script>
+	$(function() {
+		$(":radio").checkboxradio();
+	});
+</script>
+</html>

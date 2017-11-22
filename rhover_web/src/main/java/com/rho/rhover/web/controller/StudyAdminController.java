@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.rho.rhover.common.check.CheckRepository;
 import com.rho.rhover.common.study.DataLocation;
+import com.rho.rhover.common.study.DatasetRepository;
 import com.rho.rhover.common.study.DatasetVersionRepository;
 import com.rho.rhover.common.study.FieldRepository;
 import com.rho.rhover.common.study.FieldService;
@@ -45,6 +46,9 @@ public class StudyAdminController {
 	
 	@Autowired
 	private DatasetVersionRepository datasetVersionRepository;
+	
+	@Autowired
+	private DatasetRepository datasetRepository;
 
 	@RequestMapping("/all")
 	public String viewAll(Model model) {
@@ -165,4 +169,14 @@ public class StudyAdminController {
 		model.addAttribute("studies", studyRepository.findAll());
 		return "/admin/study/all_studies";
 	}
+	
+	@RequestMapping("/anomaly_settings")
+	public String anomalySettings(
+			@RequestParam(name="study_id") Long studyId,
+			Model model) {
+		Study study = studyRepository.findOne(studyId);
+		model.addAttribute("datasets", datasetRepository.findByStudy(study));
+		return "/admin/study/anomaly_settings";
+	}
+		
 }

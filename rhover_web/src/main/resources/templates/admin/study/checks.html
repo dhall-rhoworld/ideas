@@ -29,14 +29,13 @@
 	    	Dataset: 
 	   		<select name="dataset_id" id="select_dataset">
 	   			<option value="-1">All Datasets</option>
-	   			<option th:each="datasetVersionOption : ${studyDbVersion.datasetVersions}"
-	   				th:value="${datasetVersionOption.datasetVersionId}" th:text="${datasetVersionOption.dataset.datasetName}"
-	   				th:selected="${datasetVersionOption.datasetVersionId == optionValue}"/>
+	   			<option th:each="datasetVersion : ${studyDbVersion.datasetVersions}"
+	   				th:value="${datasetVersion.dataset.datasetId}" th:text="${datasetVersion.dataset.datasetName}"/>
 	   		</select>
 	   		&nbsp; &nbsp;
 	   		Variable:
 	   		<select name="field_id" id="select_field">
-	   			<option value="-1">Default Checks</option>
+	   			<option value="-1">Study Defaults</option>
 	   		</select>
    		</p>
    		

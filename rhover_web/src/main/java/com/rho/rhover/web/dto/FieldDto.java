@@ -5,23 +5,26 @@ import java.util.List;
 
 import com.rho.rhover.common.study.Field;
 
-public class FieldDto {
+public class FieldDto implements Comparable<FieldDto> {
 
 	private Long fieldId;
 	
 	private String fieldName;
 	
 	private String dataType;
+	
+	private Boolean isIdentifying;
 
-	public FieldDto(Long fieldId, String fieldName, String dataType) {
+	public FieldDto(Long fieldId, String fieldName, String dataType, Boolean isIdentifying) {
 		super();
 		this.fieldId = fieldId;
 		this.fieldName = fieldName;
 		this.dataType = dataType;
+		this.isIdentifying = isIdentifying;
 	}
 
 	public FieldDto(Field field) {
-		this(field.getFieldId(), field.getFieldName(), field.getDataType());
+		this(field.getFieldId(), field.getFieldName(), field.getDataType(), field.getIsIdentifying());
 	}
 
 	public Long getFieldId() {
@@ -48,11 +51,26 @@ public class FieldDto {
 		this.dataType = dataType;
 	}
 	
-	public static List<FieldDto> toDtos(Iterable<Field> fields) {
-		List<FieldDto> dtos = new ArrayList<>();
-		for (Field field : fields) {
-			dtos.add(new FieldDto(field.getFieldId(), field.getFieldName(), field.getDataType()));
+	public Boolean getIsIdentifying() {
+		return isIdentifying;
+	}
+
+	public void setIsIdentifying(Boolean isIdentifying) {
+		this.isIdentifying = isIdentifying;
+	}
+
+	@Override
+	public int compareTo(FieldDto other) {
+		int val = 0;
+		if (this.isIdentifying && !other.isIdentifying) {
+			val = -1;
 		}
-		return dtos;
+		if (!this.isIdentifying && other.isIdentifying) {
+			val = 1;
+		}
+		if (val == 0) {
+			val = this.fieldName.compareTo(other.fieldName);
+		}
+		return val;
 	}
 }
