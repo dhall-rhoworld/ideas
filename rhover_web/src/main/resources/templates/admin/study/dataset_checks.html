@@ -31,10 +31,42 @@
    		<select name="dataset_id" id="select_dataset">
    			<option value="-1">--- Select ---</option>
    			<option th:each="datasetVersion : ${studyDbVersion.datasetVersions}"
-   				th:value="${datasetVersion.dataset.datasetId}" th:text="${datasetVersion.dataset.datasetName}"/>
+   				th:value="${datasetVersion.dataset.datasetId}" th:text="${datasetVersion.dataset.datasetName}"
+   				th:selected="${datasetVersion.dataset.datasetId} == ${dataset_id}"/>
    		</select>
 	   	</p>
+	   	
+	   	<div th:if="${fields}">
+	   		<table class="wide">
+	   			<tr>
+	   				<th>Data Type</th>
+	   				<th>Variable Name</th>
+	   				<th>Label</th>
+	   			</tr>
+	   			<tr th:each="field : ${fields}" th:classappend="${field.isNumeric == false}? 'deactivated' ">
+	   				<td th:text="${field.displayDataType}"/>
+	   				<td th:text="${field.fieldName}"/>
+	   				<td th:text="${field.fieldLabel}" style="text-align: left;"/>
+	   			</tr>
+	   		</table>
+	   	</div>
+	   	
+	   	<form>
+	   		<input type="hidden" name="study_id" id="study_id" th:value="${study.studyId}"/>
+	   	</form>
    	</div>
 </body>
+
+<script>
+	$(function() {
+		$("#select_dataset").change(function() {
+			const studyId = $("#study_id").val();
+			const datasetId = $("#select_dataset").val();
+			const url = "/admin/study/dataset_checks?study_id=" + studyId + "\u0026dataset_id=" + datasetId;
+			//console.log(url);
+			document.location.href = url;
+		});
+	});
+</script>
 
 </html>

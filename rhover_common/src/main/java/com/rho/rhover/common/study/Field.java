@@ -1,21 +1,41 @@
 package com.rho.rhover.common.study;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 
 import org.hibernate.annotations.Type;
 
+import com.rho.rhover.common.check.CheckParam;
+
 @Entity
 public class Field {
+	
+	private static final Map<String, String> DISPLAY_VALUES = new HashMap<>();
+	
+	static {
+		DISPLAY_VALUES.put("MixedType", "MIXED");
+		DISPLAY_VALUES.put("String", "CHARACTER");
+		DISPLAY_VALUES.put("Double", "CONTINUOUS");
+		DISPLAY_VALUES.put("Date", "DATE");
+		DISPLAY_VALUES.put("Boolean", "YES/NO");
+		DISPLAY_VALUES.put("Integer", "INTEGER");
+		DISPLAY_VALUES.put("UnknownType", "UNKNOWN");
+	}
+	
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -41,6 +61,9 @@ public class Field {
 	
 	@ManyToMany(mappedBy = "fields")
 	private Set<DatasetVersion> datasetVersions = new HashSet<>();
+	
+	@OneToMany(mappedBy="field", cascade=CascadeType.ALL, fetch=FetchType.EAGER)
+	private Set<CheckParam> checkParams = new HashSet<>();
 	
 	public Field() {
 		
@@ -114,4 +137,19 @@ public class Field {
 		this.isIdentifying = isIdentifying;
 	}
 	
+	public String getDisplayDataType() {
+		return DISPLAY_VALUES.get(this.dataType);
+	}
+	
+	public boolean getIsNumeric() {
+		return dataType.equals("Integer") || dataType.equals("Double");
+	}
+
+	public Set<CheckParam> getCheckParams() {
+		return checkParams;
+	}
+
+	public void setCheckParams(Set<CheckParam> checkParams) {
+		this.checkParams = checkParams;
+	}
 }

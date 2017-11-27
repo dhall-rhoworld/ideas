@@ -26,9 +26,11 @@ import com.rho.rhover.common.check.CheckParamRepository;
 import com.rho.rhover.common.check.CheckParamService;
 import com.rho.rhover.common.check.CheckRepository;
 import com.rho.rhover.common.study.DataLocation;
+import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.DatasetRepository;
 import com.rho.rhover.common.study.DatasetVersion;
 import com.rho.rhover.common.study.DatasetVersionRepository;
+import com.rho.rhover.common.study.Field;
 import com.rho.rhover.common.study.FieldRepository;
 import com.rho.rhover.common.study.FieldService;
 import com.rho.rhover.common.study.Study;
@@ -118,7 +120,7 @@ public class StudyAdminController {
 		return "admin/study/checks";
 	}
 	
-	@RequestMapping("/univariate")
+	@RequestMapping("/study_univariate")
 	public String showUnivariateChecks (
 			@RequestParam(name="study_id") Long studyId,
 			Model model) {
@@ -137,10 +139,10 @@ public class StudyAdminController {
 		model.addAttribute("filter_non_key", checkParamService.getCheckParam(check, "filter_non_key", study));
 		model.addAttribute("filter_identifying", checkParamService.getCheckParam(check, "filter_identifying", study));
 		model.addAttribute("sd", checkParamService.getCheckParam(check, "sd", study));
-		return "admin/study/univariate";
+		return "admin/study/study_univariate";
 	}
 	
-	@RequestMapping(value="/save_univariate", method=RequestMethod.POST)
+	@RequestMapping(value="/save_study_univariate", method=RequestMethod.POST)
 	public String saveUnivariate(
 			@RequestParam MultiValueMap<String, String> requestParams,
 			Model model) {
@@ -169,16 +171,25 @@ public class StudyAdminController {
 		}
 		checkConfigurationService.saveStudyCheckConfiguration(study, check, studyParams, datasetIds);
 		model.addAttribute("message", "Study parameters saved");
-		return "forward:/admin/study/univariate";
+		return "forward:/admin/study/study_univariate";
 	}
 	
 	@RequestMapping("/dataset_checks")
 	public String showDatasetChecks(
 			@RequestParam(name="study_id") Long studyId,
+			@RequestParam(name="dataset_id", required=false, defaultValue="-1") Long datasetId,
 			Model model) {
 		Study study = studyRepository.findOne(studyId);
 		model.addAttribute("study", study);
-		model.addAttribute("studyDbVersion", studyDbVersionRepository.findByStudyAndIsCurrent(study, Boolean.TRUE));	
+		model.addAttribute("studyDbVersion", studyDbVersionRepository.findByStudyAndIsCurrent(study, Boolean.TRUE));
+		if (datasetId != -1) {
+			Dataset dataset = datasetRepository.findOne(datasetId);
+			SortedSet<Field> fields = new TreeSet<>(new DataTypeComparator());
+			DatasetVersion datasetVersion = datasetVersionRepository.findByDatasetAndIsCurrent(dataset, Boolean.TRUE);
+			fields.addAll(datasetVersion.getFields());
+			model.addAttribute("fields", fields);
+			model.addAttribute("dataset_id", datasetId);
+		}
 		return "admin/study/dataset_checks";
 	}
 	
@@ -265,5 +276,29 @@ public class StudyAdminController {
 		model.addAttribute("datasets", datasetRepository.findByStudy(study));
 		return "/admin/study/anomaly_settings";
 	}
+	
+	private static final class DataTypeComparator implements Comparator<Field> {
 		
+		private static Map<String, Integer> ORDINALITY = new HashMap<>();
+		
+		static {
+			ORDINALITY.put("Double", 1);
+			ORDINALITY.put("Integer", 2);
+			ORDINALITY.put("String", 3);
+			ORDINALITY.put("Date", 4);
+			ORDINALITY.put("Boolean", 5);
+			ORDINALITY.put("MixedType", 6);
+			ORDINALITY.put("UnknownType", 7);
+		}
+
+		@Override
+		public int compare(Field f1, Field f2) {
+			int val = ORDINALITY.get(f1.getDataType()).compareTo(ORDINALITY.get(f2.getDataType()));
+			if (val == 0) {
+				val = f1.getFieldName().compareTo(f2.getFieldName());
+			}
+			return val;
+		}
+		
+	}
 }
