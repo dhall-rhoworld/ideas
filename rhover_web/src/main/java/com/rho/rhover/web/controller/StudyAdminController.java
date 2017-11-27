@@ -181,7 +181,12 @@ public class StudyAdminController {
 			Model model) {
 		Study study = studyRepository.findOne(studyId);
 		model.addAttribute("study", study);
-		model.addAttribute("studyDbVersion", studyDbVersionRepository.findByStudyAndIsCurrent(study, Boolean.TRUE));
+		SortedSet<Dataset> datasets = new TreeSet<>(new IsCheckedComparator());
+		StudyDbVersion studyDbVersion = studyDbVersionRepository.findByStudyAndIsCurrent(study, Boolean.TRUE);
+		for (DatasetVersion datasetVersion : studyDbVersion.getDatasetVersions()) {
+			datasets.add(datasetVersion.getDataset());
+		}
+		model.addAttribute("datasets", datasets);
 		if (datasetId != -1) {
 			Dataset dataset = datasetRepository.findOne(datasetId);
 			SortedSet<Field> fields = new TreeSet<>(new DataTypeComparator());
@@ -296,6 +301,25 @@ public class StudyAdminController {
 			int val = ORDINALITY.get(f1.getDataType()).compareTo(ORDINALITY.get(f2.getDataType()));
 			if (val == 0) {
 				val = f1.getFieldName().compareTo(f2.getFieldName());
+			}
+			return val;
+		}
+		
+	}
+	
+	private static final class IsCheckedComparator implements Comparator<Dataset> {
+
+		@Override
+		public int compare(Dataset ds1, Dataset ds2) {
+			int val = 0;
+			if (ds1.getIsChecked() && !ds2.getIsChecked()) {
+				val = -1;
+			}
+			else if (!ds1.getIsChecked() && ds2.getIsChecked()) {
+				val = 1;
+			}
+			else {
+				val = ds1.getDatasetName().compareTo(ds2.getDatasetName());
 			}
 			return val;
 		}

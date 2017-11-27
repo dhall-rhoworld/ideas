@@ -138,4 +138,23 @@ public class DatasetVersion {
 		this.numRecords = numRecords;
 	}
 	
+	public int getNumNonIdentifyingNumericFields() {
+		int count = 0;
+		for (Field field : fields) {
+			if (field.getIsNumeric() && !field.getIsIdentifying()) {
+				count++;
+			}
+		}
+		return count;
+	}
+	
+	public int getNumNonIdentifyingContinuousFields() {
+		int count = 0;
+		for (Field field : fields) {
+			if (field.getDataType().equals("Double") && !field.getIsIdentifying()) {
+				count++;
+			}
+		}
+		return count;
+	}
 }

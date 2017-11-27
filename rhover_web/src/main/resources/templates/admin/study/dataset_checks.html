@@ -30,9 +30,13 @@
     	Select Dataset:
    		<select name="dataset_id" id="select_dataset">
    			<option value="-1">--- Select ---</option>
-   			<option th:each="datasetVersion : ${studyDbVersion.datasetVersions}"
-   				th:value="${datasetVersion.dataset.datasetId}" th:text="${datasetVersion.dataset.datasetName}"
-   				th:selected="${datasetVersion.dataset.datasetId} == ${dataset_id}"/>
+   			<option th:each="dataset : ${datasets}"
+   				th:value="${dataset.datasetId}"
+   				th:selected="${dataset.datasetId} == ${dataset_id}"
+   				th:disabled="${dataset.isChecked} == false">
+   				<span th:text="${dataset.datasetName}"/>
+   				<span th:if="${dataset.isChecked} == false"> (not checked)</span>
+   			</option>
    		</select>
 	   	</p>
 	   	

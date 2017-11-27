@@ -59,6 +59,10 @@
 		</table>
 		
 		<h3>Select Datasets to Check</h3>
+		<p>
+			<input type="checkbox" id="cball"/>
+			<label for="cball">Select All</label>
+		</p>
 		<div style="column-count: 4; text-align: left; line-height: 40px;">
 			<div th:each="datasetVersion : ${dataset_versions}">
 				<input type="checkbox" class="radio-dataset" th:name="'check_dataset-' + ${datasetVersion.dataset.datasetId}"
@@ -66,7 +70,6 @@
 				<label th:for="'cb-' + ${datasetVersion.dataset.datasetId}" th:text="${datasetVersion.dataset.datasetName}" style="width: 150px"/>
 			</div>
 		</div>
-		
 		<p>
 			<button type="submit" id="button_save">Save</button>
 		</p>
@@ -77,6 +80,16 @@
 <script>
 	$(function() {
 		$(".radio-dataset").checkboxradio();
+		$("#cball").checkboxradio();
+		$("#cball").change(function() {
+			const isChecked = $("#cball").prop("checked");
+			if (isChecked) {
+				$(".radio-dataset").prop("checked", true).change();
+			}
+			else {
+				$(".radio-dataset").prop("checked", false).change();
+			}
+		});
 	});
 </script>
 
