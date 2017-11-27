@@ -154,6 +154,14 @@ table.invisible tr, td {
 	text-align: left;
 }
 
+.message-box-slim {
+	padding: 10px;
+	border-style: solid;
+	border-color: red;
+	border-width: 2px;
+	color: black;
+}
+
 .configured-check {
 	color: red;
 }

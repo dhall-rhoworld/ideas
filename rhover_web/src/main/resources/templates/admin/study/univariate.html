@@ -26,7 +26,9 @@
     		<a th:href="@{/admin/study/dataset_checks(study_id=${study.studyId})}">Individual Dataset Settings</a>
     	</p>
     	
-    	<form>
+    	<p th:if="${message}" th:text="${message}" class="message-box-slim"/>
+    	
+    	<form action="/admin/study/save_univariate" method="post">
     	<input type="hidden" id="study_id" name="study_id" th:value="${study.studyId}"/>
     	
 		<table class="wide">
@@ -36,38 +38,39 @@
 			<tr>
 				<td>Run Checks On</td>
 				<td style="text-align: left">
-					<input type="radio" name="data_types" value="numeric" th:checked="${data_types.paramValue} == numeric"/> All numeric variables<br/>
-					<input type="radio" name="data_types" value="continuous" th:checked="${data_types.paramValue} == continuous"/> Only continuous numeric variables
+					<input type="radio" name="param_data_types" value="numeric" th:checked="${data_types.paramValue} == numeric"/> All numeric variables<br/>
+					<input type="radio" name="param_data_types" value="continuous" th:checked="${data_types.paramValue} == continuous"/> Only continuous numeric variables
 				</td>
 			</tr>
 			<tr>
 				<td>Additional Filters</td>
 				<td style="text-align: left">
-					<input type="checkbox" name="filter_non_key" th:checked="${filter_non_key.paramValue} == 'on'"/> Omit non-key variables<br/>
-					<input type="checkbox" name="filter_identifying" th:checked="${filter_identifying.paramValue} == 'on'"/> Omit identifying variables
+					<input type="checkbox" name="param_filter_non_key" th:checked="${filter_non_key.paramValue} == 'on'"/> Omit non-key variables<br/>
+					<input type="checkbox" name="param_filter_identifying" th:checked="${filter_identifying.paramValue} == 'on'"/> Omit identifying variables
 				</td>
 			</tr>
 			<tr>
 				<td>Inlier Boundary Value</td>
 				<td style="text-align: left">
-					<input type="text" name="sd" size="3" th:value="${sd.paramValue}"/>&nbsp;&nbsp;
+					<input type="text" name="param_sd" size="3" th:value="${sd.paramValue}"/>&nbsp;&nbsp;
 					Standard Deviations from Mean
 				</td>
 			</tr>
 		</table>
-		</form>
 		
 		<h3>Select Datasets to Check</h3>
 		<div style="column-count: 4; text-align: left; line-height: 40px;">
-			<div th:each="datasetVersion : ${studyDbVersion.datasetVersions}">
-				<input type="checkbox" class="radio-dataset" th:name="'check_dataset-' + datasetVersion.dataset.datasetId" th:id="'cb-' + ${datasetVersion.dataset.datasetId}"/>
+			<div th:each="datasetVersion : ${dataset_versions}">
+				<input type="checkbox" class="radio-dataset" th:name="'check_dataset-' + ${datasetVersion.dataset.datasetId}"
+					th:checked="${datasetVersion.dataset.isChecked}" th:id="'cb-' + ${datasetVersion.dataset.datasetId}"/>
 				<label th:for="'cb-' + ${datasetVersion.dataset.datasetId}" th:text="${datasetVersion.dataset.datasetName}" style="width: 150px"/>
 			</div>
 		</div>
 		
 		<p>
-			<button type="button" id="button_save">Save</button>
+			<button type="submit" id="button_save">Save</button>
 		</p>
+		</form>
    	</div>
 </body>
 

@@ -1,5 +1,9 @@
 package com.rho.rhover.common.check;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,4 +49,19 @@ public class CheckParamServiceImpl implements CheckParamService {
 		return param;
 	}
 
+	@Override
+	public Set<CheckParam> getAllCheckParams(Check check, Study study) {
+		List<CheckParam> globalParams = checkParamRepository.findByCheckAndParamScope(check, "GLOBAL");
+		Set<CheckParam> params = new HashSet<>();
+		for (CheckParam globalParam : globalParams) {
+			CheckParam studyParam = getCheckParam(check, globalParam.getParamName(), study);
+			if (studyParam != null) {
+				params.add(studyParam);
+			}
+			else {
+				params.add(globalParam);
+			}
+		}
+		return params;
+	}
 }

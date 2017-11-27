@@ -26,6 +26,7 @@ public class CheckParam {
 	@Column(name="param_value")
 	private String paramValue;
 	
+	// TODO: Consider making this an enum
 	@Column(name="param_scope")
 	private String paramScope;
 	

@@ -1,7 +1,14 @@
 package com.rho.rhover.web.controller;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,17 +21,21 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.rho.rhover.common.check.Check;
+import com.rho.rhover.common.check.CheckParam;
 import com.rho.rhover.common.check.CheckParamRepository;
 import com.rho.rhover.common.check.CheckParamService;
 import com.rho.rhover.common.check.CheckRepository;
 import com.rho.rhover.common.study.DataLocation;
 import com.rho.rhover.common.study.DatasetRepository;
+import com.rho.rhover.common.study.DatasetVersion;
 import com.rho.rhover.common.study.DatasetVersionRepository;
 import com.rho.rhover.common.study.FieldRepository;
 import com.rho.rhover.common.study.FieldService;
 import com.rho.rhover.common.study.Study;
+import com.rho.rhover.common.study.StudyDbVersion;
 import com.rho.rhover.common.study.StudyDbVersionRepository;
 import com.rho.rhover.common.study.StudyRepository;
+import com.rho.rhover.web.service.CheckConfigurationService;
 
 @Controller
 @RequestMapping("/admin/study")
@@ -58,6 +69,9 @@ public class StudyAdminController {
 	
 	@Autowired
 	private CheckParamService checkParamService;
+	
+	@Autowired
+	private CheckConfigurationService checkConfigurationService;
 
 	@RequestMapping("/all")
 	public String viewAll(Model model) {
@@ -104,19 +118,58 @@ public class StudyAdminController {
 		return "admin/study/checks";
 	}
 	
-	@RequestMapping("/study_checks")
-	public String showStudyChecks(
+	@RequestMapping("/univariate")
+	public String showUnivariateChecks (
 			@RequestParam(name="study_id") Long studyId,
 			Model model) {
 		Study study = studyRepository.findOne(studyId);
 		model.addAttribute("study", study);
-		model.addAttribute("studyDbVersion", studyDbVersionRepository.findByStudyAndIsCurrent(study, Boolean.TRUE));
+		StudyDbVersion studyDbVersion = studyDbVersionRepository.findByStudyAndIsCurrent(study, Boolean.TRUE);
+		SortedSet<DatasetVersion> datasetVersions = new TreeSet<DatasetVersion>(new Comparator<DatasetVersion>() {
+			public int compare(DatasetVersion dv1, DatasetVersion dv2) {
+				return dv1.getDataset().getDatasetName().compareTo(dv2.getDataset().getDatasetName());
+			}
+		});
+		datasetVersions.addAll(studyDbVersion.getDatasetVersions());
+		model.addAttribute("dataset_versions", datasetVersions);
 		Check check = checkRepository.findByCheckName("UNIVARIATE_OUTLIER");
 		model.addAttribute("data_types", checkParamService.getCheckParam(check, "data_types", study));
 		model.addAttribute("filter_non_key", checkParamService.getCheckParam(check, "filter_non_key", study));
 		model.addAttribute("filter_identifying", checkParamService.getCheckParam(check, "filter_identifying", study));
 		model.addAttribute("sd", checkParamService.getCheckParam(check, "sd", study));
-		return "admin/study/study_checks";
+		return "admin/study/univariate";
+	}
+	
+	@RequestMapping(value="/save_univariate", method=RequestMethod.POST)
+	public String saveUnivariate(
+			@RequestParam MultiValueMap<String, String> requestParams,
+			Model model) {
+		Long studyId = Long.parseLong(requestParams.getFirst("study_id"));
+		Study study = studyRepository.findOne(studyId);
+		Check check = checkRepository.findByCheckName("UNIVARIATE_OUTLIER");
+		Set<CheckParam> allParams = checkParamService.getAllCheckParams(check, study);
+		Map<String, String> studyParams = new HashMap<>();
+		for (CheckParam param : allParams) {
+			String requestParamName = "param_" + param.getParamName();
+			String paramValue = null;
+			if (requestParams.containsKey(requestParamName)) {
+				paramValue = requestParams.getFirst(requestParamName);
+			}
+			else {
+				paramValue = "off";
+			}
+			studyParams.put(param.getParamName(), paramValue);
+		}
+		Collection<Long> datasetIds = new ArrayList<>();
+		for (String key : requestParams.keySet()) {
+			if (key.startsWith("check_dataset-")) {
+				Long datasetId = Long.parseLong(key.substring(14));
+				datasetIds.add(datasetId);
+			}
+		}
+		checkConfigurationService.saveStudyCheckConfiguration(study, check, studyParams, datasetIds);
+		model.addAttribute("message", "Study parameters saved");
+		return "forward:/admin/study/univariate";
 	}
 	
 	@RequestMapping("/dataset_checks")

@@ -33,11 +33,10 @@
    			<tr th:each="study : ${studies}">
    				<td th:text="${study.studyName}"/>
    				<td>
-   					<a href="#">Study Properties</a> |
+   					<a href="#">Properties</a> |
    					<a th:href="@{/admin/study/data_locations(study_id=${study.studyId})}">Data Folders</a> |
-   					<a th:href="@{/admin/study/identifying_fields(study_id=${study.studyId})}">Identifying Variables</a> |
-   					<a th:href="@{/admin/study/study_checks(study_id=${study.studyId})}">Data Check Params</a> |
-   					<a th:href="@{/admin/study/anomaly_settings(study_id=${study.studyId})}">Anomaly Settings</a>
+   					<a th:href="@{/admin/study/identifying_fields(study_id=${study.studyId})}">Identifiers</a> |
+   					<a th:href="@{/admin/study/univariate(study_id=${study.studyId})}">Univariate</a>
    				</td>
    			</tr>
    		</table>
