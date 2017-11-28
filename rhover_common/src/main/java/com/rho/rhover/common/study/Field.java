@@ -24,6 +24,8 @@ import com.rho.rhover.common.check.CheckParam;
 @Entity
 public class Field {
 	
+	private static final int DISPLAY_LENGTH = 50;
+	
 	private static final Map<String, String> DISPLAY_VALUES = new HashMap<>();
 	
 	static {
@@ -64,6 +66,10 @@ public class Field {
 	
 	@OneToMany(mappedBy="field", cascade=CascadeType.ALL, fetch=FetchType.EAGER)
 	private Set<CheckParam> checkParams = new HashSet<>();
+	
+	@Column(name="is_checked")
+	@Type(type="org.hibernate.type.NumericBooleanType")
+	private Boolean isChecked = Boolean.FALSE;
 	
 	public Field() {
 		
@@ -151,5 +157,32 @@ public class Field {
 
 	public void setCheckParams(Set<CheckParam> checkParams) {
 		this.checkParams = checkParams;
+	}
+	
+	public Boolean getIsChecked() {
+		return isChecked;
+	}
+
+	public void setIsChecked(Boolean isChecked) {
+		this.isChecked = isChecked;
+	}
+
+	public String getTruncatedFieldLabel() {
+		if (fieldLabel.length() < DISPLAY_LENGTH) {
+			return fieldLabel;
+		}
+		int segLen = DISPLAY_LENGTH / 2;
+		int p = fieldLabel.substring(0, segLen).lastIndexOf(" ");
+		if (p < 0) {
+			p = segLen;
+		}
+		int q = fieldLabel.length() - segLen;
+		for (int i = q; i < fieldLabel.length(); i++) {
+			if (fieldLabel.charAt(i) == ' ') {
+				q = i;
+				break;
+			}
+		}
+		return fieldLabel.substring(0, p) + " ... " + fieldLabel.substring(q);
 	}
 }

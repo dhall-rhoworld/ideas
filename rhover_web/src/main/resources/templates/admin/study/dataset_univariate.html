@@ -1,0 +1,116 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>RhoVer Univariate Settings</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="/rhover.css"/>
+    <link rel="stylesheet" href="/jquery-ui.css"/>
+    <script src="/jquery-3.2.1.min.js"></script>
+    <script src="/jquery-ui.js"></script>
+    <script src="/dataset_univariate.js"></script>
+</head>
+<body>
+	<div class="page-header">RhoVer (Prototype)</div>
+	
+	<div class="menu-bar">
+		<ul>
+			<li><a href="/">Home</a></li>
+			<li><a href="/browse/studies">Browse</a></li>
+			<li><a href="/search/form">Search</a></li>
+			<li><a href="/admin/study/all" class="active-menu-item">Admin</a></li>
+		</ul>
+	</div>
+		
+    <div id="content">
+    	<p>
+    		<a th:href="@{/admin/study/study_univariate(study_id=${study.studyId})}">Study-Level Settings</a> |
+    		<strong>Individual Dataset Settings</strong>
+    	</p>
+    
+    	<form>
+	    	<input type="hidden" name="study_id" id="study_id" th:value="${study.studyId}"/>
+	    	
+	   		<p>
+	    	Select Dataset:
+	   		<select name="dataset_id" id="select_dataset">
+	   			<option value="-1">--- Select ---</option>
+	   			<option th:each="dataset : ${datasets}"
+	   				th:value="${dataset.datasetId}"
+	   				th:selected="${dataset.datasetId} == ${dataset_id}"
+	   				th:disabled="${dataset.isChecked} == false">
+	   				<span th:text="${dataset.datasetName}"/>
+	   				<span th:if="${dataset.isChecked} == false"> (not checked)</span>
+	   			</option>
+	   		</select>
+		   	</p>
+		   	
+		   	<div th:if="${fields}">
+		   	
+		   		<table class="wide">
+					<tr>
+						<th colspan="2" style="background-color: CornflowerBlue; color: white">Defaults</th>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<input type="radio" id="radio_study_level" name="use_study_checks" checked="true"/> Use study-level defaults
+							&nbsp;&nbsp;
+							<input type="radio" id="radio_dataset_level" name="use_study_checks" /> Set dataset-specific defaults
+						</td>
+					</tr>
+					<tr class="dataset-params deactivated">
+						<td>Run Checks On</td>
+						<td style="text-align: left">
+							<input type="radio" name="param_data_types" class="dataset-params" value="numeric"
+								th:checked="${data_types.paramValue} == numeric" disabled="true"/> All numeric variables<br/>
+							<input type="radio" name="param_data_types" class="dataset-params" value="continuous"
+								th:checked="${data_types.paramValue} == continuous" disabled="true"/> Only continuous numeric variables
+							<input type="hidden" id="study_data_types" th:value="${study_data_types.paramValue}"/>
+						</td>
+					</tr>
+					<tr class="dataset-params deactivated">
+						<td>Additional Filters</td>
+						<td style="text-align: left">
+							<input type="checkbox" name="param_filter_non_key" id="cb_filter_non_key" class="dataset-params"
+								th:checked="${filter_non_key.paramValue} == 'on'" disabled="true"/> Omit non-key variables<br/>
+							<input type="checkbox" name="param_filter_identifying" id="cb_filter_identifying" class="dataset-params"
+								th:checked="${filter_identifying.paramValue} == 'on'" disabled="true"/> Omit identifying variables
+							<input type="hidden" id="study_filter_non_key" th:value="${study_filter_non_key.paramValue}"/>
+							<input type="hidden" id="study_filter_identifying" th:value="${study_filter_identifying.paramValue}"/>
+						</td>
+					</tr>
+					<tr class="dataset-params deactivated">
+						<td>Default Outlier Boundary</td>
+						<td style="text-align: left">
+							<input type="text" name="param_sd" id="text_sd" class="dataset-params" size="3"
+								th:value="${sd.paramValue}" disabled="true"/>
+								&nbsp;&nbsp;
+							Standard Deviations from Mean
+							<input type="hidden" id="study_sd" th:value="${study_sd.paramValue}"/>
+						</td>
+					</tr>
+				</table>
+		   	
+		   		<h3>Variables</h3>
+		   		<table class="wide">
+		   			<tr>
+		   				<th>Variable Name</th>
+		   				<th>Variable Label</th>
+		   				<th>Data Type</th>
+		   				<th>Outlier Boundary</th>
+		   			</tr>
+		   			<tr th:each="field : ${fields}" th:id="'field_' + ${field.fieldId}" th:attr="data-data_type=${field.dataType}" class="field deactivated">
+		   				<td th:text="${field.fieldName}" style="text-align: left;"/>
+		   				<td th:text="${field.truncatedFieldLabel}" style="text-align: left;"/>
+		   				<td th:text="${field.displayDataType}" style="text-align: left;"/>
+		   				<td>
+	   						<input type="checkbox" th:id="'cb_custom_' + ${field.fieldId}" class="cb_custom" disabled="true"/>Use Custom
+	   						&nbsp;
+	   						<input type="text" th:id="'text_custom_' + ${field.fieldId}" size="2" disabled="true"/>
+		   				</td>
+		   			</tr>
+		   		</table>
+		   	</div>
+	   	</form>
+   	</div>
+</body>
+</html>

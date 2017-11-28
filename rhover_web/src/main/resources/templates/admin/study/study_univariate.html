@@ -23,7 +23,7 @@
     <div id="content">
     	<p>
     		<strong>Study-Level Settings</strong> |
-    		<a th:href="@{/admin/study/dataset_checks(study_id=${study.studyId})}">Individual Dataset Settings</a>
+    		<a th:href="@{/admin/study/dataset_univariate(study_id=${study.studyId})}">Individual Dataset Settings</a>
     	</p>
     	
     	<p th:if="${message}" th:text="${message}" class="message-box-slim"/>
@@ -50,7 +50,7 @@
 				</td>
 			</tr>
 			<tr>
-				<td>Inlier Boundary Value</td>
+				<td>Default Outlier Boundary</td>
 				<td style="text-align: left">
 					<input type="text" name="param_sd" size="3" th:value="${sd.paramValue}"/>&nbsp;&nbsp;
 					Standard Deviations from Mean

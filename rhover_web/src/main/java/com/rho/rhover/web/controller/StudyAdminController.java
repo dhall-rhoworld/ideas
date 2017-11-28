@@ -174,7 +174,7 @@ public class StudyAdminController {
 		return "forward:/admin/study/study_univariate";
 	}
 	
-	@RequestMapping("/dataset_checks")
+	@RequestMapping("/dataset_univariate")
 	public String showDatasetChecks(
 			@RequestParam(name="study_id") Long studyId,
 			@RequestParam(name="dataset_id", required=false, defaultValue="-1") Long datasetId,
@@ -194,8 +194,19 @@ public class StudyAdminController {
 			fields.addAll(datasetVersion.getFields());
 			model.addAttribute("fields", fields);
 			model.addAttribute("dataset_id", datasetId);
+			
+			Check check = checkRepository.findByCheckName("UNIVARIATE_OUTLIER");
+			model.addAttribute("data_types", checkParamService.getCheckParam(check, "data_types", dataset));
+			model.addAttribute("filter_non_key", checkParamService.getCheckParam(check, "filter_non_key", dataset));
+			model.addAttribute("filter_identifying", checkParamService.getCheckParam(check, "filter_identifying", dataset));
+			model.addAttribute("sd", checkParamService.getCheckParam(check, "sd", dataset));
+			
+			model.addAttribute("study_data_types", checkParamService.getCheckParam(check, "data_types", study));
+			model.addAttribute("study_filter_non_key", checkParamService.getCheckParam(check, "filter_non_key", study));
+			model.addAttribute("study_filter_identifying", checkParamService.getCheckParam(check, "filter_identifying", study));
+			model.addAttribute("study_sd", checkParamService.getCheckParam(check, "sd", study));
 		}
-		return "admin/study/dataset_checks";
+		return "admin/study/dataset_univariate";
 	}
 	
 	@RequestMapping(value="/save", method=RequestMethod.POST)
