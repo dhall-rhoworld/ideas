@@ -17,14 +17,23 @@ function activateAppropriateFields() {
 	$(".field").each(function() {
 		const dataType = this.dataset.data_type;
 		const fieldId = this.id.substring(6, this.id.length);
+		const skipId = "#cb_skip_" + fieldId;
+		const skipped = $(skipId).prop("checked");
 		if (dataType == "Double") {
-			activateFieldCheck(fieldId, true);
+			if (!skipped) {
+				activateFieldCheck(fieldId, true);
+			}
+			$(skipId).prop("disabled", false);
 		}
 		else if (dataType == "Integer" && typesToCheck == "numeric") {
-			activateFieldCheck(fieldId, true);
+			if (!skipped) {
+				activateFieldCheck(fieldId, true);
+			}
+			$(skipId).prop("disabled", false);
 		}
 		else {
 			activateFieldCheck(fieldId, false);
+			$(skipId).prop("disabled", true);
 		}
 	});
 }
@@ -68,6 +77,13 @@ $(function() {
 		else {
 			$(textId).prop("disabled", true);
 		}
+	});
+	
+	$(".cb_skip").change(function(event) {
+		const id = event.target.id;
+		const fieldId = id.substring(8, id.length);
+		const activate = !event.target.checked;
+		activateFieldCheck(fieldId, activate);
 	});
 	
 	$("input[name='param_data_types']").click(function() {

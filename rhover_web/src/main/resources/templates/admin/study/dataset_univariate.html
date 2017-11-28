@@ -93,12 +93,16 @@
 		   		<h3>Variables</h3>
 		   		<table class="wide">
 		   			<tr>
+		   				<th>Skip</th>
 		   				<th>Variable Name</th>
 		   				<th>Variable Label</th>
 		   				<th>Data Type</th>
 		   				<th>Outlier Boundary</th>
 		   			</tr>
 		   			<tr th:each="field : ${fields}" th:id="'field_' + ${field.fieldId}" th:attr="data-data_type=${field.dataType}" class="field deactivated">
+		   				<td>
+		   					<input type="checkbox" th:id="'cb_skip_' + ${field.fieldId}" class="cb_skip"/>
+		   				</td>
 		   				<td th:text="${field.fieldName}" style="text-align: left;"/>
 		   				<td th:text="${field.truncatedFieldLabel}" style="text-align: left;"/>
 		   				<td th:text="${field.displayDataType}" style="text-align: left;"/>
