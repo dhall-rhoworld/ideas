@@ -121,7 +121,7 @@ public class StudyAdminController {
 	}
 	
 	@RequestMapping("/study_univariate")
-	public String showUnivariateChecks (
+	public String showStudyUnivariate (
 			@RequestParam(name="study_id") Long studyId,
 			Model model) {
 		Study study = studyRepository.findOne(studyId);
@@ -143,7 +143,7 @@ public class StudyAdminController {
 	}
 	
 	@RequestMapping(value="/save_study_univariate", method=RequestMethod.POST)
-	public String saveUnivariate(
+	public String saveStudyUnivariate(
 			@RequestParam MultiValueMap<String, String> requestParams,
 			Model model) {
 		Long studyId = Long.parseLong(requestParams.getFirst("study_id"));
@@ -175,7 +175,7 @@ public class StudyAdminController {
 	}
 	
 	@RequestMapping("/dataset_univariate")
-	public String showDatasetChecks(
+	public String showDatasetUnivariate(
 			@RequestParam(name="study_id") Long studyId,
 			@RequestParam(name="dataset_id", required=false, defaultValue="-1") Long datasetId,
 			Model model) {
@@ -205,8 +205,51 @@ public class StudyAdminController {
 			model.addAttribute("study_filter_non_key", checkParamService.getCheckParam(check, "filter_non_key", study));
 			model.addAttribute("study_filter_identifying", checkParamService.getCheckParam(check, "filter_identifying", study));
 			model.addAttribute("study_sd", checkParamService.getCheckParam(check, "sd", study));
+			
+			model.addAttribute("use_study_defaults", checkParamRepository.findByCheckAndDataset(check, dataset).size() == 0);
 		}
 		return "admin/study/dataset_univariate";
+	}
+	
+	@RequestMapping(value="/save_dataset_univariate", method=RequestMethod.POST)
+	public String saveDatasetUnivariate(
+			@RequestParam("use_study_defaults") Boolean useStudyDefaults,
+			@RequestParam("dataset_id") Long datasetId,
+			@RequestParam MultiValueMap<String, String> requestParams,
+			Model model) {
+		Collection<Long> skipList = new ArrayList<>();
+		Map<String, String> datasetParams = new HashMap<>();
+		Map<Long, Map<String, String>> fieldParams = new HashMap<>();
+		logger.debug("Use study defaults: " + useStudyDefaults);
+		for (String key : requestParams.keySet()) {
+			//logger.debug(key + ": " + requestParams.getFirst(key));
+			if (key.startsWith("skip_")) {
+				Long fieldId = Long.parseLong(key.substring(5));
+				skipList.add(fieldId);
+				logger.debug("Skipping field " + fieldId);
+			}
+			else if (key.startsWith("param_")) {
+				String paramName = key.substring(6);
+				String paramValue = requestParams.getFirst(key);
+				datasetParams.put(paramName, paramValue);
+				logger.debug("Saving dataset parameter " + paramName + " = " + paramValue);
+			}
+			else if (key.startsWith("sd_field_")) {
+				Long fieldId = Long.parseLong(key.substring(9));
+				String paramValue = requestParams.getFirst(key);
+				Map<String, String> fieldMap = fieldParams.get(fieldId);
+				if (fieldMap == null) {
+					fieldMap = new HashMap<>();
+					fieldParams.put(fieldId, fieldMap);
+				}
+				fieldMap.put("sd", paramValue);
+			}
+		}
+		Dataset dataset = datasetRepository.findOne(datasetId);
+		Check check = checkRepository.findByCheckName("UNIVARIATE_OUTLIER");
+		checkConfigurationService.saveDatasetCheckConfiguration(dataset, check, useStudyDefaults, datasetParams, fieldParams, skipList);
+		model.addAttribute("message", "Parameters saved");
+		return "forward:/admin/study/dataset_univariate";
 	}
 	
 	@RequestMapping(value="/save", method=RequestMethod.POST)

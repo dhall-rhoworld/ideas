@@ -67,9 +67,9 @@ public class Field {
 	@OneToMany(mappedBy="field", cascade=CascadeType.ALL, fetch=FetchType.EAGER)
 	private Set<CheckParam> checkParams = new HashSet<>();
 	
-	@Column(name="is_checked")
+	@Column(name="is_skipped")
 	@Type(type="org.hibernate.type.NumericBooleanType")
-	private Boolean isChecked = Boolean.FALSE;
+	private Boolean isSkipped = Boolean.FALSE;
 	
 	public Field() {
 		
@@ -159,12 +159,12 @@ public class Field {
 		this.checkParams = checkParams;
 	}
 	
-	public Boolean getIsChecked() {
-		return isChecked;
+	public Boolean getIsSkipped() {
+		return isSkipped;
 	}
 
-	public void setIsChecked(Boolean isChecked) {
-		this.isChecked = isChecked;
+	public void setIsSkipped(Boolean isChecked) {
+		this.isSkipped = isChecked;
 	}
 
 	public String getTruncatedFieldLabel() {

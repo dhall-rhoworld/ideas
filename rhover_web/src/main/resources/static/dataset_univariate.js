@@ -5,10 +5,14 @@ function activateFieldCheck(fieldId, activated) {
 	if (activated) {
 		$(rowId).removeClass("deactivated");
 		$(checkboxId).prop("disabled", false);
+		if ($(checkboxId).prop("checked")) {
+			$(textId).prop("disabled", false);
+		}
 	}
 	else {
 		$(rowId).addClass("deactivated");
 		$(checkboxId).prop("disabled", true);
+		$(textId).prop("disabled", true);
 	}
 }
 
@@ -90,6 +94,11 @@ $(function() {
 		activateAppropriateFields();
 	});
 	
+	if ($("input[name='use_study_defaults']:checked").val() == "false") {
+		$(".dataset-params").removeClass("deactivated");
+		$(".dataset-params").removeAttr("disabled");
+	}
+		
 	activateAppropriateFields();
 
 });

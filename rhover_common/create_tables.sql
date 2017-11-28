@@ -101,7 +101,7 @@ create table field (
 	is_identifying TINYINT NOT NULL DEFAULT 0,
 	study_id BIGINT NOT NULL,
 	data_type VARCHAR(50) NOT NULL,
-	is_checked TINYINT NOT NULL DEFAULT 0,
+	is_skipped TINYINT NOT NULL DEFAULT 0,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT pk_field PRIMARY KEY (field_id),
 	CONSTRAINT fk_field_2_study FOREIGN KEY (study_id) REFERENCES study (study_id),

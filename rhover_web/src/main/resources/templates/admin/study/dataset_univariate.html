@@ -27,7 +27,9 @@
     		<strong>Individual Dataset Settings</strong>
     	</p>
     
-    	<form>
+    	<p th:if="${message}" th:text="${message}" class="message-box-slim"/>
+    
+    	<form action="/admin/study/save_dataset_univariate" method="post">
 	    	<input type="hidden" name="study_id" id="study_id" th:value="${study.studyId}"/>
 	    	
 	   		<p>
@@ -44,6 +46,10 @@
 	   		</select>
 		   	</p>
 		   	
+		   	<p>
+		   		<button type="submit">Save</button>
+		   	</p>
+		   	
 		   	<div th:if="${fields}">
 		   	
 		   		<table class="wide">
@@ -52,9 +58,9 @@
 					</tr>
 					<tr>
 						<td colspan="2">
-							<input type="radio" id="radio_study_level" name="use_study_checks" checked="true"/> Use study-level defaults
+							<input type="radio" id="radio_study_level" name="use_study_defaults" th:checked="${use_study_defaults} == true" value="true"/> Use study-level defaults
 							&nbsp;&nbsp;
-							<input type="radio" id="radio_dataset_level" name="use_study_checks" /> Set dataset-specific defaults
+							<input type="radio" id="radio_dataset_level" name="use_study_defaults" th:checked="${use_study_defaults} == false" value="false"/> Set dataset-specific defaults
 						</td>
 					</tr>
 					<tr class="dataset-params deactivated">
@@ -101,7 +107,7 @@
 		   			</tr>
 		   			<tr th:each="field : ${fields}" th:id="'field_' + ${field.fieldId}" th:attr="data-data_type=${field.dataType}" class="field deactivated">
 		   				<td>
-		   					<input type="checkbox" th:id="'cb_skip_' + ${field.fieldId}" class="cb_skip"/>
+		   					<input type="checkbox" th:id="'cb_skip_' + ${field.fieldId}" th:name="'skip_' + ${field.fieldId}" class="cb_skip"/>
 		   				</td>
 		   				<td th:text="${field.fieldName}" style="text-align: left;"/>
 		   				<td th:text="${field.truncatedFieldLabel}" style="text-align: left;"/>
@@ -109,7 +115,7 @@
 		   				<td>
 	   						<input type="checkbox" th:id="'cb_custom_' + ${field.fieldId}" class="cb_custom" disabled="true"/>Use Custom
 	   						&nbsp;
-	   						<input type="text" th:id="'text_custom_' + ${field.fieldId}" size="2" disabled="true"/>
+	   						<input type="text" th:id="'text_custom_' + ${field.fieldId}" th:name="'sd_field_' + ${field.fieldId}" size="2" disabled="true"/>
 		   				</td>
 		   			</tr>
 		   		</table>
