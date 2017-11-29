@@ -107,15 +107,18 @@
 		   			</tr>
 		   			<tr th:each="field : ${fields}" th:id="'field_' + ${field.fieldId}" th:attr="data-data_type=${field.dataType}" class="field deactivated">
 		   				<td>
-		   					<input type="checkbox" th:id="'cb_skip_' + ${field.fieldId}" th:name="'skip_' + ${field.fieldId}" class="cb_skip"/>
+		   					<input type="checkbox" th:id="'cb_skip_' + ${field.fieldId}" th:name="'skip_' + ${field.fieldId}" 
+		   						th:checked="${field.isSkipped}" class="cb_skip"/>
 		   				</td>
 		   				<td th:text="${field.fieldName}" style="text-align: left;"/>
 		   				<td th:text="${field.truncatedFieldLabel}" style="text-align: left;"/>
 		   				<td th:text="${field.displayDataType}" style="text-align: left;"/>
 		   				<td>
-	   						<input type="checkbox" th:id="'cb_custom_' + ${field.fieldId}" class="cb_custom" disabled="true"/>Use Custom
+	   						<input type="checkbox" th:id="'cb_custom_' + ${field.fieldId}" class="cb_custom" disabled="true"
+	   							th:checked="${field.checkParams.get('sd')} != null"/>Use Custom
 	   						&nbsp;
-	   						<input type="text" th:id="'text_custom_' + ${field.fieldId}" th:name="'sd_field_' + ${field.fieldId}" size="2" disabled="true"/>
+	   						<input type="text" th:id="'text_custom_' + ${field.fieldId}" th:name="'sd_field_' + ${field.fieldId}" size="2"
+	   							th:value="${field.checkParams.get('sd') != null}? ${field.checkParams.get('sd').paramValue} : ''" disabled="true"/>
 		   				</td>
 		   			</tr>
 		   		</table>

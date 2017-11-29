@@ -120,8 +120,13 @@ public class CheckConfigurationServiceImpl implements CheckConfigurationService 
 		// Save/update field param values
 		for (Field field : datasetVersion.getFields()) {
 			List<CheckParam> fieldParams = checkParamRepository.findByCheckAndField(check, field);
+			for (CheckParam param : fieldParams) {
+				field.getCheckParams().remove(param.getParamName());
+			}
+			fieldRepository.save(field);
 			checkParamRepository.delete(fieldParams);
 		}
+		
 		for (Long fieldId : fieldParamValues.keySet()) {
 			Field field = fieldRepository.findOne(fieldId);
 			Map<String, String> namesAndValues = fieldParamValues.get(fieldId);
@@ -131,7 +136,9 @@ public class CheckConfigurationServiceImpl implements CheckConfigurationService 
 				param.setParamValue(paramValue);
 				param.setField(field);
 				checkParamRepository.save(param);
+				field.getCheckParams().put(paramName, param);
 			}
+			fieldRepository.save(field);
 		}
 	}
 

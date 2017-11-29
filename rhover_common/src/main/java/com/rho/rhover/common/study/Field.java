@@ -15,6 +15,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.MapKey;
 import javax.persistence.OneToMany;
 
 import org.hibernate.annotations.Type;
@@ -65,7 +66,8 @@ public class Field {
 	private Set<DatasetVersion> datasetVersions = new HashSet<>();
 	
 	@OneToMany(mappedBy="field", cascade=CascadeType.ALL, fetch=FetchType.EAGER)
-	private Set<CheckParam> checkParams = new HashSet<>();
+	@MapKey(name="paramName")
+	private Map<String, CheckParam> checkParams = new HashMap<>();
 	
 	@Column(name="is_skipped")
 	@Type(type="org.hibernate.type.NumericBooleanType")
@@ -151,20 +153,24 @@ public class Field {
 		return dataType.equals("Integer") || dataType.equals("Double");
 	}
 
-	public Set<CheckParam> getCheckParams() {
-		return checkParams;
-	}
-
-	public void setCheckParams(Set<CheckParam> checkParams) {
-		this.checkParams = checkParams;
-	}
-	
 	public Boolean getIsSkipped() {
 		return isSkipped;
 	}
 
 	public void setIsSkipped(Boolean isChecked) {
 		this.isSkipped = isChecked;
+	}
+	
+	public CheckParam getCheckParam(String paramName) {
+		return checkParams.get(paramName);
+	}
+	
+	public Map<String, CheckParam> getCheckParams() {
+		return checkParams;
+	}
+
+	public void setCheckParams(Map<String, CheckParam> checkParams) {
+		this.checkParams = checkParams;
 	}
 
 	public String getTruncatedFieldLabel() {
