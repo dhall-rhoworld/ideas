@@ -138,6 +138,52 @@ public class DatasetVersion {
 		this.numRecords = numRecords;
 	}
 	
+	public String getNumericFieldSummary() {
+		int numNumeric = 0;
+		int numContinuous = 0;
+		int numInteger = 0;
+		StringBuilder integerBuilder = new StringBuilder("INTEGER VARIABLES: ");
+		StringBuilder continuousBuilder = new StringBuilder("CONTINUOUS VARIABLES: ");
+		for (Field field : fields) {
+			if (field.getIsNumeric()) {
+				numNumeric++;
+				StringBuilder builder = null;
+				if (field.getDataType().equals("Double")) {
+					numContinuous++;
+					if (numContinuous > 1) {
+						continuousBuilder.append(" | ");
+					}
+					builder = continuousBuilder;
+				}
+				else if (field.getDataType().equals("Integer")) {
+					numInteger++;
+					if (numInteger > 1) {
+						integerBuilder.append(" | ");
+					}
+					builder = integerBuilder;
+				}
+				if (field.getFieldLabel() == null || field.getFieldLabel().length() == 0) {
+					builder.append(field.getFieldName());
+				}
+				else {
+					builder.append(field.getFieldLabel());
+				}
+			}
+		}
+		if (numNumeric == 0) {
+			return "No numeric variables";
+		}
+		String continuousString = continuousBuilder.toString();
+		if (numContinuous == 0) {
+			continuousString = "CONTINUOUS_VARIABLES: None";
+		}
+		String integerString = integerBuilder.toString();
+		if (numInteger == 0) {
+			integerString = "INTEGER_VARIABLES: None";
+		}
+		return continuousString + "   " + integerString;
+	}
+	
 	public int getNumNonIdentifyingNumericFields() {
 		int count = 0;
 		for (Field field : fields) {

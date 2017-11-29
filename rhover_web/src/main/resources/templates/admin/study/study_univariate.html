@@ -64,7 +64,7 @@
 			<label for="cball">Select All</label>
 		</p>
 		<div style="column-count: 4; text-align: left; line-height: 40px;">
-			<div th:each="datasetVersion : ${dataset_versions}">
+			<div th:each="datasetVersion : ${dataset_versions}" th:title="${datasetVersion.numericFieldSummary}" class="dataset-selector">
 				<input type="checkbox" class="radio-dataset" th:name="'check_dataset-' + ${datasetVersion.dataset.datasetId}"
 					th:checked="${datasetVersion.dataset.isChecked}" th:id="'cb-' + ${datasetVersion.dataset.datasetId}"/>
 				<label th:for="'cb-' + ${datasetVersion.dataset.datasetId}" th:text="${datasetVersion.dataset.datasetName}" style="width: 150px"/>
@@ -90,6 +90,7 @@
 				$(".radio-dataset").prop("checked", false).change();
 			}
 		});
+		$(".dataset-selector").tooltip();
 	});
 </script>
 
