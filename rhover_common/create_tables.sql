@@ -99,7 +99,6 @@ create table field (
 	field_name VARCHAR(200) NOT NULL,
 	field_label VARCHAR(400) NOT NULL,
 	is_identifying TINYINT NOT NULL DEFAULT 0,
-	data_column TEXT,
 	study_id BIGINT NOT NULL,
 	data_type VARCHAR(50) NOT NULL,
 	is_skipped TINYINT NOT NULL DEFAULT 0,
@@ -107,6 +106,14 @@ create table field (
 	CONSTRAINT pk_field PRIMARY KEY (field_id),
 	CONSTRAINT fk_field_2_study FOREIGN KEY (study_id) REFERENCES study (study_id),
 	CONSTRAINT u_field_name_study_id UNIQUE (field_name, study_id)
+);
+
+create table csv_data (
+	csv_data_id BIGINT AUTO_INCREMENT NOT NULL,
+	field_id BIGINT NOT NULL,
+	data LONGTEXT NOT NULL,
+	CONSTRAINT pk_csv_data PRIMARY KEY (csv_data_id),
+	CONSTRAINT fk_csv_data_2_field FOREIGN KEY (field_id) REFERENCES field(field_id) 
 );
 
 create table dataset_version_field (

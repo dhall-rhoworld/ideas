@@ -4,6 +4,7 @@ drop table loader_issue;
 drop table study_db_version_config;
 drop table study_db_version;
 drop table dataset_version_field;
+drop table csv_data;
 drop table field;
 drop table subject;
 drop table site;

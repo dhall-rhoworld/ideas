@@ -19,7 +19,7 @@ import com.epam.parso.impl.SasFileReaderImpl;
 
 public class DataFrame {
 
-	private List<List<?>> data = new ArrayList<>();
+	private List<List<String>> data = new ArrayList<>();
 	
 	private List<String> colNames = new ArrayList<>();
 	
@@ -115,18 +115,7 @@ public class DataFrame {
 			for (int j = 0; j < cols.size(); j++) {
 				
 				// Create column list
-				List<?> col = null;
-				Class<?> type = df.dataTypes.get(j);
-				if (type.equals(String.class) || type.equals(Date.class) ||
-						type.equals(UnknownType.class) || type.equals(MixedType.class) || type.equals(Boolean.class)) {
-					col = new ArrayList<String>();
-				}
-				else if (type.equals(Integer.class)) {
-					col = new ArrayList<Long>();
-				}
-				else if (type.equals(Double.class)) {
-					col = new ArrayList<Double>();
-				}
+				List<String> col = new ArrayList<>();
 				df.data.add(col);
 				
 				// Populate column
@@ -135,16 +124,7 @@ public class DataFrame {
 						col.add(null);
 					}
 					else {
-						if (type.equals(String.class) || type.equals(Date.class) ||
-								type.equals(MixedType.class) || type.equals(Boolean.class)) {
-							((ArrayList<String>)col).add(data[i][j].toString());
-						}
-						else if (type.equals(Integer.class)) {
-							((ArrayList<Long>)col).add(Long.parseLong(data[i][j].toString()));
-						}
-						else if (type.equals(Double.class)) {
-							((ArrayList<Double>)col).add(Double.parseDouble(data[i][j].toString()));
-						}
+						col.add(data[i][j].toString());
 					}
 				}
 			}
@@ -172,12 +152,26 @@ public class DataFrame {
 		return colLabels;
 	}
 
-	public List<?> getField(String fieldName) {
+	public List<String> getField(String fieldName) {
 		Integer idx = this.colIndex.get(fieldName);
 		return this.data.get(idx);
 	}
 	
-	public Set<?> getUniqueValues(String fieldName) {
+	public String getFieldAsCsv(String fieldName) {
+		StringBuilder builder = new StringBuilder();
+		int count = 0;
+		List<String> field = getField(fieldName);
+		for (String val : field) {
+			count++;
+			if (count > 1) {
+				builder.append(",");
+			}
+			builder.append(val);
+		}
+		return builder.toString();
+	}
+	
+	public Set<String> getUniqueValues(String fieldName) {
 		Set s = new HashSet<>();
 		s.addAll(getField(fieldName));
 		return s;

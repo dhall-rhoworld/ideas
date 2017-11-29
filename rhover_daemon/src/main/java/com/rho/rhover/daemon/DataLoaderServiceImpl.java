@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.rho.rhover.common.study.CsvData;
+import com.rho.rhover.common.study.CsvDataRepository;
 import com.rho.rhover.common.study.DataLocation;
 import com.rho.rhover.common.study.DataLocationRepository;
 import com.rho.rhover.common.study.DataStream;
@@ -77,6 +79,9 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 	
 	@Autowired
 	private LoaderIssueRepository loaderIssueRepository;
+	
+	@Autowired
+	private CsvDataRepository csvDataRepository;
 
 	@Override
 	@Transactional
@@ -221,7 +226,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		}
 	
 		// Add new data streams
-		Set<String> dataStreamNames = (Set<String>)df.getUniqueValues(study.getFormFieldName());
+		Set<String> dataStreamNames = df.getUniqueValues(study.getFormFieldName());
 		logger.debug("Found " + dataStreamNames.size() + " data streams");
 		for (String dataStreamName : dataStreamNames) {
 			DataStream dataStream = dataStreamRepository.findByStudyAndDataStreamName(study, dataStreamName);
@@ -281,6 +286,13 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 			datasetVersion.addField(field);
 			field.addDatasetVersion(datasetVersion);
 			fieldRepository.save(field);
+			CsvData csvData = csvDataRepository.findByField(field);
+			if (csvData == null) {
+				csvData = new CsvData();
+				csvData.setField(field);
+			}
+			csvData.setData(df.getFieldAsCsv(fieldName));
+			csvDataRepository.save(csvData);
 		}
 		datasetVersionRepository.save(datasetVersion);
 	}
@@ -300,7 +312,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		
 		// Create a map of site names to sites
 		Map<String, Site> siteMap = new HashMap<>();
-		Set<?> siteNames = df.getUniqueValues(study.getSiteFieldName());
+		Set<String> siteNames = df.getUniqueValues(study.getSiteFieldName());
 		for (Object siteName : siteNames) {
 			Site site = siteRepository.findByStudyAndSiteName(study, siteName.toString());
 			if (site == null) {
@@ -312,7 +324,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		}
 		
 		// Create a map of subject names to site names
-		Set<?> subjectNames = df.getUniqueValues(study.getSubjectFieldName());
+		Set<String> subjectNames = df.getUniqueValues(study.getSubjectFieldName());
 		Map<String, String> siteNameMap = generateSubjectNameToSiteNameMapping(study, df);
 		
 		// Process subjects
@@ -337,8 +349,8 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 	
 	private Map<String, String> generateSubjectNameToSiteNameMapping(Study study, DataFrame df) {
 		Map<String, String> map = new HashMap<>();
-		List<?> subjectNames = df.getField(study.getSubjectFieldName());
-		List<?> siteNames = df.getField(study.getSiteFieldName());
+		List<String> subjectNames = df.getField(study.getSubjectFieldName());
+		List<String> siteNames = df.getField(study.getSiteFieldName());
 		int n = subjectNames.size();
 		for (int i = 0; i < n; i++) {
 			map.put(subjectNames.get(i).toString(), siteNames.get(i).toString());
