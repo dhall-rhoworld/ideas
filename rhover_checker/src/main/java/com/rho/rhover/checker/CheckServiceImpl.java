@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.rho.rhover.common.check.Check;
+import com.rho.rhover.common.check.CheckParamRepository;
+import com.rho.rhover.common.check.CheckParamService;
 import com.rho.rhover.common.study.CsvData;
 import com.rho.rhover.common.study.CsvDataRepository;
 import com.rho.rhover.common.study.Dataset;
@@ -38,14 +40,17 @@ public class CheckServiceImpl implements CheckService {
 	@Autowired
 	private CsvDataRepository csvDataRepository;
 	
+	@Autowired
+	private CheckParamService checkParamService;
+	
 	@Value("${working.dir}")
 	private String workingDirPath;
 	
 	@Value("${r.exec.path}")
 	private String rExecutablePath;
 	
-	@Value("${r.script.dir}")
-	private String rScriptDirPath;
+	@Value("${univariate.outlier.script.path}")
+	private String univariateOutlierScriptPath;
 
 	@Override
 	@Transactional
@@ -58,9 +63,9 @@ public class CheckServiceImpl implements CheckService {
 		if (!rExecutable.isFile()) {
 			throw new ConfigurationException("Invalid R executable: " + rExecutablePath);
 		}
-		File rScriptDir = new File(rScriptDirPath);
-		if (!rScriptDir.isDirectory()) {
-			throw new ConfigurationException("R script directory " + rScriptDirPath + " is not a valid directory.");
+		File rScriptDir = new File(univariateOutlierScriptPath);
+		if (!rScriptDir.isFile()) {
+			throw new ConfigurationException("Univariate outlier script " + univariateOutlierScriptPath + " is not a valid file.");
 		}
 		
 		
@@ -90,8 +95,9 @@ public class CheckServiceImpl implements CheckService {
 			
 			// Write output dataset to file
 			FileWriter fileWriter = null;
+			File dataFile = null;
 			try {
-				File dataFile = File.createTempFile("univariate-" + field.getFieldName() + "-", ".csv", workingDir);
+				dataFile = File.createTempFile("univariate-" + field.getFieldName() + "-", "-in.csv", workingDir);
 				fileWriter = new FileWriter(dataFile);
 				fileWriter.write(outputData);
 			}
@@ -107,6 +113,29 @@ public class CheckServiceImpl implements CheckService {
 					}
 				}
 			}
+			
+			// Run univariate outlier check
+			String fileNameRoot = workingDirPath + "/" + dataFile.getName().substring(0, dataFile.getName().length() - 7);
+			String infilePath = workingDirPath + "/" + dataFile.getName();
+			String outfilePath = fileNameRoot + "-out.csv";
+			String paramfilePath = fileNameRoot + "-param.csv";
+			String command =
+					rExecutablePath
+					+ " " + univariateOutlierScriptPath
+					+ " " + infilePath
+					+ " " + outfilePath
+					+ " " + paramfilePath
+					+ " " + (idData.size() + 1)
+					+ " " + checkParamService.getCheckParam(check, "sd", dataset, field).getParamValue();
+			logger.debug(command);
+			try {
+				Runtime.getRuntime().exec(command);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			
+			//dataFile.delete();
+			
 			if (true) {
 				break;
 			}
