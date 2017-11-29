@@ -73,6 +73,9 @@ public class Field {
 	@Type(type="org.hibernate.type.NumericBooleanType")
 	private Boolean isSkipped = Boolean.FALSE;
 	
+	@Column(name="data_column")
+	private String dataColumn;
+	
 	public Field() {
 		
 	}
@@ -171,6 +174,14 @@ public class Field {
 
 	public void setCheckParams(Map<String, CheckParam> checkParams) {
 		this.checkParams = checkParams;
+	}
+
+	public String getDataColumn() {
+		return dataColumn;
+	}
+
+	public void setDataColumn(String dataColumn) {
+		this.dataColumn = dataColumn;
 	}
 
 	public String getTruncatedFieldLabel() {
