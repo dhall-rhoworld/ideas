@@ -199,3 +199,30 @@ values('filter_identifying', 'on', 'GLOBAL', (select check_id from checks where 
 
 insert into check_param (param_name, param_value, param_scope, check_id)
 values('sd', '2', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));
+
+create table check_run (
+	check_run_id BIGINT AUTO_INCREMENT NOT NULL,
+	dataset_version_id BIGINT NOT NULL,
+	check_id BIGINT NOT NULL,
+	field_id BIGINT,
+	is_latest TINYINT NOT NULL DEFAULT 0,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_check_run PRIMARY KEY (check_run_id),
+	CONSTRAINT fk_check_run_2_dataset_version FOREIGN KEY (dataset_version_id)
+		REFERENCES dataset_version(dataset_version_id),
+	CONSTRAINT fk_check_run_2_check FOREIGN KEY (check_id)
+		REFERENCES checks (check_id),
+	CONSTRAINT fk_check_runb_2_field FOREIGN KEY (field_id)
+		REFERENCES field(field_id)
+);
+
+create table param_used (
+	param_used_id BIGINT AUTO_INCREMENT NOT NULL,
+	param_name VARCHAR(50) NOT NULL,
+	param_value VARCHAR(50) NOT NULL,
+	check_run_id BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_param_used PRIMARY KEY (param_used_id),
+	CONSTRAINT fk_param_used_2_check_run FOREIGN KEY (check_run_id)
+		REFERENCES check_run (check_run_id)
+);

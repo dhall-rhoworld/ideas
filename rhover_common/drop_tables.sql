@@ -1,3 +1,5 @@
+drop table param_used;
+drop table check_run;
 drop table check_param;
 drop table checks;
 drop table loader_issue;

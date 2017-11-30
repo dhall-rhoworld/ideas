@@ -1,10 +1,14 @@
 package com.rho.rhover.checker;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import javax.transaction.Transactional;
@@ -18,6 +22,10 @@ import org.springframework.stereotype.Service;
 import com.rho.rhover.common.check.Check;
 import com.rho.rhover.common.check.CheckParamRepository;
 import com.rho.rhover.common.check.CheckParamService;
+import com.rho.rhover.common.check.CheckRun;
+import com.rho.rhover.common.check.CheckRunRepository;
+import com.rho.rhover.common.check.ParamUsed;
+import com.rho.rhover.common.check.ParamUsedRepository;
 import com.rho.rhover.common.study.CsvData;
 import com.rho.rhover.common.study.CsvDataRepository;
 import com.rho.rhover.common.study.Dataset;
@@ -43,6 +51,12 @@ public class CheckServiceImpl implements CheckService {
 	@Autowired
 	private CheckParamService checkParamService;
 	
+	@Autowired
+	private CheckRunRepository checkRunRepository;
+	
+	@Autowired
+	private ParamUsedRepository paramUsedRepository;
+	
 	@Value("${working.dir}")
 	private String workingDirPath;
 	
@@ -52,6 +66,7 @@ public class CheckServiceImpl implements CheckService {
 	@Value("${univariate.outlier.script.path}")
 	private String univariateOutlierScriptPath;
 
+	// TODO: Only run checks if a minumum number of records are present
 	@Override
 	@Transactional
 	public void runUnivariateCheck(Check check, Dataset dataset) {
@@ -89,11 +104,11 @@ public class CheckServiceImpl implements CheckService {
 			}
 			logger.info("Running univarate outlier check on field " + field.getFieldName());
 			
-			// Construct an output dataset
+			// Construct an input dataset for R script
 			CsvData data = csvDataRepository.findByField(field);
 			String outputData = generateOutputData(idData, data);
 			
-			// Write output dataset to file
+			// Write input dataset to file
 			FileWriter fileWriter = null;
 			File dataFile = null;
 			try {
@@ -114,31 +129,105 @@ public class CheckServiceImpl implements CheckService {
 				}
 			}
 			
-			// Run univariate outlier check
+			// Run R script
 			String fileNameRoot = workingDirPath + "/" + dataFile.getName().substring(0, dataFile.getName().length() - 7);
 			String infilePath = workingDirPath + "/" + dataFile.getName();
 			String outfilePath = fileNameRoot + "-out.csv";
 			String paramfilePath = fileNameRoot + "-param.csv";
+			String sd = checkParamService.getCheckParam(check, "sd", dataset, field).getParamValue();
+			int dataColNum = idData.size();
 			String command =
 					rExecutablePath
 					+ " " + univariateOutlierScriptPath
 					+ " " + infilePath
 					+ " " + outfilePath
 					+ " " + paramfilePath
-					+ " " + (idData.size() + 1)
-					+ " " + checkParamService.getCheckParam(check, "sd", dataset, field).getParamValue();
+					+ " " + (dataColNum + 1)
+					+ " " + sd;
 			logger.debug(command);
 			try {
-				Runtime.getRuntime().exec(command);
-			} catch (IOException e) {
+				Process process = Runtime.getRuntime().exec(command);
+				process.waitFor();
+			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
 			
+			// Process result
+			BufferedReader outlierReader = null;
+			BufferedReader paramReader = null;
+			try {
+				outlierReader = new BufferedReader(new FileReader(outfilePath));
+				processOutliers(outlierReader, dataColNum);
+				paramReader = new BufferedReader(new FileReader(paramfilePath));
+				processDataParams(paramReader);
+			}
+			catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			finally {
+				try {
+					if (outlierReader != null) {
+						outlierReader.close();
+					}
+					if (paramReader != null) {
+						
+					}
+				}
+				catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			}
+			
+			// Record params used
+			CheckRun checkRun = checkRunRepository.findByCheckAndDatasetVersionAndFieldAndIsLatest(check, datasetVersion, field, Boolean.TRUE);
+			if (checkRun != null) {
+				checkRun.setIsLatest(Boolean.FALSE);
+				checkRunRepository.save(checkRun);
+			}
+			CheckRun newCheckRun = new CheckRun(datasetVersion, check, field, Boolean.TRUE);
+			checkRunRepository.save(newCheckRun);
+			ParamUsed paramUsed = new ParamUsed("sd", sd, newCheckRun);
+			paramUsedRepository.save(paramUsed);
+			
 			//dataFile.delete();
 			
+			// TODO: Remove this
 			if (true) {
 				break;
 			}
+		}
+	}
+
+	private void processDataParams(BufferedReader reader) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void processOutliers(BufferedReader reader, int dataColNum) throws IOException {
+		
+		// Map field IDs to column numbers in the file
+		Map<Integer, Long> colNumToFieldId = new HashMap<>();
+		String line = reader.readLine();
+		String[] values = line.split(",");
+		for (int i = 0; i <= dataColNum; i++) {
+			String value = values[i];
+			
+			// generateOutputData appends field IDs to the end of field names
+			// in the file header separated by '.'
+			Long fieldId = Long.parseLong(value.substring(value.lastIndexOf(".") + 1));
+			
+			colNumToFieldId.put(i, fieldId);
+		}
+		
+		// Process outlier results
+		line = reader.readLine();
+		int outlierColNum = dataColNum + 1;
+		while (line != null) {
+			values = line.split(",");
+			if (values[outlierColNum].equals("TRUE")) {
+				logger.debug("Outlier: " + line);
+			}
+			line = reader.readLine();
 		}
 	}
 
@@ -159,9 +248,9 @@ public class CheckServiceImpl implements CheckService {
 			if (count > 1) {
 				builder.append(",");
 			}
-			builder.append(idDatum.getField().getFieldName() + "-" + idDatum.getField().getFieldId());
+			builder.append(idDatum.getField().getFieldName() + "." + idDatum.getField().getFieldId());
 		}
-		builder.append("," + data.getField().getFieldName() + "-" + data.getField().getFieldId() + "\n");
+		builder.append("," + data.getField().getFieldName() + "." + data.getField().getFieldId() + "\n");
 		
 		// Data records
 		while (dataTokenizer.hasMoreElements()) {
