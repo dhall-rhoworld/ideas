@@ -139,4 +139,14 @@ public class Anomaly {
 		this.field = field;
 	}
 	
+	public DatumVersion getCurrentDatumVersion() {
+		DatumVersion current = null;
+		for (DatumVersion version : datumVersions) {
+			if (version.getIsCurrent()) {
+				current = version;
+				break;
+			}
+		}
+		return current;
+	}
 }

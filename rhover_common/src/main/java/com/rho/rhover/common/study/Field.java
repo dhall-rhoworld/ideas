@@ -191,4 +191,15 @@ public class Field {
 		}
 		return fieldLabel.substring(0, p) + " ... " + fieldLabel.substring(q);
 	}
+	
+	public DatasetVersion getCurrentDatasetVersion() {
+		DatasetVersion current = null;
+		for (DatasetVersion datasetVersion : datasetVersions) {
+			if (datasetVersion.getIsCurrent()) {
+				current = datasetVersion;
+				break;
+			}
+		}
+		return current;
+	}
 }

@@ -1,27 +1,53 @@
 package com.rho.rhover.web.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.rho.rhover.common.anomaly.Anomaly;
+import com.rho.rhover.common.anomaly.AnomalyRepository;
 import com.rho.rhover.common.anomaly.AnomalyRepositoryOld;
 import com.rho.rhover.common.anomaly.BivariateCheckRepository;
+import com.rho.rhover.common.check.Check;
+import com.rho.rhover.common.check.CheckRepository;
+import com.rho.rhover.common.check.CheckRun;
+import com.rho.rhover.common.check.CheckRunRepository;
 import com.rho.rhover.common.study.Field;
+import com.rho.rhover.common.study.FieldRepository;
 import com.rho.rhover.common.study.DataFieldRepository;
+import com.rho.rhover.common.study.DatasetVersion;
 import com.rho.rhover.common.study.Site;
 import com.rho.rhover.common.study.SiteRepository;
 import com.rho.rhover.common.study.StudyDataRepository;
 import com.rho.rhover.common.study.Subject;
 import com.rho.rhover.common.study.SubjectRepository;
+import com.rho.rhover.web.dto.UniAnomalyDtoRepository;
 
 @Controller
 @RequestMapping("/anomaly")
 public class AnomalyController {
 	
 	@Autowired
-	private AnomalyRepositoryOld anomalyRepository;
+	private FieldRepository fieldRepository;
+	
+	@Autowired
+	private CheckRunRepository checkRunRepository;
+	
+	@Autowired
+	private CheckRepository checkRepository;
+	
+	@Autowired
+	private UniAnomalyDtoRepository uniAnomalyDtoRepository;
+	
+	@Autowired
+	private AnomalyRepository anomalyRepository;
+	
+	@Autowired
+	private AnomalyRepositoryOld anomalyRepositoryOld;
 	
 	@Autowired
 	private DataFieldRepository dataFieldRepository;
@@ -40,26 +66,35 @@ public class AnomalyController {
     
     @RequestMapping("/table")
     public String anomalyTable(
-    			@RequestParam("data_field_id") Long dataFieldId,
+    			@RequestParam("data_field_id") Long fieldId,
     			@RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
     			@RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
     			Model model) {
-    	Field dataField = dataFieldRepository.findOne(dataFieldId);
-    	model.addAttribute("data_field", dataField);
+    	Field field = fieldRepository.findOne(fieldId);
+    	model.addAttribute("id_fields", fieldRepository.findByStudyAndIsIdentifying(field.getStudy(), Boolean.TRUE));
+    	DatasetVersion datasetVersion = field.getCurrentDatasetVersion();
+    	model.addAttribute("dataset", datasetVersion.getDataset());
+    	Check check = checkRepository.findByCheckName("UNIVARIATE_OUTLIER");
+    	CheckRun checkRun = checkRunRepository.findByCheckAndDatasetVersionAndFieldAndIsLatest(check, datasetVersion, field, Boolean.TRUE);
+    	model.addAttribute("field", field);
     	if (siteId == -1 && subjectId == -1) {
-    		model.addAttribute("anomalies", anomalyRepository.getCurrentAnomalies(dataFieldId));
+    		model.addAttribute("anomalies", uniAnomalyDtoRepository.findByCheckRunId(checkRun.getCheckRunId()));
     	}
     	if (siteId != -1) {
     		Site site = siteRepository.findOne(siteId);
     		model.addAttribute("site", site);
-    		model.addAttribute("anomalies", anomalyRepository.getCurrentAnomalies(dataFieldId, site));
+    		//anomalies = anomalyRepositoryOld.getCurrentAnomalies(fieldId, site);
     	}
     	if (subjectId != -1) {
     		Subject subject = subjectRepository.findOne(subjectId);
     		model.addAttribute("subject", subject);
-    		model.addAttribute("anomalies", anomalyRepository.getCurrentAnomalies(dataFieldId, subject));
+    		//anomalies = anomalyRepositoryOld.getCurrentAnomalies(fieldId, subject);
     	}
-    	studyDataRepository.markAnomaliesAsViewed(dataFieldId);
+//    	model.addAttribute("anomalies", anomalies);
+//    	for (Anomaly anomaly : anomalies) {
+//    		anomaly.setHasBeenViewed(Boolean.TRUE);
+//    		anomalyRepository.save(anomaly);
+//    	}
     	return "anomaly/table";
     }
     

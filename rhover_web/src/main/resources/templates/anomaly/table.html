@@ -14,9 +14,9 @@
 		
 		<!-- Showing all anomalies from study -->
 		<span th:if="${site == null and subject == null}">
-			<a th:href="@{/browse/datasets(study_id=${data_field.dataset.study.studyId})}" th:text="${data_field.dataset.study.studyName}"/>
+			<a th:href="@{/browse/datasets(study_id=${field.study.studyId})}" th:text="${field.study.studyName}"/>
 			>
-			<a th:href="@{/browse/data_fields(dataset_id=${data_field.dataset.datasetId})}" th:text="${data_field.dataset.datasetName}"/>
+			<a th:href="@{/browse/data_fields(dataset_id=${dataset.datasetId})}" th:text="${dataset.datasetName}"/>
 		</span>
 		
 		<!-- Showing anomalies from one site -->
@@ -25,7 +25,7 @@
 			>
 			<a th:href="@{/browse/datasets(site_id=${site.siteId})}" th:text="'Site ' + ${site.siteName}"/>
 			>
-			<a th:href="@{/browse/data_fields(dataset_id=${data_field.dataset.datasetId}, site_id=${site.siteId})}" th:text="${data_field.dataset.datasetName}"/>
+			<a th:href="@{/browse/data_fields(dataset_id=${dataset.datasetId}, site_id=${site.siteId})}" th:text="${dataset.datasetName}"/>
 		</span>
 		
 		<!-- Showing anomalies from one subject -->
@@ -34,10 +34,10 @@
 			>
 			<a th:href="@{/browse/datasets(subject_id=${subject.subjectId})}" th:text="'Subject ' + ${subject.subjectName}"/>
 			>
-			<a th:href="@{/browse/data_fields(dataset_id=${data_field.dataset.datasetId}, subject_id=${subject.subjectId})}" th:text="${data_field.dataset.datasetName}"/>
+			<a th:href="@{/browse/fields(dataset_id=${dataset.datasetId}, subject_id=${subject.subjectId})}" th:text="${dataset.datasetName}"/>
 		</span>
 		>
-		<strong><span th:text="${data_field.dataFieldName}"/></strong>
+		<strong><span th:text="${field.fieldName}"/></strong>
 	</div>
 		
     <div id="content">
@@ -60,20 +60,12 @@
 	    </p>
    		<table class="wide">
    			<tr>
-   				<th><input type="checkbox"/></th>
-   				<th>Site</th>
-   				<th>Recruit ID</th>
-   				<th>Event</th>
-   				<th>Value<br/>Inliers: [<span th:text="${data_field.lowerThresholdFormatted}"/>, <span th:text="${data_field.upperThresholdFormatted}"/>]</th>
-   				<th>First Encountered</th>
+   				<th th:each="id_field : ${id_fields}" th:text="${id_field.fieldName}"/>
+   				<th th:text="${field.fieldName}"/>
    			</tr>
    			<tr th:each="anomaly : ${anomalies}">
-   				<th><input type="checkbox"/></th>
-   				<td th:text="${anomaly.siteName}"/>
-   				<td th:text="${anomaly.recruitId}"/>
-   				<td th:text="${anomaly.event}"/>
-   				<td th:text="${anomaly.fieldValue}"/>
-   				<td th:text="${anomaly.versionFirstSeenIn}"/>
+   				<td th:each="id_field : ${id_fields}" th:text="${anomaly.idFieldNamesAndValues.get(id_field.fieldName)}"/>
+   				<td th:text="${anomaly.anomalousValue}"/>
    			</tr>
    		</table>
     </div>

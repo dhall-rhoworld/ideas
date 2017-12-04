@@ -1,3 +1,4 @@
+drop view uni_anomaly_dto;
 drop table data_property;
 drop table anomaly_check_run;
 drop table anomaly_datum_version;
