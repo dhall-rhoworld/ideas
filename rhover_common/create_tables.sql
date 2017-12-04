@@ -308,3 +308,15 @@ create table anomaly_check_run (
 	CONSTRAINT fk_anomaly_check_run_2_anomaly FOREIGN KEY (anomaly_id) REFERENCES anomaly(anomaly_id),
 	CONSTRAINT fk_anomaly_check_run_2_check_run FOREIGN KEY (check_run_id) REFERENCES check_run(check_run_id)
 );
+
+create table data_property (
+	data_property_id BIGINT AUTO_INCREMENT NOT NULL,
+	data_property_name VARCHAR(50),
+	data_property_value VARCHAR(50),
+	check_run_id BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_data_property PRIMARY KEY (data_property_id),
+	CONSTRAINT fk_data_property_2_check_run FOREIGN KEY (check_run_id) REFERENCES check_run (check_run_id),
+	CONSTRAINT u_data_property UNIQUE (data_property_name, check_run_id)
+);
+

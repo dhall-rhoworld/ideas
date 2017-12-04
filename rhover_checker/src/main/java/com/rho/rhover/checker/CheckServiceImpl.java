@@ -28,6 +28,8 @@ import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationExceptio
 import com.rho.rhover.common.anomaly.Anomaly;
 import com.rho.rhover.common.anomaly.AnomalyRepository;
 import com.rho.rhover.common.anomaly.DataIntegrityException;
+import com.rho.rhover.common.anomaly.DataProperty;
+import com.rho.rhover.common.anomaly.DataPropertyRepository;
 import com.rho.rhover.common.anomaly.Datum;
 import com.rho.rhover.common.anomaly.DatumRepository;
 import com.rho.rhover.common.anomaly.DatumVersion;
@@ -93,6 +95,9 @@ public class CheckServiceImpl implements CheckService {
 	
 	@Autowired
 	private AnomalyRepository anomalyRepository;
+	
+	@Autowired
+	private DataPropertyRepository dataPropertyRepository;
 	
 	@Value("${working.dir}")
 	private String workingDirPath;
@@ -174,7 +179,7 @@ public class CheckServiceImpl implements CheckService {
 			String fileNameRoot = workingDirPath + "/" + dataFile.getName().substring(0, dataFile.getName().length() - 7);
 			String infilePath = workingDirPath + "/" + dataFile.getName();
 			String outfilePath = fileNameRoot + "-out.csv";
-			String paramfilePath = fileNameRoot + "-param.csv";
+			String propfilePath = fileNameRoot + "-prop.csv";
 			String sd = checkParamService.getCheckParam(check, "sd", dataset, field).getParamValue();
 			int dataColNum = idData.size();
 			String command =
@@ -182,10 +187,10 @@ public class CheckServiceImpl implements CheckService {
 					+ " " + univariateOutlierScriptPath
 					+ " " + infilePath
 					+ " " + outfilePath
-					+ " " + paramfilePath
+					+ " " + propfilePath
 					+ " " + (dataColNum + 1)
 					+ " " + sd;
-			logger.debug(command);
+			//logger.debug(command);
 			try {
 				Process process = Runtime.getRuntime().exec(command);
 				process.waitFor();
@@ -210,8 +215,8 @@ public class CheckServiceImpl implements CheckService {
 			try {
 				outlierReader = new BufferedReader(new FileReader(outfilePath));
 				processOutliers(outlierReader, dataColNum, datasetVersion, field, newCheckRun);
-				paramReader = new BufferedReader(new FileReader(paramfilePath));
-				processDataParams(paramReader);
+				paramReader = new BufferedReader(new FileReader(propfilePath));
+				processDataProperties(paramReader, newCheckRun);
 			}
 			catch (IOException e) {
 				throw new RuntimeException(e);
@@ -222,7 +227,7 @@ public class CheckServiceImpl implements CheckService {
 						outlierReader.close();
 					}
 					if (paramReader != null) {
-						
+						paramReader.close();
 					}
 				}
 				catch (IOException e) {
@@ -230,7 +235,9 @@ public class CheckServiceImpl implements CheckService {
 				}
 			}
 			
-			//dataFile.delete();
+			dataFile.delete();
+			new File(outfilePath).delete();
+			new File(propfilePath).delete();
 			
 			// TODO: Remove this
 //			if (true) {
@@ -239,9 +246,14 @@ public class CheckServiceImpl implements CheckService {
 		}
 	}
 
-	private void processDataParams(BufferedReader reader) {
-		// TODO Auto-generated method stub
-		
+	private void processDataProperties(BufferedReader reader, CheckRun checkRun) throws IOException {
+		String line = reader.readLine();
+		String[] propNames = line.split(",");
+		line = reader.readLine();
+		String[] propValues = line.split(",");
+		for (int i = 0; i < propNames.length; i++) {
+			dataPropertyRepository.save(new DataProperty(propNames[i], propValues[i], checkRun));
+		}
 	}
 
 	private void processOutliers(BufferedReader reader, int dataColNum, DatasetVersion datasetVersion,
