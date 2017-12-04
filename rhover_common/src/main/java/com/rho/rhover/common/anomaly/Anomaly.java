@@ -13,8 +13,13 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 
+import org.hibernate.annotations.Type;
+
 import com.rho.rhover.common.check.Check;
 import com.rho.rhover.common.check.CheckRun;
+import com.rho.rhover.common.study.Field;
+import com.rho.rhover.common.study.Site;
+import com.rho.rhover.common.study.Subject;
 
 @Entity
 public class Anomaly {
@@ -37,6 +42,26 @@ public class Anomaly {
 	@ManyToOne
 	@JoinColumn(name="check_id")
 	private Check check;
+	
+	@ManyToOne
+	@JoinColumn(name="subject_id")
+	private Subject subject;
+	
+	@ManyToOne
+	@JoinColumn(name="site_id")
+	private Site site;
+	
+	@ManyToOne
+	@JoinColumn(name="field_id")
+	private Field field;
+	
+	@Column(name="has_been_viewed")
+	@Type(type="org.hibernate.type.NumericBooleanType")
+	private Boolean hasBeenViewed = Boolean.FALSE;
+	
+	@Column(name="is_an_issue")
+	@Type(type="org.hibernate.type.NumericBooleanType")
+	private Boolean isAnIssue = Boolean.TRUE;
 
 	public Anomaly() {
 		
@@ -74,4 +99,44 @@ public class Anomaly {
 		this.check = check;
 	}
 
+	public Boolean getHasBeenViewed() {
+		return hasBeenViewed;
+	}
+
+	public void setHasBeenViewed(Boolean hasBeenViewed) {
+		this.hasBeenViewed = hasBeenViewed;
+	}
+
+	public Boolean getIsAnIssue() {
+		return isAnIssue;
+	}
+
+	public void setIsAnIssue(Boolean isAnIssue) {
+		this.isAnIssue = isAnIssue;
+	}
+	
+	public Subject getSubject() {
+		return subject;
+	}
+
+	public void setSubject(Subject subject) {
+		this.subject = subject;
+	}
+	
+	public Site getSite() {
+		return site;
+	}
+
+	public void setSite(Site site) {
+		this.site = site;
+	}
+
+	public Field getField() {
+		return field;
+	}
+
+	public void setField(Field field) {
+		this.field = field;
+	}
+	
 }

@@ -43,20 +43,26 @@ public class AnomalySummaryBuilder {
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
-				"	join data_field df on df.data_field_id = a.data_field_id\r\n" + 
-				"	join dataset ds on ds.dataset_id = df.dataset_id\r\n" + 
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" + 
+				"	join dataset_version dv on dv.dataset_version_id = cr.dataset_version_id\r\n" + 
+				"	join dataset ds on ds.dataset_id = dv.dataset_id\r\n" + 
 				"	where ds.study_id = s.study_id\r\n" + 
-				"   and a.is_an_issue = 1\r\n" +
-				"),\r\n" + 
+				"	and cr.is_latest = 1\r\n" + 
+				"	and a.is_an_issue = 1\r\n" + 
+				") total,\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
-				"	join data_field df on df.data_field_id = a.data_field_id\r\n" + 
-				"	join dataset ds on ds.dataset_id = df.dataset_id\r\n" + 
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" + 
+				"	join dataset_version dv on dv.dataset_version_id = cr.dataset_version_id\r\n" + 
+				"	join dataset ds on ds.dataset_id = dv.dataset_id\r\n" + 
 				"	where ds.study_id = s.study_id\r\n" + 
+				"	and cr.is_latest = 1\r\n" + 
+				"	and a.is_an_issue = 1\r\n" + 
 				"	and a.has_been_viewed = 0\r\n" + 
-				"   and a.is_an_issue = 1\r\n" +
-				")\r\n" + 
+				") unviewed\r\n" + 
 				"from study s";
 		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
 	}
@@ -67,64 +73,84 @@ public class AnomalySummaryBuilder {
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
-				"	join data_field df on df.data_field_id = a.data_field_id\r\n" + 
-				"	where df.dataset_id = ds.dataset_id\r\n" + 
-				"   and a.is_an_issue = 1\r\n" +
-				"),\r\n" + 
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" + 
+				"	join dataset_version dv on dv.dataset_version_id = cr.dataset_version_id\r\n" + 
+				"	where dv.dataset_id = ds.dataset_id\r\n" + 
+				"	and cr.is_latest = 1\r\n" + 
+				"	and a.is_an_issue = 1\r\n" + 
+				") total,\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
-				"	join data_field df on df.data_field_id = a.data_field_id\r\n" + 
-				"	where df.dataset_id = ds.dataset_id\r\n" + 
-				"   and a.is_an_issue = 1\r\n" +
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" + 
+				"	join dataset_version dv on dv.dataset_version_id = cr.dataset_version_id\r\n" + 
+				"	where dv.dataset_id = ds.dataset_id\r\n" + 
+				"	and cr.is_latest = 1\r\n" + 
+				"	and a.is_an_issue = 1\r\n" + 
 				"	and a.has_been_viewed = 0\r\n" + 
-				")\r\n" + 
-				"from dataset ds \r\n" + 
+				") unviewed\r\n" + 
+				"from dataset ds\r\n" + 
 				"where ds.study_id = " + study.getStudyId();
 		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
 	}
 	
 	public List<AnomalySummary> getDatasetSummaries(Site site) {
-		String sql = "select ds.dataset_id, ds.dataset_name,\r\n" + 
+		String sql = 
+				"select ds.dataset_id, ds.dataset_name,\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
-				"	join data_field df on df.data_field_id = a.data_field_id\r\n" + 
-				"	where df.dataset_id = ds.dataset_id\r\n" + 
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" + 
+				"	join dataset_version dv on dv.dataset_version_id = cr.dataset_version_id\r\n" +
+				"	where dv.dataset_id = ds.dataset_id\r\n" + 
+				"	and cr.is_latest = 1\r\n" + 
+				"	and a.is_an_issue = 1\r\n" + 
 				"	and a.site_id = " + site.getSiteId() + "\r\n" + 
-				"    and a.is_an_issue = 1\r\n" + 
-				") site_total,\r\n" + 
+				") total,\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
-				"	join data_field df on df.data_field_id = a.data_field_id\r\n" + 
-				"	where df.dataset_id = ds.dataset_id\r\n" + 
-				"    and a.is_an_issue = 1\r\n" + 
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" + 
+				"	join dataset_version dv on dv.dataset_version_id = cr.dataset_version_id\r\n" +
+				"	where dv.dataset_id = ds.dataset_id\r\n" + 
+				"	and cr.is_latest = 1\r\n" + 
+				"	and a.is_an_issue = 1\r\n" + 
+				"	and a.site_id = " + site.getSiteId() + "\r\n" + 
 				"	and a.has_been_viewed = 0\r\n" + 
-				"	and a.site_id = " + site.getSiteId() + "\r\n" + 
-				") site_unviewed\r\n" + 
+				") unviewed\r\n" + 
 				"from dataset ds\r\n" + 
 				"where ds.study_id = " + site.getStudy().getStudyId();
 		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
 	}
 	
 	public List<AnomalySummary> getDatasetSummaries(Subject subject) {
-		String sql = "select ds.dataset_id, ds.dataset_name,\r\n" + 
+		String sql = 
+				"select ds.dataset_id, ds.dataset_name,\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
-				"	join data_field df on df.data_field_id = a.data_field_id\r\n" + 
-				"	where df.dataset_id = ds.dataset_id\r\n" + 
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" + 
+				"	join dataset_version dv on dv.dataset_version_id = cr.dataset_version_id\r\n" +
+				"	where dv.dataset_id = ds.dataset_id\r\n" + 
+				"	and cr.is_latest = 1\r\n" + 
+				"	and a.is_an_issue = 1\r\n" + 
 				"	and a.subject_id = " + subject.getSubjectId() + "\r\n" + 
-				"    and a.is_an_issue = 1\r\n" + 
 				") total,\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
-				"	join data_field df on df.data_field_id = a.data_field_id\r\n" + 
-				"	where df.dataset_id = ds.dataset_id\r\n" + 
-				"	and a.subject_id = " + subject.getSubjectId() + "\r\n" + 
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" + 
+				"	join dataset_version dv on dv.dataset_version_id = cr.dataset_version_id\r\n" +
+				"	where dv.dataset_id = ds.dataset_id\r\n" + 
+				"	and cr.is_latest = 1\r\n" + 
 				"	and a.is_an_issue = 1\r\n" + 
+				"	and a.subject_id = " + subject.getSubjectId() + "\r\n" + 
 				"	and a.has_been_viewed = 0\r\n" + 
 				") unviewed\r\n" + 
 				"from dataset ds\r\n" + 
@@ -133,21 +159,29 @@ public class AnomalySummaryBuilder {
 	}
 	
 	public List<AnomalySummary> getSiteSummaries(Long studyId) {
-		String sql = "select s.site_id, s.site_name,\r\n" + 
+		String sql =
+				"select s.site_id, s.site_name,\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" +
 				"	where a.site_id = s.site_id\r\n" + 
+				"	and cr.is_latest = 1\r\n" + 
+				"	and a.is_an_issue = 1\r\n" + 
 				") total,\r\n" + 
 				"(\r\n" + 
-				"	select count(*)\r\n" + 
+				"select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" + 
 				"	where a.site_id = s.site_id\r\n" + 
+				"	and cr.is_latest = 1\r\n" + 
+				"	and a.is_an_issue = 1\r\n" + 
 				"	and a.has_been_viewed = 0\r\n" + 
-				")\r\n" + 
+				") unviewed\r\n" + 
 				"from site s\r\n" + 
-				"where s.study_id = " + studyId + "\r\n" +
-				"order by total desc";
+				"where s.study_id = " + studyId;
 		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
 	}
 	
@@ -156,12 +190,20 @@ public class AnomalySummaryBuilder {
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" +
 				"	where a.subject_id = s.subject_id\r\n" + 
+				"	and cr.is_latest = 1\r\n" + 
+				"	and a.is_an_issue = 1\r\n" + 
 				") total,\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" +
 				"	where a.subject_id = s.subject_id\r\n" + 
+				"	and cr.is_latest = 1\r\n" + 
+				"	and a.is_an_issue = 1\r\n" + 
 				"	and a.has_been_viewed = 0\r\n" + 
 				"),\r\n" + 
 				"si.site_name\r\n" + 
@@ -175,68 +217,89 @@ public class AnomalySummaryBuilder {
 	
 	public List<AnomalySummary> getDataFieldSummaries(Long datasetId) {
 		String sql =
-				"select df.data_field_id, df.data_field_name,\r\n" + 
+				"select f.field_id, f.field_name,\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
-				"	where a.data_field_id = df.data_field_id\r\n" + 
-				"   and a.is_an_issue = 1\r\n" +
-				"),\r\n" + 
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" + 
+				"	where a.field_id = f.field_id\r\n" + 
+				"	and a.is_an_issue = 1\r\n" + 
+				"	and cr.is_latest = 1\r\n" + 
+				") total,\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
-				"	where a.data_field_id = df.data_field_id\r\n" + 
-				"   and a.is_an_issue = 1\r\n" +
-				"	and a.has_been_viewed = 0\r\n" + 
-				")\r\n" + 
-				"from data_field df \r\n" + 
-				"where df.dataset_id = " + datasetId;
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" + 
+				"	where a.field_id = f.field_id\r\n" + 
+				"	and a.is_an_issue = 1\r\n" + 
+				"	and cr.is_latest = 1\r\n" + 
+				") unviewed\r\n" + 
+				"from field f\r\n" + 
+				"join dataset_version_field dvf on dvf.field_id = f.field_id\r\n" + 
+				"join dataset_version dv on dv.dataset_version_id = dvf.dataset_version_id\r\n" + 
+				"where dv.dataset_id = " + datasetId;
 		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
 	}
 	
 	public List<AnomalySummary> getDataFieldSummaries(Long datasetId, Site site) {
 		String sql =
-				"select df.data_field_id, df.data_field_name,\r\n" + 
+				"select f.field_id, f.field_name,\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
-				"	where a.data_field_id = df.data_field_id\r\n" + 
-				"   and a.is_an_issue = 1\r\n" +
-				"   and a.site_id = " + site.getSiteId() + "\r\n" +
-				"),\r\n" + 
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" + 
+				"	where a.field_id = f.field_id\r\n" + 
+				"	and a.site_id = " + site.getSiteId() + "\r\n" + 
+				"	and a.is_an_issue = 1\r\n" + 
+				"	and cr.is_latest = 1\r\n" + 
+				") total,\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
-				"	where a.data_field_id = df.data_field_id\r\n" + 
-				"   and a.is_an_issue = 1\r\n" +
-				"   and a.site_id = " + site.getSiteId() + "\r\n" +
-				"	and a.has_been_viewed = 0\r\n" + 
-				")\r\n" + 
-				"from data_field df \r\n" + 
-				"where df.dataset_id = " + datasetId;
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" + 
+				"	where a.field_id = f.field_id\r\n" + 
+				"	and a.site_id = " + site.getSiteId() + "\r\n" + 
+				"	and a.is_an_issue = 1\r\n" + 
+				"	and cr.is_latest = 1\r\n" + 
+				") unviewed\r\n" + 
+				"from field f\r\n" + 
+				"join dataset_version_field dvf on dvf.field_id = f.field_id\r\n" + 
+				"join dataset_version dv on dv.dataset_version_id = dvf.dataset_version_id\r\n" + 
+				"where dv.dataset_id = " + datasetId;
 		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
 	}
 	
 	public List<AnomalySummary> getDataFieldSummaries(Long datasetId, Subject subject) {
 		String sql =
-				"select df.data_field_id, df.data_field_name,\r\n" + 
+				"select f.field_id, f.field_name,\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
-				"	where a.data_field_id = df.data_field_id\r\n" + 
-				"   and a.is_an_issue = 1\r\n" +
-				"   and a.subject_id = " + subject.getSubjectId() + "\r\n" +
-				"),\r\n" + 
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" + 
+				"	where a.field_id = f.field_id\r\n" + 
+				"	and a.subject_id = " + subject.getSubjectId() + "\r\n" + 
+				"	and a.is_an_issue = 1\r\n" + 
+				"	and cr.is_latest = 1\r\n" + 
+				") total,\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
-				"	where a.data_field_id = df.data_field_id\r\n" + 
-				"   and a.is_an_issue = 1\r\n" +
-				"   and a.site_id = " + subject.getSubjectId() + "\r\n" +
-				"	and a.has_been_viewed = 0\r\n" + 
-				")\r\n" + 
-				"from data_field df \r\n" + 
-				"where df.dataset_id = " + datasetId;
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" + 
+				"	where a.field_id = f.field_id\r\n" + 
+				"	and a.subject_id = " + subject.getSubjectId() + "\r\n" + 
+				"	and a.is_an_issue = 1\r\n" + 
+				"	and cr.is_latest = 1\r\n" + 
+				") unviewed\r\n" + 
+				"from field f\r\n" + 
+				"join dataset_version_field dvf on dvf.field_id = f.field_id\r\n" + 
+				"join dataset_version dv on dv.dataset_version_id = dvf.dataset_version_id\r\n" + 
+				"where dv.dataset_id = " + datasetId;
 		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
 	}
 	

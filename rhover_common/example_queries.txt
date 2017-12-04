@@ -205,3 +205,147 @@ group by f.field_name
 order by total desc
 limit 25
 ;
+
+select s.study_id, s.study_name,
+(
+	select count(*)
+	from anomaly a
+	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id
+	join check_run cr on cr.check_run_id = acr.check_run_id
+	join dataset_version dv on dv.dataset_version_id = cr.dataset_version_id
+	join dataset ds on ds.dataset_id = dv.dataset_id
+	where ds.study_id = s.study_id
+	and cr.is_latest = 1
+	and a.is_an_issue = 1
+) total,
+(
+	select count(*)
+	from anomaly a
+	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id
+	join check_run cr on cr.check_run_id = acr.check_run_id
+	join dataset_version dv on dv.dataset_version_id = cr.dataset_version_id
+	join dataset ds on ds.dataset_id = dv.dataset_id
+	where ds.study_id = s.study_id
+	and cr.is_latest = 1
+	and a.is_an_issue = 1
+	and a.has_been_viewed = 0
+) unviewed
+from study s;
+
+select ds.dataset_id, ds.dataset_name,
+(
+	select count(*)
+	from anomaly a
+	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id
+	join check_run cr on cr.check_run_id = acr.check_run_id
+	join dataset_version dv on dv.dataset_version_id = cr.dataset_version_id
+	where dv.dataset_id = ds.dataset_id
+	and cr.is_latest = 1
+	and a.is_an_issue = 1
+) total,
+(
+	select count(*)
+	from anomaly a
+	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id
+	join check_run cr on cr.check_run_id = acr.check_run_id
+	join dataset_version dv on dv.dataset_version_id = cr.dataset_version_id
+	where dv.dataset_id = ds.dataset_id
+	and cr.is_latest = 1
+	and a.is_an_issue = 1
+	and a.has_been_viewed = 0
+) unviewed
+from dataset ds
+where ds.study_id = 1;
+
+select ds.dataset_id, ds.dataset_name,
+(
+	select count(*)
+	from anomaly a
+	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id
+	join check_run cr on cr.check_run_id = acr.check_run_id
+	join dataset_version dv on dv.dataset_version_id = cr.dataset_version_id
+	join anomaly_datum_version adv on adv.anomaly_id = a.anomaly_id
+	join datum_version dvr on dvr.datum_version_id = adv.datum_version_id
+	join datum d on d.datum_id = dvr.datum_id
+	join observation o on o.observation_id = d.observation_id
+	where dv.dataset_id = ds.dataset_id
+	and cr.is_latest = 1
+	and a.is_an_issue = 1
+	and o.site_id = 1
+) total,
+(
+	select count(*)
+	from anomaly a
+	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id
+	join check_run cr on cr.check_run_id = acr.check_run_id
+	join dataset_version dv on dv.dataset_version_id = cr.dataset_version_id
+	join anomaly_datum_version adv on adv.anomaly_id = a.anomaly_id
+	join datum_version dvr on dvr.datum_version_id = adv.datum_version_id
+	join datum d on d.datum_id = dvr.datum_id
+	join observation o on o.observation_id = d.observation_id
+	where dv.dataset_id = ds.dataset_id
+	and cr.is_latest = 1
+	and a.is_an_issue = 1
+	and o.site_id = 1
+	and a.has_been_viewed = 0
+) unviewed
+from dataset ds
+where ds.study_id = 1;
+
+select s.site_id, s.site_name,
+(
+	select count(*)
+	from anomaly a
+	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id
+	join check_run cr on cr.check_run_id = acr.check_run_id
+	join dataset_version dv on dv.dataset_version_id = cr.dataset_version_id
+	join anomaly_datum_version adv on adv.anomaly_id = a.anomaly_id
+	join datum_version dvr on dvr.datum_version_id = adv.datum_version_id
+	join datum d on d.datum_id = dvr.datum_id
+	join observation o on o.observation_id = d.observation_id
+	where o.site_id = s.site_id
+	and cr.is_latest = 1
+	and a.is_an_issue = 1
+) total,
+(
+select count(*)
+	from anomaly a
+	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id
+	join check_run cr on cr.check_run_id = acr.check_run_id
+	join dataset_version dv on dv.dataset_version_id = cr.dataset_version_id
+	join anomaly_datum_version adv on adv.anomaly_id = a.anomaly_id
+	join datum_version dvr on dvr.datum_version_id = adv.datum_version_id
+	join datum d on d.datum_id = dvr.datum_id
+	join observation o on o.observation_id = d.observation_id
+	where o.site_id = s.site_id
+	and cr.is_latest = 1
+	and a.is_an_issue = 1
+	and a.has_been_viewed = 0
+) unviewed
+from site s
+where s.study_id = 1;
+
+select f.field_id, f.field_name,
+(
+	select count(*)
+	from anomaly a
+	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id
+	join check_run cr on cr.check_run_id = acr.check_run_id
+	where a.field_id = f.field_id
+	and a.is_an_issue = 1
+	and cr.is_latest = 1
+) total,
+(
+	select count(*)
+	from anomaly a
+	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id
+	join check_run cr on cr.check_run_id = acr.check_run_id
+	where a.field_id = f.field_id
+	and a.is_an_issue = 1
+	and cr.is_latest = 1
+) unviewed
+from field f
+join dataset_version_field dvf on dvf.field_id = f.field_id
+join dataset_version dv on dv.dataset_version_id = dvf.dataset_version_id
+where dv.dataset_id = 3;
+

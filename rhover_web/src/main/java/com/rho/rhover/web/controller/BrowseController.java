@@ -128,11 +128,11 @@ public class BrowseController {
     			@RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
     			Model model) {
     	Dataset dataset = datasetRepository.findOne(datasetId);
-    	List<BivariateCheck> checks = new ArrayList<BivariateCheck>();
-    	checks.addAll(bivariateCheckRepository.findByDataset1(dataset));
-    	checks.addAll(bivariateCheckRepository.findByDataset2(dataset));
-		model.addAttribute("dataset", dataset);
-		model.addAttribute("bivariate_checks", checks);
+    	model.addAttribute("dataset", dataset);
+//    	List<BivariateCheck> checks = new ArrayList<BivariateCheck>();
+//    	checks.addAll(bivariateCheckRepository.findByDataset1(dataset));
+//    	checks.addAll(bivariateCheckRepository.findByDataset2(dataset));
+//		model.addAttribute("bivariate_checks", checks);
 		if (siteId == -1 && subjectId == -1) {
 			model.addAttribute("summaries", anomalySummaryBuilder.getDataFieldSummaries(datasetId));
 		}

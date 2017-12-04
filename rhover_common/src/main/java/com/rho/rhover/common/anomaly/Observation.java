@@ -17,6 +17,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 import com.rho.rhover.common.study.Dataset;
+import com.rho.rhover.common.study.Site;
 import com.rho.rhover.common.study.Subject;
 
 @Entity
@@ -26,10 +27,6 @@ public class Observation {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="observation_id")
 	private Long observationId;
-	
-	@ManyToOne
-	@JoinColumn(name="subject_id")
-	private Subject subject;
 	
 	@ManyToOne
 	@JoinColumn(name="dataset_id")
@@ -42,9 +39,8 @@ public class Observation {
 		
 	}
 
-	public Observation(Subject subject, Dataset dataset, String idFieldValueHash) {
+	public Observation(Dataset dataset, String idFieldValueHash) {
 		super();
-		this.subject = subject;
 		this.dataset = dataset;
 		this.idFieldValueHash = idFieldValueHash;
 	}
@@ -55,14 +51,6 @@ public class Observation {
 
 	public void setObservationId(Long observationId) {
 		this.observationId = observationId;
-	}
-
-	public Subject getSubject() {
-		return subject;
-	}
-
-	public void setSubject(Subject subject) {
-		this.subject = subject;
 	}
 
 	public Dataset getDataset() {

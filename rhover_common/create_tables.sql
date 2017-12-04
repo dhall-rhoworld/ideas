@@ -229,14 +229,12 @@ create table param_used (
 
 create table observation (
 	observation_id BIGINT AUTO_INCREMENT NOT NULL,
-	subject_id BIGINT NOT NULL,
 	id_field_value_hash CHAR(32) NOT NULL,
 	dataset_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT pk_observation PRIMARY KEY (observation_id),
-	CONSTRAINT fk_observation_2_subject FOREIGN KEY (subject_id) REFERENCES subject(subject_id),
 	CONSTRAINT fk_observation_2_dataset FOREIGN KEY (dataset_id) REFERENCES dataset(dataset_id),
-	CONSTRAINT u_subject_dataset_id_field_value_hash UNIQUE (subject_id, dataset_id, id_field_value_hash)
+	CONSTRAINT u_subject_dataset_id_field_value_hash UNIQUE (dataset_id, id_field_value_hash)
 );
 
 create table id_field_value (
@@ -285,10 +283,18 @@ create table datum_dataset_version (
 
 create table anomaly (
 	anomaly_id BIGINT AUTO_INCREMENT NOT NULL,
+	subject_id BIGINT NOT NULL,
+	site_id BIGINT NOT NULL,
 	check_id BIGINT NOT NULL,
+	field_id BIGINT NOT NULL,
+	has_been_viewed TINYINT NOT NULL DEFAULT 0,
+	is_an_issue TINYINT NOT NULL DEFAULT 1,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT pk_anomaly PRIMARY KEY (anomaly_id),
-	CONSTRAINT fk_anomaly_2_checks FOREIGN KEY (check_id) REFERENCES checks(check_id)
+	CONSTRAINT fk_anomaly_2_subject FOREIGN KEY (subject_id) REFERENCES subject(subject_id),
+	CONSTRAINT fk_anomaly_2_site FOREIGN KEY (site_id) REFERENCES site(site_id),
+	CONSTRAINT fk_anomaly_2_checks FOREIGN KEY (check_id) REFERENCES checks(check_id),
+	CONSTRAINT fk_anomaly_2_field FOREIGN KEY (field_id) REFERENCES field(field_id)
 );
 
 create table anomaly_datum_version (

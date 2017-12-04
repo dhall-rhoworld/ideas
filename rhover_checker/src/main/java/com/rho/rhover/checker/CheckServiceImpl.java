@@ -52,6 +52,9 @@ import com.rho.rhover.common.study.DatasetVersion;
 import com.rho.rhover.common.study.DatasetVersionRepository;
 import com.rho.rhover.common.study.Field;
 import com.rho.rhover.common.study.FieldRepository;
+import com.rho.rhover.common.study.Site;
+import com.rho.rhover.common.study.SiteRepository;
+import com.rho.rhover.common.study.Study;
 import com.rho.rhover.common.study.Subject;
 import com.rho.rhover.common.study.SubjectRepository;
 
@@ -86,6 +89,9 @@ public class CheckServiceImpl implements CheckService {
 	
 	@Autowired
 	private SubjectRepository subjectRepository;
+	
+	@Autowired
+	private SiteRepository siteRepository;
 	
 	@Autowired
 	private DatumRepository datumRepository;
@@ -135,8 +141,23 @@ public class CheckServiceImpl implements CheckService {
 		if (idFields.size() == 0) {
 			throw new ConfigurationException("No identifying fields defined");
 		}
+		boolean subjectIdIncluded = false;
+		boolean siteIdIncluded = false;
+		Study study = dataset.getStudy();
 		for (Field field : idFields) {
 			idData.add(csvDataRepository.findByField(field));
+			if (field.getFieldName().equals(study.getSubjectFieldName())) {
+				subjectIdIncluded = true;
+			}
+			else if (field.getFieldName().equals(study.getSiteFieldName())) {
+				siteIdIncluded = true;
+			}
+		}
+		if (!subjectIdIncluded) {
+			idData.add(csvDataRepository.findByField(fieldRepository.findByStudyAndFieldName(study, study.getSubjectFieldName())));
+		}
+		if (!siteIdIncluded) {
+			idData.add(csvDataRepository.findByField(fieldRepository.findByStudyAndFieldName(study, study.getSiteFieldName())));
 		}
 					
 		DatasetVersion datasetVersion = datasetVersionRepository.findByDatasetAndIsCurrent(dataset, Boolean.TRUE);
@@ -263,6 +284,7 @@ public class CheckServiceImpl implements CheckService {
 		Dataset dataset = datasetVersion.getDataset();
 		Map<Integer, Field> colNumToFieldId = new HashMap<>();
 		int subjectColNum = -1;
+		int siteColNum = -1;
 		String line = reader.readLine();
 		String[] values = line.split(",");
 		for (int i = 0; i < dataColNum; i++) {
@@ -274,6 +296,9 @@ public class CheckServiceImpl implements CheckService {
 			String fieldName = value.substring(0, p);
 			if (fieldName.equals(dataset.getStudy().getSubjectFieldName())) {
 				subjectColNum = i;
+			}
+			else if (fieldName.equals(dataset.getStudy().getSiteFieldName())) {
+				siteColNum = i;
 			}
 			Long fieldId = Long.parseLong(value.substring(p + 1));
 			
@@ -297,9 +322,7 @@ public class CheckServiceImpl implements CheckService {
 				String idFieldValueHash = Observation.generateIdFieldValueHash(idFieldValues);
 				Observation observation = observationRepository.findByDatasetAndIdFieldValueHash(dataset, idFieldValueHash);
 				if (observation == null) {
-					String subjectName = values[subjectColNum];
-					Subject subject = subjectRepository.findBySubjectName(subjectName);
-					observation = new Observation(subject, dataset, idFieldValueHash);
+					observation = new Observation(dataset, idFieldValueHash);
 					observationRepository.save(observation);
 					for (IdFieldValue idFieldValue : idFieldValues) {
 						idFieldValue.setObservation(observation);
@@ -341,9 +364,16 @@ public class CheckServiceImpl implements CheckService {
 				Anomaly anomaly = anomalyRepository.findOne(check, datumVersion);
 				if (anomaly == null) {
 					//logger.debug("Creating new anomaly");
+					String subjectName = values[subjectColNum];
+					Subject subject = subjectRepository.findBySubjectName(subjectName);
+					String siteName = values[siteColNum];
+					Site site = siteRepository.findByStudyAndSiteName(dataset.getStudy(), siteName);
 					anomaly = new Anomaly();
 					anomaly.setCheck(check);
 					anomaly.getDatumVersions().add(datumVersion);
+					anomaly.setSite(site);
+					anomaly.setSubject(subject);
+					anomaly.setField(field);
 				}
 //				else {
 //					logger.debug("Anomaly found");
