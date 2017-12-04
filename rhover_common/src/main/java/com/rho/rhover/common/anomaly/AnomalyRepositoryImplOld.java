@@ -14,7 +14,7 @@ import com.rho.rhover.common.study.Site;
 import com.rho.rhover.common.study.Subject;
 
 @Service
-public class AnomalyRepositoryImpl implements AnomalyRepository {
+public class AnomalyRepositoryImplOld implements AnomalyRepositoryOld {
 	
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 	
@@ -22,7 +22,7 @@ public class AnomalyRepositoryImpl implements AnomalyRepository {
 	private JdbcTemplate jdbcTemplate;
 
 	@Override
-	public Iterable<Anomaly> getCurrentAnomalies(Long dataFieldId) {
+	public Iterable<AnomalyOld> getCurrentAnomalies(Long dataFieldId) {
 		
 		// Get most recent dataset version
 		String sql = "select max(version_last_seen_in) from anomaly where data_field_id = " + dataFieldId;
@@ -38,15 +38,15 @@ public class AnomalyRepositoryImpl implements AnomalyRepository {
 				"and a.version_last_seen_in = " + version + "\r\n" +
 				"and a.is_an_issue = 1\r\n" +
 				"order by a.event, a.recruit_id";
-		return jdbcTemplate.query(sql, new RowMapper<Anomaly>() {
-			public Anomaly mapRow(ResultSet rs, int p) throws SQLException {
-				return new Anomaly(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6));
+		return jdbcTemplate.query(sql, new RowMapper<AnomalyOld>() {
+			public AnomalyOld mapRow(ResultSet rs, int p) throws SQLException {
+				return new AnomalyOld(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6));
 			}
 		});
 	}
 	
 	@Override
-	public Iterable<Anomaly> getCurrentAnomalies(Long dataFieldId, Site site) {
+	public Iterable<AnomalyOld> getCurrentAnomalies(Long dataFieldId, Site site) {
 		
 		// Get most recent dataset version
 		String sql = "select max(version_last_seen_in) from anomaly where data_field_id = " + dataFieldId;
@@ -63,16 +63,16 @@ public class AnomalyRepositoryImpl implements AnomalyRepository {
 				"and a.is_an_issue = 1\r\n" +
 				"and a.site_id = " + site.getSiteId() + "\r\n" +
 				"order by a.event, a.recruit_id";
-		return jdbcTemplate.query(sql, new RowMapper<Anomaly>() {
-			public Anomaly mapRow(ResultSet rs, int p) throws SQLException {
-				return new Anomaly(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6));
+		return jdbcTemplate.query(sql, new RowMapper<AnomalyOld>() {
+			public AnomalyOld mapRow(ResultSet rs, int p) throws SQLException {
+				return new AnomalyOld(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6));
 			}
 		});
 	}
 	
 
 	@Override
-	public Iterable<Anomaly> getCurrentAnomalies(Long dataFieldId, Subject subject) {
+	public Iterable<AnomalyOld> getCurrentAnomalies(Long dataFieldId, Subject subject) {
 		
 		// Get most recent dataset version
 		String sql = "select max(version_last_seen_in) from anomaly where data_field_id = " + dataFieldId;
@@ -89,9 +89,9 @@ public class AnomalyRepositoryImpl implements AnomalyRepository {
 				"and a.is_an_issue = 1\r\n" +
 				"and a.subject_id = " + subject.getSubjectId() + "\r\n" +
 				"order by a.event, a.recruit_id";
-		return jdbcTemplate.query(sql, new RowMapper<Anomaly>() {
-			public Anomaly mapRow(ResultSet rs, int p) throws SQLException {
-				return new Anomaly(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6));
+		return jdbcTemplate.query(sql, new RowMapper<AnomalyOld>() {
+			public AnomalyOld mapRow(ResultSet rs, int p) throws SQLException {
+				return new AnomalyOld(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6));
 			}
 		});
 	}

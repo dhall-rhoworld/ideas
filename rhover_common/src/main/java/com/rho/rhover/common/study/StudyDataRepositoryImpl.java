@@ -12,8 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import com.rho.rhover.common.anomaly.Anomaly;
-import com.rho.rhover.common.anomaly.AnomalyRepository;
+import com.rho.rhover.common.anomaly.AnomalyOld;
+import com.rho.rhover.common.anomaly.AnomalyRepositoryOld;
 import com.rho.rhover.common.anomaly.BivariateCheck;
 import com.rho.rhover.common.anomaly.BivariateCheckRepository;
 
@@ -28,7 +28,7 @@ public class StudyDataRepositoryImpl implements StudyDataRepository {
 	private JdbcTemplate jdbcTemplate;
 	
 	@Autowired
-	private AnomalyRepository anomalyRepository;
+	private AnomalyRepositoryOld anomalyRepository;
 	
 	@Autowired
 	private DataFieldRepository dataFieldRepository;
@@ -90,7 +90,7 @@ public class StudyDataRepositoryImpl implements StudyDataRepository {
 	
 	private Map<String, Long> buildAnomalySet(Long dataFieldId) {
 		Map<String, Long> map = new HashMap<>();
-		Iterable<Anomaly> anomalies = anomalyRepository.getCurrentAnomalies(dataFieldId);
+		Iterable<AnomalyOld> anomalies = anomalyRepository.getCurrentAnomalies(dataFieldId);
 		anomalies.forEach(anomaly -> map.put(anomaly.getRecruitId() + anomaly.getEvent(),
 				anomaly.getAnomalyId()));
 		return map;

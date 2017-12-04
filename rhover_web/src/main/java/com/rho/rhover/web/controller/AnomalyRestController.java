@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.rho.rhover.common.anomaly.AnomalyRepository;
+import com.rho.rhover.common.anomaly.AnomalyRepositoryOld;
 import com.rho.rhover.common.study.StudyDataRepository;
 
 @RestController
@@ -26,7 +26,7 @@ public class AnomalyRestController {
 	private StudyDataRepository studyDataRepository;
 	
 	@Autowired
-	private AnomalyRepository anomalyRepository;
+	private AnomalyRepositoryOld anomalyRepository;
 
 	@RequestMapping("/data/univariate")
 	public ResponseEntity<String> getUnivariateData(@RequestParam("data_field_id") Long dataFieldId) {

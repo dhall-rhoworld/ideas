@@ -226,3 +226,85 @@ create table param_used (
 	CONSTRAINT fk_param_used_2_check_run FOREIGN KEY (check_run_id)
 		REFERENCES check_run (check_run_id)
 );
+
+create table observation (
+	observation_id BIGINT AUTO_INCREMENT NOT NULL,
+	subject_id BIGINT NOT NULL,
+	id_field_value_hash CHAR(32) NOT NULL,
+	dataset_id BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_observation PRIMARY KEY (observation_id),
+	CONSTRAINT fk_observation_2_subject FOREIGN KEY (subject_id) REFERENCES subject(subject_id),
+	CONSTRAINT fk_observation_2_dataset FOREIGN KEY (dataset_id) REFERENCES dataset(dataset_id),
+	CONSTRAINT u_subject_dataset_id_field_value_hash UNIQUE (subject_id, dataset_id, id_field_value_hash)
+);
+
+create table id_field_value (
+	id_field_value_id BIGINT AUTO_INCREMENT NOT NULL,
+	value VARCHAR(50),
+	field_id BIGINT NOT NULL,
+	observation_id BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_id_field_value PRIMARY KEY (id_field_value_id),
+	CONSTRAINT fk_id_field_value_2_field FOREIGN KEY (field_id) REFERENCES field(field_id),
+	CONSTRAINT fk_id_field_value_2_observation FOREIGN KEY (observation_id) REFERENCES observation(observation_id),
+	CONSTRAINT u_value_field_observation UNIQUE (value, field_id, observation_id)
+);
+
+create table datum (
+	datum_id BIGINT AUTO_INCREMENT NOT NULL,
+	field_id BIGINT NOT NULL,
+	observation_id BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_datum PRIMARY KEY (datum_id),
+	CONSTRAINT fk_datum_2_field FOREIGN KEY (field_id) REFERENCES field(field_id),
+	CONSTRAINT fk_datum_2_observation FOREIGN KEY (observation_id) REFERENCES observation(observation_id),
+	CONSTRAINT u_field_observation UNIQUE (field_id, observation_id)
+);
+
+create table datum_version (
+	datum_version_id BIGINT AUTO_INCREMENT NOT NULL,
+	value VARCHAR(50),
+	is_current TINYINT NOT NULL DEFAULT 0,
+	datum_id BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_datum_version PRIMARY KEY (datum_version_id),
+	CONSTRAINT fk_datum_version_2_datum FOREIGN KEY (datum_id) REFERENCES datum (datum_id)
+);
+
+create table datum_dataset_version (
+	datum_version_id BIGINT NOT NULL,
+	dataset_version_id BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_datum_dataset_version PRIMARY KEY (datum_version_id, dataset_version_id),
+	CONSTRAINT fk_datum_dataset_version_2_datum_version FOREIGN KEY (datum_version_id)
+		REFERENCES datum_version(datum_version_id),
+	CONSTRAINT fk_datum_dataset_version_2_dataset_version FOREIGN KEY (dataset_version_id)
+		REFERENCES dataset_version(dataset_version_id)
+);
+
+create table anomaly (
+	anomaly_id BIGINT AUTO_INCREMENT NOT NULL,
+	check_id BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_anomaly PRIMARY KEY (anomaly_id),
+	CONSTRAINT fk_anomaly_2_checks FOREIGN KEY (check_id) REFERENCES checks(check_id)
+);
+
+create table anomaly_datum_version (
+	anomaly_id BIGINT NOT NULL,
+	datum_version_id BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_anomaly_datum_version PRIMARY KEY (anomaly_id, datum_version_id),
+	CONSTRAINT fk_anomaly_datum_version_2_anomaly FOREIGN KEY (anomaly_id) REFERENCES anomaly(anomaly_id),
+	CONSTRAINT fk_anomaly_datum_version_2_datum_version FOREIGN KEY (datum_version_id) REFERENCES datum_version(datum_version_id)
+);
+
+create table anomaly_check_run (
+	anomaly_id BIGINT NOT NULL,
+	check_run_id BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_anomaly_check_run PRIMARY KEY (anomaly_id, check_run_id),
+	CONSTRAINT fk_anomaly_check_run_2_anomaly FOREIGN KEY (anomaly_id) REFERENCES anomaly(anomaly_id),
+	CONSTRAINT fk_anomaly_check_run_2_check_run FOREIGN KEY (check_run_id) REFERENCES check_run(check_run_id)
+);

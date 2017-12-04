@@ -192,3 +192,16 @@ join study_db_version sdv on sdv.study_db_version_id = sdvc.study_db_version_id
 where sdv.study_id = 1
 and sdv.is_current = 1;
 
+select ds.dataset_name, dv.value
+from datum_version dv
+join datum_dataset_version ddv on ddv.datum_version_id = dv.datum_version_id
+join dataset_version dsv on dsv.dataset_version_id = ddv.dataset_version_id
+join dataset ds on ds.dataset_id = dsv.dataset_id
+
+select f.field_name, count(*) as total
+from field f
+join dataset_version_field dvf on dvf.field_id = f.field_id
+group by f.field_name
+order by total desc
+limit 25
+;

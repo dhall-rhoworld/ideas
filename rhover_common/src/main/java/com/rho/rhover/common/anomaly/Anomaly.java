@@ -1,48 +1,77 @@
 package com.rho.rhover.common.anomaly;
 
-public class Anomaly {
+import java.util.ArrayList;
+import java.util.List;
 
-	private final Long anomalyId;
-	private final String recruitId;
-	private final String event;
-	private final String fieldValue;
-	private final String versionFirstSeenIn;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+
+import com.rho.rhover.common.check.Check;
+import com.rho.rhover.common.check.CheckRun;
+
+@Entity
+public class Anomaly {
 	
-	// TODO: Consider creating Site entity and make this a many-to-one
-	private final String siteName;
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@Column(name="anomaly_id")
+	private Long anomalyId;
 	
-	public Anomaly(Long anomalyId, String recruitId, String event, String fieldValue, String versionFirstSeenIn, String siteName) {
-		super();
-		this.anomalyId = anomalyId;
-		this.recruitId = recruitId;
-		this.event = event;
-		this.fieldValue = fieldValue;
-		this.versionFirstSeenIn = versionFirstSeenIn;
-		this.siteName = siteName;
+	@ManyToMany
+	@JoinTable(name="anomaly_check_run", joinColumns = @JoinColumn(name="anomaly_id"),
+	inverseJoinColumns = @JoinColumn(name="check_run_id"))
+	private List<CheckRun> checkRuns = new ArrayList<>();
+	
+	@ManyToMany
+	@JoinTable(name="anomaly_datum_version", joinColumns = @JoinColumn(name="anomaly_id"),
+	inverseJoinColumns = @JoinColumn(name="datum_version_id"))
+	private List<DatumVersion> datumVersions = new ArrayList<>();
+	
+	@ManyToOne
+	@JoinColumn(name="check_id")
+	private Check check;
+
+	public Anomaly() {
+		
 	}
-	
+
 	public Long getAnomalyId() {
 		return anomalyId;
 	}
 
-	public String getRecruitId() {
-		return recruitId;
+	public void setAnomalyId(Long anomalyId) {
+		this.anomalyId = anomalyId;
 	}
 
-	public String getEvent() {
-		return event;
+	public List<DatumVersion> getDatumVersions() {
+		return datumVersions;
 	}
 
-	public String getFieldValue() {
-		return fieldValue;
+	public void setDatumVersions(List<DatumVersion> datumVersions) {
+		this.datumVersions = datumVersions;
 	}
 
-	public String getVersionFirstSeenIn() {
-		return versionFirstSeenIn;
+	public List<CheckRun> getCheckRuns() {
+		return checkRuns;
 	}
 
-	public String getSiteName() {
-		return siteName;
+	public void setCheckRuns(List<CheckRun> checkRuns) {
+		this.checkRuns = checkRuns;
+	}
+
+	public Check getCheck() {
+		return check;
+	}
+
+	public void setCheck(Check check) {
+		this.check = check;
 	}
 
 }

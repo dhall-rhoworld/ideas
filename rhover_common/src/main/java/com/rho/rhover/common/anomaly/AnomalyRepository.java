@@ -1,18 +1,12 @@
 package com.rho.rhover.common.anomaly;
 
-import com.rho.rhover.common.study.Site;
-import com.rho.rhover.common.study.Subject;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
 
-// TODO: Migrate to Spring CrudRepository
-public interface AnomalyRepository {
+import com.rho.rhover.common.check.Check;
 
-	Iterable<Anomaly> getCurrentAnomalies(Long dataFieldId);
-	
-	Iterable<Anomaly> getCurrentAnomalies(Long dataFieldId, Site site);
-	
-	Iterable<Anomaly> getCurrentAnomalies(Long dataFieldId, Subject subject);
-	
-	int setIsAnIssue(Iterable<Long> anomalyIds, boolean isAnIssue);
-	
-	int setIsAnIssue(Long dataFieldId, String[] recruitIds, String[] events, boolean isAnIssue);
+public interface AnomalyRepository extends CrudRepository<Anomaly, Long>{
+
+	@Query("select a from Anomaly a where a.check = ?1 and ?2 member a.datumVersions")
+	Anomaly findOne(Check check, DatumVersion datumVersion);
 }
