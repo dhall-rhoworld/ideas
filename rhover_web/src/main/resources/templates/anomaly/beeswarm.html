@@ -18,18 +18,18 @@
 		
 		<!-- Showing all anomalies from study -->
 		<span th:if="${site == null and subject == null}">
-			<a th:href="@{/browse/datasets(study_id=${data_field.dataset.study.studyId})}" th:text="${data_field.dataset.study.studyName}"/>
+			<a th:href="@{/browse/datasets(study_id=${field.study.studyId})}" th:text="${field.study.studyName}"/>
 			>
-			<a th:href="@{/browse/data_fields(dataset_id=${data_field.dataset.datasetId})}" th:text="${data_field.dataset.datasetName}"/>
+			<a th:href="@{/browse/data_fields(dataset_id=${dataset.datasetId})}" th:text="${dataset.datasetName}"/>
 		</span>
 		
-		<!-- Showing anomalies for one site -->
+		<!-- Showing anomalies from one site -->
 		<span th:if="${site}">
 			<a th:href="@{/browse/sites(study_id=${site.study.studyId})}" th:text="${site.study.studyName}"/>
 			>
 			<a th:href="@{/browse/datasets(site_id=${site.siteId})}" th:text="'Site ' + ${site.siteName}"/>
 			>
-			<a th:href="@{/browse/data_fields(dataset_id=${data_field.dataset.datasetId}, site_id=${site.siteId})}" th:text="${data_field.dataset.datasetName}"/>
+			<a th:href="@{/browse/data_fields(dataset_id=${dataset.datasetId}, site_id=${site.siteId})}" th:text="${dataset.datasetName}"/>
 		</span>
 		
 		<!-- Showing anomalies from one subject -->
@@ -38,10 +38,10 @@
 			>
 			<a th:href="@{/browse/datasets(subject_id=${subject.subjectId})}" th:text="'Subject ' + ${subject.subjectName}"/>
 			>
-			<a th:href="@{/browse/data_fields(dataset_id=${data_field.dataset.datasetId}, subject_id=${subject.subjectId})}" th:text="${data_field.dataset.datasetName}"/>
+			<a th:href="@{/browse/fields(dataset_id=${dataset.datasetId}, subject_id=${subject.subjectId})}" th:text="${dataset.datasetName}"/>
 		</span>
 		>
-		<strong><span th:text="${data_field.dataFieldName}"/></strong>
+		<strong><span th:text="${field.fieldName}"/></strong>
 	</div>
 		
     <div id="content">

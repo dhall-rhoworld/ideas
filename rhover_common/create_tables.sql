@@ -327,15 +327,31 @@ create table data_property (
 );
 
 create view uni_anomaly_dto as
-select acr.check_run_id as check_run_id, adv.anomaly_id as anomaly_id, f.field_id as field_id, f.field_name as field_name,
-dv.value as anomalous_value, count(f2.field_id) as num_id_fields,
-group_concat(f2.field_name) as id_field_names, group_concat(ifv.value) as id_field_values
+select acr.check_run_id as check_run_id,
+adv.anomaly_id as anomaly_id,
+f.field_id as field_id,
+f.field_name as field_name,
+dv.value as anomalous_value,
+a.subject_id as subject_id,
+a.site_id as site_id,
+(
+	select group_concat(idf.field_name)
+	from id_field_value idfv
+	join field idf on idfv.field_id = idf.field_id
+	where idfv.observation_id = d.observation_id
+	group by idfv.observation_id
+) as id_field_names,
+(
+	select group_concat(idfv.value)
+	from id_field_value idfv
+	where idfv.observation_id = d.observation_id
+	group by idfv.observation_id
+) as id_field_values
 from anomaly_datum_version adv
+join anomaly a on a.anomaly_id = adv.anomaly_id
 join datum_version dv on dv.datum_version_id = adv.datum_version_id
 join datum d on d.datum_id = dv.datum_id
 join field f on f.field_id = d.field_id 
-join id_field_value ifv on ifv.observation_id = d.observation_id
-join field f2 on f2.field_id = ifv.field_id
-join anomaly_check_run acr on acr.anomaly_id = adv.anomaly_id
-group by acr.check_run_id, adv.anomaly_id, f.field_id, f.field_name, dv.value;
+join anomaly_check_run acr on acr.anomaly_id = adv.anomaly_id;
+
 

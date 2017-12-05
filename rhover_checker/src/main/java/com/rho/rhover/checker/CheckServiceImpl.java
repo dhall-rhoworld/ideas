@@ -395,7 +395,7 @@ public class CheckServiceImpl implements CheckService {
 		}
 		StringTokenizer dataTokenizer = new StringTokenizer(data.getData(), ",");
 		
-		// Column headers
+		// ID column headers
 		int count = 0;
 		for (CsvData idDatum : idData) {
 			count++;
@@ -405,7 +405,7 @@ public class CheckServiceImpl implements CheckService {
 			builder.append(idDatum.getField().getFieldName() + "." + idDatum.getField().getFieldId());
 		}
 		
-		// Data value
+		// Checked column header
 		builder.append("," + data.getField().getFieldName() + "." + data.getField().getFieldId() + "\n");
 		
 		// Data records
@@ -425,8 +425,11 @@ public class CheckServiceImpl implements CheckService {
 					+ ": " + observationBuilder.toString());
 			}
 			idStrings.add(observationBuilder.toString());
-			observationBuilder.append("," + dataTokenizer.nextToken());
-			builder.append(observationBuilder.toString() + "\n");
+			String value = dataTokenizer.nextToken();
+			if (!(value == null || value.equals("null"))) {
+				observationBuilder.append("," + value);
+				builder.append(observationBuilder.toString() + "\n");
+			}
 		}
 		
 		return builder.toString();

@@ -21,18 +21,25 @@ public class UniAnomalyDto implements Comparable<UniAnomalyDto> {
 	private String anomalousValue;
 	
 	private Map<String, String> idFieldNamesAndValues = new HashMap<>();
+	
+	private Long subjectId;
+	
+	private Long siteId;
 
 	public UniAnomalyDto() {
 		
 	}
 
-	public UniAnomalyDto(Long checkRunId, Long anomalyId, Long fieldId, String fieldName, String anomalousValue) {
+	public UniAnomalyDto(Long checkRunId, Long anomalyId, Long fieldId, String fieldName, String anomalousValue,
+			Long subjectId, Long siteId) {
 		super();
 		this.checkRunId = checkRunId;
 		this.anomalyId = anomalyId;
 		this.fieldId = fieldId;
 		this.fieldName = fieldName;
 		this.anomalousValue = anomalousValue;
+		this.subjectId = subjectId;
+		this.siteId = siteId;
 	}
 
 	public void addIdFieldNameAndValue(String name, String value) {
@@ -61,6 +68,14 @@ public class UniAnomalyDto implements Comparable<UniAnomalyDto> {
 
 	public Map<String, String> getIdFieldNamesAndValues() {
 		return idFieldNamesAndValues;
+	}
+
+	public Long getSubjectId() {
+		return subjectId;
+	}
+
+	public Long getSiteId() {
+		return siteId;
 	}
 
 	@Override

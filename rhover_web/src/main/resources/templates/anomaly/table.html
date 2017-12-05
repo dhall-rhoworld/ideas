@@ -65,7 +65,7 @@
    			</tr>
    			<tr th:each="anomaly : ${anomalies}">
    				<td th:each="id_field : ${id_fields}" th:text="${anomaly.idFieldNamesAndValues.get(id_field.fieldName)}"/>
-   				<td th:text="${anomaly.anomalousValue}"/>
+   				<td th:text="${anomaly.anomalousValue}" class="attention"/>
    			</tr>
    		</table>
     </div>
