@@ -372,3 +372,9 @@ join field f on f.field_id = d.field_id
 join anomaly_check_run acr on acr.anomaly_id = adv.anomaly_id
 limit 10;
 
+select f.field_name
+from check_run cr
+join dataset_version_field dvf on dvf.dataset_version_id = cr.dataset_version_id
+join field f on f.field_id = dvf.field_id
+where cr.check_run_id = 245
+and f.is_identifying = 1;

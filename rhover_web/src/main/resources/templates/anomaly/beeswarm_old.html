@@ -8,7 +8,6 @@
     <script src="/d3.min.js"></script>
     <script src="/jquery-3.2.1.min.js"></script>
     <script src="/jquery-ui.js"></script>
-    <script src="/beeswarm.js"></script>
 </head>
 <body>
 	<div class="page-header">RhoVer (Prototype)</div>
@@ -43,16 +42,58 @@
 		</span>
 		>
 		<strong><span th:text="${field.fieldName}"/></strong>
-		
-		<div id="div_chart"/>
-			
 	</div>
+		
+    <div id="content">
+    	<button type="button" id="button_save" disabled="true" onclick="onSave()">Save Boundaries</button>
+    	<button type="button" id="button_show" disabled="true" onclick="onExport()">Show Data</button>
+    	<button type="button" id="button_query" disabled="true">Open Query</button>&nbsp;&nbsp;&nbsp;
+    	<select id="select_label">
+    		<option value="issue">Is an issue</option>
+    		<option value="non-issue">Not an issue</option>
+    	</select>
+    	<button type="button" id="button_change" disabled="true" onclick="onChange()">Change</button>&nbsp;&nbsp;&nbsp;
+    	<input type="text" size="2"/>
+    	<select>
+    		<option>Days</option>
+    		<option>Weeks</option>
+    		<option>Months</option>
+    	</select>
+    	<button type="button" id="button_suppress" disabled="true">Suppress</button>
+    	<svg/>
+    	<h3><span th:text="${field.dataFieldName}"/></h3>
+    </div>
     
+    <div id="dialog_data">
+    	<div id="dialog_data_table"></div>
+    </div>
 </body>
-
 <script th:inline="javascript">
-	const url = "/rest/anomaly/data/univariate_outliers?check_run_id=" + [[${check_run_id}]];
-	const renderer = new BeeswarmRenderer();
-	renderer.renderDataFromUrl(url);
+	dataFieldName = [[${field.dataFieldName}]];
+	dataFieldId = [[${field.dataFieldId}]];
+	lowerThreshold = [[${data_field.lowerThreshold}]];
+	upperThreshold = [[${data_field.upperThreshold}]];
+	siteName = [[${site_name}]];
+	subjectName = [[${subject_name}]];
+</script>
+
+<script src="/beeswarm.js"></script>
+
+<script>
+	$(function() {
+		$("#dialog_data").dialog({
+			autoOpen: false,
+			modal: true,
+			minWidth: 600,
+			buttons: [
+				{
+					text: "OK",
+					click: function() {
+						$(this).dialog("close");
+					}
+				}
+			]
+		});
+	});
 </script>
 </html>

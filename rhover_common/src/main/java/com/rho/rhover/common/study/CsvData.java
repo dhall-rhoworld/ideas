@@ -23,6 +23,10 @@ public class CsvData {
 	@JoinColumn(name="field_id")
 	private Field field;
 	
+	@ManyToOne
+	@JoinColumn(name="dataset_id")
+	private Dataset dataset;
+	
 	public CsvData() {
 		
 	}
@@ -49,6 +53,14 @@ public class CsvData {
 
 	public void setField(Field field) {
 		this.field = field;
+	}
+
+	public Dataset getDataset() {
+		return dataset;
+	}
+
+	public void setDataset(Dataset dataset) {
+		this.dataset = dataset;
 	}
 	
 }

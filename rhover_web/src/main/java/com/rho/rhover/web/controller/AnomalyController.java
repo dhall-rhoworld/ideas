@@ -66,17 +66,17 @@ public class AnomalyController {
     
     @RequestMapping("/table")
     public String anomalyTable(
-    			@RequestParam("data_field_id") Long fieldId,
+    			@RequestParam("field_id") Long fieldId,
     			@RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
     			@RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
     			Model model) {
     	Field field = fieldRepository.findOne(fieldId);
+    	model.addAttribute("field", field);
     	model.addAttribute("id_fields", fieldRepository.findByStudyAndIsIdentifying(field.getStudy(), Boolean.TRUE));
     	DatasetVersion datasetVersion = field.getCurrentDatasetVersion();
     	model.addAttribute("dataset", datasetVersion.getDataset());
     	Check check = checkRepository.findByCheckName("UNIVARIATE_OUTLIER");
     	CheckRun checkRun = checkRunRepository.findByCheckAndDatasetVersionAndFieldAndIsLatest(check, datasetVersion, field, Boolean.TRUE);
-    	model.addAttribute("field", field);
     	if (siteId == -1 && subjectId == -1) {
     		model.addAttribute("anomalies", uniAnomalyDtoRepository.findByCheckRunId(checkRun.getCheckRunId()));
     	}
@@ -88,22 +88,22 @@ public class AnomalyController {
     		model.addAttribute("subject", subjectRepository.findOne(subjectId));
     		model.addAttribute("anomalies", uniAnomalyDtoRepository.findByCheckRunIdAndSubjectId(checkRun.getCheckRunId(), subjectId));
     	}
-//    	model.addAttribute("anomalies", anomalies);
-//    	for (Anomaly anomaly : anomalies) {
-//    		anomaly.setHasBeenViewed(Boolean.TRUE);
-//    		anomalyRepository.save(anomaly);
-//    	}
     	return "anomaly/table";
     }
     
     @RequestMapping("/beeswarm")
     public String beeswarm(
-		    @RequestParam("data_field_id") Long dataFieldId,
+		    @RequestParam("field_id") Long fieldId,
 		    @RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
 		    @RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
 			Model model) {
-    	Field dataField = dataFieldRepository.findOne(dataFieldId);
-    	model.addAttribute("data_field", dataField);
+    	Field field = dataFieldRepository.findOne(fieldId);
+    	model.addAttribute("field", field);
+    	DatasetVersion datasetVersion = field.getCurrentDatasetVersion();
+    	model.addAttribute("dataset", datasetVersion.getDataset());
+    	Check check = checkRepository.findByCheckName("UNIVARIATE_OUTLIER");
+    	CheckRun checkRun = checkRunRepository.findByCheckAndDatasetVersionAndFieldAndIsLatest(check, datasetVersion, field, Boolean.TRUE);
+    	model.addAttribute("check_run_id", checkRun.getCheckRunId());
     	if (siteId == -1 && subjectId == -1) {
     		model.addAttribute("site_name", "-1");
     		model.addAttribute("subject_name", "-1");

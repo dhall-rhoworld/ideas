@@ -111,9 +111,11 @@ create table field (
 create table csv_data (
 	csv_data_id BIGINT AUTO_INCREMENT NOT NULL,
 	field_id BIGINT NOT NULL,
+	dataset_id BIGINT NOT NULL,
 	data LONGTEXT NOT NULL,
 	CONSTRAINT pk_csv_data PRIMARY KEY (csv_data_id),
-	CONSTRAINT fk_csv_data_2_field FOREIGN KEY (field_id) REFERENCES field(field_id) 
+	CONSTRAINT fk_csv_data_2_field FOREIGN KEY (field_id) REFERENCES field(field_id),
+	CONSTRAINT fk_csv_data_2_dataset FOREIGN KEY (dataset_id) REFERENCES dataset(dataset_id)
 );
 
 create table dataset_version_field (

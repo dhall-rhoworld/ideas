@@ -145,7 +145,7 @@ public class CheckServiceImpl implements CheckService {
 		boolean siteIdIncluded = false;
 		Study study = dataset.getStudy();
 		for (Field field : idFields) {
-			idData.add(csvDataRepository.findByField(field));
+			idData.add(csvDataRepository.findByFieldAndDataset(field, dataset));
 			if (field.getFieldName().equals(study.getSubjectFieldName())) {
 				subjectIdIncluded = true;
 			}
@@ -154,10 +154,10 @@ public class CheckServiceImpl implements CheckService {
 			}
 		}
 		if (!subjectIdIncluded) {
-			idData.add(csvDataRepository.findByField(fieldRepository.findByStudyAndFieldName(study, study.getSubjectFieldName())));
+			idData.add(csvDataRepository.findByFieldAndDataset(fieldRepository.findByStudyAndFieldName(study, study.getSubjectFieldName()), dataset));
 		}
 		if (!siteIdIncluded) {
-			idData.add(csvDataRepository.findByField(fieldRepository.findByStudyAndFieldName(study, study.getSiteFieldName())));
+			idData.add(csvDataRepository.findByFieldAndDataset(fieldRepository.findByStudyAndFieldName(study, study.getSiteFieldName()), dataset));
 		}
 					
 		DatasetVersion datasetVersion = datasetVersionRepository.findByDatasetAndIsCurrent(dataset, Boolean.TRUE);
@@ -172,7 +172,7 @@ public class CheckServiceImpl implements CheckService {
 			logger.info("Running univarate outlier check on field " + field.getFieldName());
 			
 			// Construct an input dataset for R script
-			CsvData data = csvDataRepository.findByField(field);
+			CsvData data = csvDataRepository.findByFieldAndDataset(field, dataset);
 			String outputData = generateOutputData(idData, data, dataset);
 			
 			// Write input dataset to file

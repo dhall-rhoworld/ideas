@@ -217,7 +217,7 @@ public class AnomalySummaryBuilder {
 	
 	public List<AnomalySummary> getDataFieldSummaries(Long datasetId) {
 		String sql =
-				"select f.field_id, f.field_name,\r\n" + 
+				"select f.field_id, f.field_label,\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
@@ -246,7 +246,7 @@ public class AnomalySummaryBuilder {
 	
 	public List<AnomalySummary> getDataFieldSummaries(Long datasetId, Site site) {
 		String sql =
-				"select f.field_id, f.field_name,\r\n" + 
+				"select f.field_id, f.field_label,\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 
@@ -277,7 +277,7 @@ public class AnomalySummaryBuilder {
 	
 	public List<AnomalySummary> getDataFieldSummaries(Long datasetId, Subject subject) {
 		String sql =
-				"select f.field_id, f.field_name,\r\n" + 
+				"select f.field_id, f.field_label,\r\n" + 
 				"(\r\n" + 
 				"	select count(*)\r\n" + 
 				"	from anomaly a\r\n" + 

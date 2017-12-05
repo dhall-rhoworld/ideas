@@ -14,7 +14,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.rho.rhover.common.anomaly.AnomalyRepositoryOld;
+import com.rho.rhover.common.check.CheckRun;
+import com.rho.rhover.common.check.CheckRunRepository;
 import com.rho.rhover.common.study.StudyDataRepository;
+import com.rho.rhover.web.service.CsvDataService;
 
 @RestController
 @RequestMapping("/rest/anomaly")
@@ -27,6 +30,12 @@ public class AnomalyRestController {
 	
 	@Autowired
 	private AnomalyRepositoryOld anomalyRepository;
+	
+	@Autowired
+	private CsvDataService csvDataService;
+	
+	@Autowired
+	private CheckRunRepository checkRunRepository;
 
 	@RequestMapping("/data/univariate")
 	public ResponseEntity<String> getUnivariateData(@RequestParam("data_field_id") Long dataFieldId) {
@@ -34,6 +43,12 @@ public class AnomalyRestController {
 		headers.add("Content-Type", "text/plain; charset=utf-8");
 		String data = studyDataRepository.getUnivariateData(dataFieldId);
 		return new ResponseEntity<String>(data, headers, HttpStatus.OK);
+	}
+	
+	@RequestMapping("/data/univariate_outliers")
+	public String getUnivariateOutliers(@RequestParam("check_run_id") Long checkRunId) {
+		CheckRun checkRun = checkRunRepository.findOne(checkRunId);
+		return csvDataService.getCsvData(checkRun);
 	}
 	
 	@RequestMapping("/data/bivariate")

@@ -286,10 +286,11 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 			datasetVersion.addField(field);
 			field.addDatasetVersion(datasetVersion);
 			fieldRepository.save(field);
-			CsvData csvData = csvDataRepository.findByField(field);
+			CsvData csvData = csvDataRepository.findByFieldAndDataset(field, datasetVersion.getDataset());
 			if (csvData == null) {
 				csvData = new CsvData();
 				csvData.setField(field);
+				csvData.setDataset(datasetVersion.getDataset());
 			}
 			csvData.setData(df.getFieldAsCsv(fieldName));
 			csvDataRepository.save(csvData);

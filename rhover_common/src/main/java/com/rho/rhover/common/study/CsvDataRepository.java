@@ -4,5 +4,5 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface CsvDataRepository extends CrudRepository<CsvData, Long> {
 
-	CsvData findByField(Field field);
+	CsvData findByFieldAndDataset(Field field, Dataset dataset);
 }
