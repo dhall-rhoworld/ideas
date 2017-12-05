@@ -81,14 +81,12 @@ public class AnomalyController {
     		model.addAttribute("anomalies", uniAnomalyDtoRepository.findByCheckRunId(checkRun.getCheckRunId()));
     	}
     	if (siteId != -1) {
-    		Site site = siteRepository.findOne(siteId);
-    		model.addAttribute("site", site);
-    		//anomalies = anomalyRepositoryOld.getCurrentAnomalies(fieldId, site);
+    		model.addAttribute("site", siteRepository.findOne(siteId));
+    		model.addAttribute("anomalies", uniAnomalyDtoRepository.findByCheckRunIdAndSiteId(checkRun.getCheckRunId(), siteId));
     	}
     	if (subjectId != -1) {
-    		Subject subject = subjectRepository.findOne(subjectId);
-    		model.addAttribute("subject", subject);
-    		//anomalies = anomalyRepositoryOld.getCurrentAnomalies(fieldId, subject);
+    		model.addAttribute("subject", subjectRepository.findOne(subjectId));
+    		model.addAttribute("anomalies", uniAnomalyDtoRepository.findByCheckRunIdAndSubjectId(checkRun.getCheckRunId(), subjectId));
     	}
 //    	model.addAttribute("anomalies", anomalies);
 //    	for (Anomaly anomaly : anomalies) {

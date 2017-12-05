@@ -235,6 +235,7 @@ public class AnomalySummaryBuilder {
 				"	where a.field_id = f.field_id\r\n" + 
 				"	and a.is_an_issue = 1\r\n" + 
 				"	and cr.is_latest = 1\r\n" + 
+				"   and a.has_been_viewed = 0\r\n" +
 				") unviewed\r\n" + 
 				"from field f\r\n" + 
 				"join dataset_version_field dvf on dvf.field_id = f.field_id\r\n" + 
@@ -265,6 +266,7 @@ public class AnomalySummaryBuilder {
 				"	and a.site_id = " + site.getSiteId() + "\r\n" + 
 				"	and a.is_an_issue = 1\r\n" + 
 				"	and cr.is_latest = 1\r\n" + 
+				"   and a.has_been_viewed = 0\r\n" +
 				") unviewed\r\n" + 
 				"from field f\r\n" + 
 				"join dataset_version_field dvf on dvf.field_id = f.field_id\r\n" + 
@@ -295,6 +297,7 @@ public class AnomalySummaryBuilder {
 				"	and a.subject_id = " + subject.getSubjectId() + "\r\n" + 
 				"	and a.is_an_issue = 1\r\n" + 
 				"	and cr.is_latest = 1\r\n" + 
+				"   and a.has_been_viewed = 0\r\n" +
 				") unviewed\r\n" + 
 				"from field f\r\n" + 
 				"join dataset_version_field dvf on dvf.field_id = f.field_id\r\n" + 
