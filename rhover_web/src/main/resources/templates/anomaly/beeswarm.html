@@ -44,7 +44,9 @@
 		>
 		<strong><span th:text="${field.fieldName}"/></strong>
 		
-		<div id="div_chart"/>
+		<div>
+			<svg/>
+		</div>
 			
 	</div>
     
@@ -52,7 +54,14 @@
 
 <script th:inline="javascript">
 	const url = "/rest/anomaly/data/univariate_outliers?check_run_id=" + [[${check_run_id}]];
-	const renderer = new BeeswarmRenderer();
-	renderer.renderDataFromUrl(url);
+	const fieldName = [[${field_name}]];
+	const mean = parseFloat([[${mean}]]);
+	const sd = parseFloat([[${sd}]]);
+	const siteName = [[${site_name}]];
+	const subjectName = [[${subject_name}]];
+	const numSd = parseFloat([[${num_sd}]]);
+	const siteFieldName = [[${site_field_name}]];
+	const subjectFieldName = [[${subject_field_name}]];
+	renderBeeswarm(url, fieldName, mean, sd, numSd, siteName, subjectName, siteFieldName, subjectFieldName);
 </script>
 </html>

@@ -12,16 +12,19 @@ import com.rho.rhover.common.anomaly.Anomaly;
 import com.rho.rhover.common.anomaly.AnomalyRepository;
 import com.rho.rhover.common.anomaly.AnomalyRepositoryOld;
 import com.rho.rhover.common.anomaly.BivariateCheckRepository;
+import com.rho.rhover.common.anomaly.DataPropertyRepository;
 import com.rho.rhover.common.check.Check;
 import com.rho.rhover.common.check.CheckRepository;
 import com.rho.rhover.common.check.CheckRun;
 import com.rho.rhover.common.check.CheckRunRepository;
+import com.rho.rhover.common.check.ParamUsedRepository;
 import com.rho.rhover.common.study.Field;
 import com.rho.rhover.common.study.FieldRepository;
 import com.rho.rhover.common.study.DataFieldRepository;
 import com.rho.rhover.common.study.DatasetVersion;
 import com.rho.rhover.common.study.Site;
 import com.rho.rhover.common.study.SiteRepository;
+import com.rho.rhover.common.study.Study;
 import com.rho.rhover.common.study.StudyDataRepository;
 import com.rho.rhover.common.study.Subject;
 import com.rho.rhover.common.study.SubjectRepository;
@@ -45,6 +48,12 @@ public class AnomalyController {
 	
 	@Autowired
 	private AnomalyRepository anomalyRepository;
+	
+	@Autowired
+	private DataPropertyRepository dataPropertyRepository;
+	
+	@Autowired
+	private ParamUsedRepository paramUsedRepository;
 	
 	@Autowired
 	private AnomalyRepositoryOld anomalyRepositoryOld;
@@ -104,6 +113,13 @@ public class AnomalyController {
     	Check check = checkRepository.findByCheckName("UNIVARIATE_OUTLIER");
     	CheckRun checkRun = checkRunRepository.findByCheckAndDatasetVersionAndFieldAndIsLatest(check, datasetVersion, field, Boolean.TRUE);
     	model.addAttribute("check_run_id", checkRun.getCheckRunId());
+    	model.addAttribute("mean", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "mean").getDataPropertyValue());
+    	model.addAttribute("sd", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "sd").getDataPropertyValue());
+    	model.addAttribute("num_sd", paramUsedRepository.findByCheckRunAndParamName(checkRun, "sd").getParamValue());
+    	model.addAttribute("field_name", field.getDisplayName());
+    	Study study = datasetVersion.getDataset().getStudy();
+    	model.addAttribute("subject_field_name", study.getSubjectFieldName());
+    	model.addAttribute("site_field_name", study.getSiteFieldName());
     	if (siteId == -1 && subjectId == -1) {
     		model.addAttribute("site_name", "-1");
     		model.addAttribute("subject_name", "-1");

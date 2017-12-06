@@ -172,6 +172,14 @@ public class Field {
 	public void setCheckParams(Map<String, CheckParam> checkParams) {
 		this.checkParams = checkParams;
 	}
+	
+	public String getDisplayName() {
+		String displayName = fieldLabel;
+		if (displayName == null || displayName.trim().length() == 0) {
+			displayName = fieldName;
+		}
+		return displayName;
+	}
 
 	public String getTruncatedFieldLabel() {
 		if (fieldLabel.length() < DISPLAY_LENGTH) {

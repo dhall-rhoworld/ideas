@@ -15,7 +15,7 @@ public class DataProperty {
 	
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="field_id")
+	@Column(name="data_property_id")
 	private Long dataPropertyId;
 	
 	@Column(name="data_property_name")
