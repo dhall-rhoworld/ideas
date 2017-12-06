@@ -43,10 +43,37 @@
 		</span>
 		>
 		<strong><span th:text="${field.fieldName}"/></strong>
+	</div>
+	
+	<div id="content">
+		
+		<div>
+			<fieldset class="control-group">
+				<label for="spinner_sd">Outlier Boundary (StDev)</label>
+				<input id="spinner_sd" size="2" th:value="${num_sd}"/>
+				<button type="button">Save</button>
+			</fieldset>
+			
+			<fieldset class="control-group deactivated">
+				<button type="button" class="vertically-aligned" id="button_show" disabled="true">Show Data</button>
+			</fieldset>
+			
+			<fieldset class="control-group deactivated">
+				<select id="select_issue" class="vertically-aligned" disabled="true">
+					<option>Not an Issue</option>
+					<option>Is An Issue</option>
+				</select>
+				<button type="button" class="vertically-aligned" id="button_status" disabled="true">Save Status</button>
+			</fieldset>
+		</div>
 		
 		<div>
 			<svg/>
 		</div>
+		
+		<div id="dialog_data">
+    		<table id="dialog_data_table" class="wide"/>
+    	</div>
 			
 	</div>
     
@@ -62,6 +89,70 @@
 	const numSd = parseFloat([[${num_sd}]]);
 	const siteFieldName = [[${site_field_name}]];
 	const subjectFieldName = [[${subject_field_name}]];
-	renderBeeswarm(url, fieldName, mean, sd, numSd, siteName, subjectName, siteFieldName, subjectFieldName);
+	
+	$(function() {
+		$("#dialog_data").dialog({
+			autoOpen: false,
+			modal: true,
+			minWidth: 600,
+			buttons: [
+				{
+					text: "OK",
+					click: function() {
+						$(this).dialog("close");
+					}
+				}
+			]
+		});
+	});
+	
+	$("#button_show").click(function() {
+		data = getSelectedData();
+		console.log(data);
+		varNames = Object.keys(data[0]);
+		let html = "<tr>";
+		for (var i in varNames) {
+			html += "<th>";
+			html += varNames[i];
+			html += "</th>"
+		}
+		for (var i in data) {
+			html += "<tr>"
+			for (var j in varNames) {
+				html += "<td>";
+				html += data[i][varNames[j]];
+				html += "</td>"
+			}
+			html += "</tr>"
+		}
+		html += "</tr>";
+		$("#dialog_data_table").html(html);
+		$("#dialog_data").dialog("open");
+	});
+	
+	renderBeeswarm(url, fieldName, mean, sd, numSd, siteName, subjectName, siteFieldName, subjectFieldName, function(itemsAreSelected) {
+		if (itemsAreSelected) {
+			$("#button_show").prop("disabled", false);
+			$("#select_issue").prop("disabled", false);
+			$("#button_status").prop("disabled", false);
+		}
+		else {
+			$("#button_show").prop("disabled", true);
+			$("#select_issue").prop("disabled", true);
+			$("#button_status").prop("disabled", true);
+		}
+	});
+</script>
+
+<script>
+	$("#spinner_sd").spinner({
+		step: 0.25,
+		numberFormat: "n",
+		stop: function() {
+			const sd = $("#spinner_sd").val();
+			setThresholdLines(sd);
+		}
+	});
+	
 </script>
 </html>

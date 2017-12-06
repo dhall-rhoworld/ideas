@@ -29,6 +29,10 @@ let line2 = null;
 
 let xScale = null;
 
+let dataMean = 0;
+let dataSd = 0;
+let eventHandler = null;
+
 function getY(x) {
 	let lane = 0;
 	while (lane < numLanes && (laneMax[lane] + 2 * CIRCUMFERENCE) > x) {
@@ -78,14 +82,19 @@ function computeHeight(data, fieldName, xScale) {
 	return maxY - minY;
 }
 
-function computeCaretPoints(x) {
-	let p1 = x + ", " + (caretY + 8);
-	let p2 = (x - 8) + ", " + caretY;
-	let p3 = (x + 8) + ", " + caretY;
-	return p1 + " " + p2 + " " + p3;
+function setThresholdLines(numSd) {
+	lowerThresh = dataMean - numSd * dataSd;
+	lowerX = xScale(lowerThresh) + BORDER;
+	line1.attr("x1", lowerX).attr("x2", lowerX);
+	upperThresh = dataMean + numSd * dataSd;
+	upperX = xScale(upperThresh) + BORDER;
+	line2.attr("x1", upperX).attr("x2", upperX);
 }
 
-function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteName, subjectName, siteFieldName, subjectFieldName) {
+function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteName, subjectName, siteFieldName, subjectFieldName, handler) {
+	dataMean = mean;
+	dataSd = sd;
+	eventHandler = handler;
 	
 	d3.csv(dataUrl, function(data) {
 		//console.log(data);
@@ -149,11 +158,13 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteName, subjectNa
 		
 		// Add selection event handler
 		svg.on("mousedown", function() {
+			d3.selectAll("rect").remove();
 			if (dataAreSelected) {
 				dataArea.selectAll(".outlier-selected").classed("outlier-selected", false);
 				dataArea.selectAll(".inlier-selected").classed("inlier-selected", false);
 				dataArea.selectAll(".data-selected").classed("data-selected", false);
 				dataAreSelected = false;
+				eventHandler(false);
 				/*
 				document.getElementById("button_show").setAttribute("disabled", "true");
 				document.getElementById("button_query").setAttribute("disabled", "true");
@@ -235,6 +246,9 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteName, subjectNa
 						}
 					}
 				});
+				if (dataAreSelected) {
+					eventHandler(true);
+				}
 				/*
 				if (dataAreSelected) {
 					document.getElementById("button_show").removeAttribute("disabled");
@@ -246,6 +260,16 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteName, subjectNa
 			}
 		});
 	});
+}
+
+let selectedData = null;
+
+function getSelectedData() {
+	selectedData = new Array();
+	dataArea.selectAll(".data-selected").each(function(d) {
+		selectedData.push(d);
+	});
+	return selectedData;
 }
 
 let hmtl = "";
