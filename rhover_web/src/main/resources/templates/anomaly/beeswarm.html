@@ -42,37 +42,56 @@
 			<a th:href="@{/browse/fields(dataset_id=${dataset.datasetId}, subject_id=${subject.subjectId})}" th:text="${dataset.datasetName}"/>
 		</span>
 		>
-		<strong><span th:text="${field.fieldName}"/></strong>
+		<strong><span th:text="${field.fieldLabel}"/></strong>
 	</div>
 	
 	<div id="content">
 		
 		<div>
 			<fieldset class="control-group">
-				<label for="spinner_sd">Outlier Boundary (StDev)</label>
+				<legend>Check Parameters</legend>
+				<label for="spinner_sd">Cutoff (StDev)</label>
 				<input id="spinner_sd" size="2" th:value="${num_sd}"/>
-				<button type="button">Save</button>
+				<button type="button">Apply</button>
 			</fieldset>
 			
-			<fieldset class="control-group deactivated">
-				<button type="button" class="vertically-aligned" id="button_show" disabled="true">Show Data</button>
+			<fieldset class="control-group">
+				<legend>Actions</legend>
+				<button type="button" id="button_show" disabled="true">Show Data</button>
 			</fieldset>
 			
-			<fieldset class="control-group deactivated">
-				<select id="select_issue" class="vertically-aligned" disabled="true">
+			<fieldset class="control-group">
+				<legend>Label Data</legend>
+				<select id="select_issue" disabled="true">
 					<option>Not an Issue</option>
 					<option>Is An Issue</option>
 				</select>
-				<button type="button" class="vertically-aligned" id="button_status" disabled="true">Save Status</button>
+				<button type="button" id="button_status" disabled="true">Apply</button>
+			</fieldset>
+			
+			<fieldset class="control-group">
+				<legend>Filter By</legend>
+				<select id="select_filter">
+					<option th:selected="${filter_entity} == 'none'" value="none">No Filter</option>
+					<option th:selected="${filter_entity} == 'site'" value="site">Site</option>
+					<option th:selected="${filter_entity} == 'subject'" value="subject">Subject</option>
+				</select>
+				<input type="text" size="5" id="text_filter" th:value="${filter_value}"/>
+				<button type="button" id="button_filter">Apply</button>
 			</fieldset>
 		</div>
 		
 		<div>
 			<svg/>
 		</div>
+		<h3 th:text="${field.fieldLabel}"/>
 		
 		<div id="dialog_data">
     		<table id="dialog_data_table" class="wide"/>
+    	</div>
+    	
+    	<div id="dialog_progress">
+    		
     	</div>
 			
 	</div>
@@ -94,7 +113,7 @@
 		$("#dialog_data").dialog({
 			autoOpen: false,
 			modal: true,
-			minWidth: 600,
+			minWidth: 800,
 			buttons: [
 				{
 					text: "OK",
@@ -110,6 +129,7 @@
 		data = getSelectedData();
 		console.log(data);
 		varNames = Object.keys(data[0]);
+		varNames.splice(varNames.indexOf("anomaly_id"), 1);
 		let html = "<tr>";
 		for (var i in varNames) {
 			html += "<th>";
@@ -130,7 +150,22 @@
 		$("#dialog_data").dialog("open");
 	});
 	
-	renderBeeswarm(url, fieldName, mean, sd, numSd, siteName, subjectName, siteFieldName, subjectFieldName, function(itemsAreSelected) {
+	$("#button_filter").click(function() {
+		setFilter($("#select_filter").val(), $("#text_filter").val());
+		reDraw();
+	});
+	
+	if (siteName != "-1") {
+		setFilter("site", siteName);
+	}
+	else if (subjectName != "-1") {
+		setFilter("subject", subjectName);
+	}
+	else {
+		setFilter("none");
+	}
+	
+	renderBeeswarm(url, fieldName, mean, sd, numSd, siteFieldName, subjectFieldName, function(itemsAreSelected) {
 		if (itemsAreSelected) {
 			$("#button_show").prop("disabled", false);
 			$("#select_issue").prop("disabled", false);

@@ -33,6 +33,43 @@ let dataMean = 0;
 let dataSd = 0;
 let eventHandler = null;
 
+let siteFilter = -1;
+let subjectFilter = -1;
+let siteField = null;
+let subjectField = null;
+
+let lowerThresh = -1;
+let upperThresh = -1;
+
+function setFilter(entity, value) {
+	if (entity == "none") {
+		siteFilter = -1;
+		subjectFilter = -1;
+	}
+	else if (entity == "site") {
+		siteFilter = value;
+		subjectFilter = -1;
+	}
+	else if (entity == "subject") {
+		subjectFilter = value;
+		siteFilter = -1;
+	}
+}
+
+function reDraw() {
+	dataArea.selectAll("circle")
+		.classed("outlier", function(d) {
+			return d["anomaly_id"] > 0 && (d[fieldName] < lowerThresh || d[fieldName] > upperThresh);
+		})
+		.classed("inlier", function(d) {
+			return d["anomaly_id"] == 0 || (d[fieldName] >= lowerThresh && d[fieldName] <= upperThresh);
+		})
+		.classed("background", function(d) {
+			return (siteFilter != "-1" && d[siteField] != siteFilter) ||
+				(subjectFilter != "-1" && d[subjectField] != subjectFilter)
+		});
+}
+
 function getY(x) {
 	let lane = 0;
 	while (lane < numLanes && (laneMax[lane] + 2 * CIRCUMFERENCE) > x) {
@@ -91,10 +128,12 @@ function setThresholdLines(numSd) {
 	line2.attr("x1", upperX).attr("x2", upperX);
 }
 
-function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteName, subjectName, siteFieldName, subjectFieldName, handler) {
+function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteFieldName, subjectFieldName, handler) {
 	dataMean = mean;
 	dataSd = sd;
 	eventHandler = handler;
+	siteField = siteFieldName;
+	subjectField = subjectFieldName;
 	
 	d3.csv(dataUrl, function(data) {
 		//console.log(data);
@@ -124,8 +163,8 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteName, subjectNa
 		axisArea.call(xAxis);
 		
 		// Draw data points
-		const lowerThresh = mean - numSd * sd;
-		const upperThresh = mean + numSd * sd;
+		lowerThresh = mean - numSd * sd;
+		upperThresh = mean + numSd * sd;
 		dataArea.selectAll("circle")
 			.data(data)
 			.enter()
@@ -140,8 +179,8 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteName, subjectNa
 				return d["anomaly_id"] == 0 || (d[fieldName] >= lowerThresh && d[fieldName] <= upperThresh);
 			})
 			.classed("background", function(d) {
-				return (siteName != "-1" && d[siteFieldName] != siteName) ||
-					(subjectName != "-1" && d[subjectFieldName] != subjectName)
+				return (siteFilter != "-1" && d[siteField] != siteFilter) ||
+					(subjectFilter != "-1" && d[subjectField] != subjectFilter)
 			});
 		
 		// Draw threshold lines
@@ -165,12 +204,6 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteName, subjectNa
 				dataArea.selectAll(".data-selected").classed("data-selected", false);
 				dataAreSelected = false;
 				eventHandler(false);
-				/*
-				document.getElementById("button_show").setAttribute("disabled", "true");
-				document.getElementById("button_query").setAttribute("disabled", "true");
-				document.getElementById("button_change").setAttribute("disabled", "true");
-				document.getElementById("button_suppress").setAttribute("disabled", "true");
-				*/
 			}
 			isDragging = true;
 			mouseDownX = d3.mouse(this)[0];
@@ -233,7 +266,7 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteName, subjectNa
 					const x = d3.select(this).attr("cx");
 					const y = dataMidPoint + parseInt(d3.select(this).attr("cy"));
 					if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
-						if ((siteName == "-1" && subjectName == "-1") || d[siteFieldName] == siteName || d[subjectFieldName] == subjectName) {
+						if ((siteFilter == "-1" && subjectFilter == "-1") || d[siteField] == siteFilter || d[subjectField] == subjectFilter) {
 							let node = d3.select(this);
 							node.classed("data-selected", true);
 							if (node.classed("outlier")) {
@@ -249,14 +282,6 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteName, subjectNa
 				if (dataAreSelected) {
 					eventHandler(true);
 				}
-				/*
-				if (dataAreSelected) {
-					document.getElementById("button_show").removeAttribute("disabled");
-					document.getElementById("button_query").removeAttribute("disabled");
-					document.getElementById("button_change").removeAttribute("disabled");
-					document.getElementById("button_suppress").removeAttribute("disabled");
-				}
-				*/
 			}
 		});
 	});

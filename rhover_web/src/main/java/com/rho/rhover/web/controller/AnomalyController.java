@@ -123,18 +123,24 @@ public class AnomalyController {
     	if (siteId == -1 && subjectId == -1) {
     		model.addAttribute("site_name", "-1");
     		model.addAttribute("subject_name", "-1");
+    		model.addAttribute("filter_entity", "none");
+    		model.addAttribute("filter_value", "");
     	}
     	if (siteId != -1) {
     		Site site = siteRepository.findOne(siteId);
     		model.addAttribute("site_name", site.getSiteName());
     		model.addAttribute("subject_name", "-1");
     		model.addAttribute("site", site);
+    		model.addAttribute("filter_entity", "site");
+    		model.addAttribute("filter_value", site.getSiteName());
     	}
     	if (subjectId != -1) {
     		Subject subject = subjectRepository.findOne(subjectId);
     		model.addAttribute("subject_name", subject.getSubjectName());
     		model.addAttribute("site_name", "-1");
     		model.addAttribute("subject", subject);
+    		model.addAttribute("filter_entity", "subject");
+    		model.addAttribute("filter_value", subject.getSubjectName());
     	}
     	return "anomaly/beeswarm";
     }
