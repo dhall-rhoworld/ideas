@@ -15,4 +15,6 @@ public interface CheckParamService {
 	CheckParam getCheckParam(Check check, String paramName, Dataset dataset, Field field);
 	
 	Set<CheckParam> getAllCheckParams(Check check, Study study);
+	
+	Set<CheckParam> getAllCheckParams(Check check, Dataset dataset, Field field);
 }

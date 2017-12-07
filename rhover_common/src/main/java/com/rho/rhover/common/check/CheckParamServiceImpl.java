@@ -64,4 +64,14 @@ public class CheckParamServiceImpl implements CheckParamService {
 		}
 		return params;
 	}
+
+	@Override
+	public Set<CheckParam> getAllCheckParams(Check check, Dataset dataset, Field field) {
+		List<CheckParam> globalParams = checkParamRepository.findByCheckAndParamScope(check, "GLOBAL");
+		Set<CheckParam> params = new HashSet<>();
+		for (CheckParam globalParam : globalParams) {
+			params.add(getCheckParam(check, globalParam.getParamName(), dataset, field));
+		}
+		return params;
+	}
 }

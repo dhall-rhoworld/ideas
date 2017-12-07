@@ -39,6 +39,7 @@ import com.rho.rhover.common.anomaly.IdFieldValueRepository;
 import com.rho.rhover.common.anomaly.Observation;
 import com.rho.rhover.common.anomaly.ObservationRepository;
 import com.rho.rhover.common.check.Check;
+import com.rho.rhover.common.check.CheckParam;
 import com.rho.rhover.common.check.CheckParamRepository;
 import com.rho.rhover.common.check.CheckParamService;
 import com.rho.rhover.common.check.CheckRun;
@@ -163,13 +164,10 @@ public class CheckServiceImpl implements CheckService {
 		DatasetVersion datasetVersion = datasetVersionRepository.findByDatasetAndIsCurrent(dataset, Boolean.TRUE);
 		Iterable<Field> fields = datasetVersion.getFields();
 		for (Field field : fields) {
-			if (field.getIsSkipped()
-					|| field.getIsIdentifying()
-					|| (dataTypesToCheck.equals("continuous") && !field.getDataType().equals("Double"))
-					|| (dataTypesToCheck.equals("numeric") && !(field.getDataType().equals("Double") || field.getDataType().equals("Integer")))) {
+			if (!shouldCheckField(field, dataTypesToCheck, check, datasetVersion)) {
 				continue;
 			}
-			logger.info("Running univarate outlier check on field " + field.getFieldName());
+			logger.info("Running univarate outlier check on study " + study.getStudyName() + ", field " + field.getFieldName());
 			
 			// Construct an input dataset for R script
 			CsvData data = csvDataRepository.findByFieldAndDataset(field, dataset);
@@ -265,6 +263,28 @@ public class CheckServiceImpl implements CheckService {
 //				break;
 //			}
 		}
+	}
+	
+	private boolean shouldCheckField(Field field, String dataTypesToCheck, Check check, DatasetVersion datasetVersion) {
+		boolean checkable = !(field.getIsSkipped()
+			|| field.getIsIdentifying()
+			|| (dataTypesToCheck.equals("continuous") && !field.getDataType().equals("Double"))
+			|| (dataTypesToCheck.equals("numeric") && !(field.getDataType().equals("Double") || field.getDataType().equals("Integer"))));
+		if (checkable) {
+			CheckRun latestRun = checkRunRepository.findByCheckAndDatasetVersionAndFieldAndIsLatest(check, datasetVersion, field, Boolean.TRUE);
+			if (latestRun != null) {
+				checkable = false;
+				Set<CheckParam> params = checkParamService.getAllCheckParams(check, datasetVersion.getDataset(), field);
+				for (CheckParam param : params) {
+					ParamUsed paramUsed = paramUsedRepository.findByCheckRunAndParamName(latestRun, param.getParamName());
+					if (paramUsed != null && !param.getParamValue().equals(paramUsed.getParamValue())) {
+						checkable = true;
+						break;
+					}
+				}
+			}
+		}
+		return checkable;
 	}
 
 	private void processDataProperties(BufferedReader reader, CheckRun checkRun) throws IOException {

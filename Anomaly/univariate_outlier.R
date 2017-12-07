@@ -8,11 +8,16 @@ sdCutoff <- as.numeric(args[5])
 # infile <- "C:/RhoVer/Working/test-in.csv"
 # outfile <- "C:/RhoVer/Working/test-out.csv"
 # paramfile <- "C:/RhoVer/Working/test-param.csv"
-# fieldnum <- 3
+# fieldnum <- 4
 # sdCutoff <- 2
 
+classes <- character()
+for (i in 1:(fieldnum - 1)) {
+  classes <- c(classes, "character")
+}
+classes <- c(classes, "numeric")
 
-df <- read.csv(infile)
+df <- read.csv(infile, colClasses = classes)
 field <- as.numeric(df[,fieldnum])
 fieldMean <- mean(field, na.rm = TRUE)
 deltas <- abs(field - fieldMean)
