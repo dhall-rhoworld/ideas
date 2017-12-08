@@ -12,6 +12,8 @@ drop table param_used;
 drop table check_run;
 drop table check_param;
 drop table checks;
+drop table correlation;
+drop table field_instance;
 drop table loader_issue;
 drop table study_db_version_config;
 drop table study_db_version;

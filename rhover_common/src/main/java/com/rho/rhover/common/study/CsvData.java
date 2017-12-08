@@ -1,5 +1,9 @@
 package com.rho.rhover.common.study;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -63,4 +67,27 @@ public class CsvData {
 		this.dataset = dataset;
 	}
 	
+	public List<Double> extractDataAsDouble() {
+		List<Double> list = new ArrayList<>();
+		StringTokenizer tok = new StringTokenizer(data, ",");
+		while (tok.hasMoreTokens()) {
+			String value = tok.nextToken();
+			if (value.trim().length() == 0 || value.equals("null")) {
+				list.add(Double.NaN);
+			}
+			else {
+				list.add(new Double(value));
+			}
+		}
+		return list;
+	}
+	
+	public List<String> extractData() {
+		List<String> list = new ArrayList<>();
+		StringTokenizer tok = new StringTokenizer(data, ",");
+		while (tok.hasMoreTokens()) {
+			list.add(tok.nextToken());
+		}
+		return list;
+	}
 }

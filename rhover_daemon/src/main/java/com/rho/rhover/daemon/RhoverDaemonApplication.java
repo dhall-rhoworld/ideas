@@ -7,6 +7,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import com.rho.rhover.common.study.Study;
@@ -15,6 +16,7 @@ import com.rho.rhover.common.study.StudyRepository;
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = {"com.rho.rhover.common"})
 @EntityScan("com.rho.rhover.common")
+@ComponentScan("com.rho.rhover")
 public class RhoverDaemonApplication implements CommandLineRunner {
 	
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -37,6 +39,7 @@ public class RhoverDaemonApplication implements CommandLineRunner {
 		for (Study study : studies) {
 			try {
 				dataLoaderService.updateStudy(study);
+				dataLoaderService.calculateAndSaveCorrelations(study);
 			}
 			catch (SourceDataException e) {
 				logger.error("Data error encountered: " + e.getMessage());

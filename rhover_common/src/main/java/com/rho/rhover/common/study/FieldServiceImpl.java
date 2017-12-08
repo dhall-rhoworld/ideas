@@ -25,7 +25,7 @@ public class FieldServiceImpl implements FieldService {
 	private DataSource dataSource;
 
 	@Override
-	public Iterable<Field> findPotentiallyIdentiableFields(Study study) {
+	public List<Field> findPotentiallyIdentiableFields(Study study) {
 		
 		// Get number of datasets in current database version
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);

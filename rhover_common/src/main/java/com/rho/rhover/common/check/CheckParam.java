@@ -10,6 +10,7 @@ import javax.persistence.ManyToOne;
 
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.Field;
+import com.rho.rhover.common.study.FieldInstance;
 import com.rho.rhover.common.study.Study;
 
 @Entity
@@ -45,6 +46,14 @@ public class CheckParam {
 	@ManyToOne
 	@JoinColumn(name="check_id")
 	private Check check;
+	
+	@ManyToOne
+	@JoinColumn(name="field_instance_id")
+	private FieldInstance fieldInstance;
+	
+	@ManyToOne
+	@JoinColumn(name="field_instance_id_2")
+	private FieldInstance fieldInstance2;
 	
 	public CheckParam() {
 		
@@ -121,4 +130,21 @@ public class CheckParam {
 	public void setCheck(Check check) {
 		this.check = check;
 	}
+
+	public FieldInstance getFieldInstance() {
+		return fieldInstance;
+	}
+
+	public void setFieldInstance(FieldInstance fieldInstance) {
+		this.fieldInstance = fieldInstance;
+	}
+
+	public FieldInstance getFieldInstance2() {
+		return fieldInstance2;
+	}
+
+	public void setFieldInstance2(FieldInstance fieldInstance2) {
+		this.fieldInstance2 = fieldInstance2;
+	}
+	
 }

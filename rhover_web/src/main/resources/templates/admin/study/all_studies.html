@@ -4,11 +4,26 @@
     <title>RhoVer Administer Studies</title> 
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" href="/rhover.css"/>
+    <script src="/jquery-3.2.1.min.js"></script>
     
     <script>
     	function onAddStudy() {
     		document.location.href = "/admin/study/new_study";
     	}
+    	
+    	$(function() {
+    		$(".check-runner").click(function() {
+    			const studyId = this.dataset.study_id;
+    			const url = "/rest/admin/study/check_study?study_id=" + studyId;
+    			$.get(url)
+    				.done(function() {
+    					console.log("All done");
+    				})
+    				.fail(function() {
+    					console.log("There was a problem");
+    				});
+    		});
+    	});
     </script>
 </head>
 <body>
@@ -29,6 +44,7 @@
    			<tr>
    				<th>Study</th>
    				<th>View/Edit</th>
+   				<th></th>
    			</tr>
    			<tr th:each="study : ${studies}">
    				<td th:text="${study.studyName}"/>
@@ -37,6 +53,9 @@
    					<a th:href="@{/admin/study/data_locations(study_id=${study.studyId})}">Data Folders</a> |
    					<a th:href="@{/admin/study/identifying_fields(study_id=${study.studyId})}">Identifiers</a> |
    					<a th:href="@{/admin/study/study_univariate(study_id=${study.studyId})}">Univariate</a>
+   				</td>
+   				<td>
+   					<button type="button" class="check-runner" th:id="'button_' + ${study.studyId}" th:attr="data-study_id=${study.studyId}">Run Checks</button>
    				</td>
    			</tr>
    		</table>

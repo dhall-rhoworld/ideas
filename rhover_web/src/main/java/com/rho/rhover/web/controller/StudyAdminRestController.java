@@ -7,12 +7,16 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import com.rho.rhover.common.check.Check;
 import com.rho.rhover.common.check.CheckParam;
@@ -52,6 +56,9 @@ public class StudyAdminRestController {
 	
 	@Autowired
 	private DatasetVersionRepository datasetVersionRepository;
+	
+	@Value("${checker.url}")
+	private String checkerUrl;
 
 	// TODO: Move this business logic to a service bean
 	@RequestMapping("/check_params")
@@ -149,5 +156,13 @@ public class StudyAdminRestController {
 		Dataset dataset = datasetRepository.findOne(datasetId);
 		DatasetVersion datasetVersion = datasetVersionRepository.findByDatasetAndIsCurrent(dataset, Boolean.TRUE);
 		return FieldDtoGroup.toDtoGroups(datasetVersion.getFields());
+	}
+	
+	@RequestMapping("/check_study")
+	public ResponseEntity<String> runChecksOnStudy(@RequestParam("study_id") Long studyId) {
+		logger.debug("Running checks on study " + studyId);
+		String url = checkerUrl + "/rest/check_study?study_id=" + studyId;
+		RestTemplate restTemplate = new RestTemplate();
+		return new ResponseEntity<>("OK", HttpStatus.OK);
 	}
 }

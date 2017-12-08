@@ -161,6 +161,30 @@ create table loader_issue (
 		REFERENCES dataset_version(dataset_version_id)
 );
 
+create table field_instance (
+	field_instance_id BIGINT AUTO_INCREMENT NOT NULL,
+	field_id BIGINT NOT NULL,
+	dataset_id BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	modified_by VARCHAR(25) NOT NULL DEFAULT 'system',
+	CONSTRAINT pk_field_instance PRIMARY KEY (field_instance_id),
+	CONSTRAINT fk_field_instance_2_field FOREIGN KEY (field_id) REFERENCES field(field_id),
+	CONSTRAINT fk_field_instance_2_dataset FOREIGN KEY (dataset_id) REFERENCES dataset(dataset_id),
+	CONSTRAINT u_field_instance UNIQUE (field_id, dataset_id)
+);
+
+create table correlation (
+	correlation_id BIGINT AUTO_INCREMENT NOT NULL,
+	field_instance_id_1 BIGINT NOT NULL,
+	field_instance_id_2 BIGINT NOT NULL,
+	coefficient DOUBLE NOT NULL,
+	CONSTRAINT pk_correlation PRIMARY KEY (correlation_id),
+	CONSTRAINT fk_correlation_2_field_instance_1 FOREIGN KEY (field_instance_id_1)
+		REFERENCES field_instance(field_instance_id),
+	CONSTRAINT fk_correlation_2_field_instance_2 FOREIGN KEY (field_instance_id_2)
+		REFERENCES field_instance(field_instance_id)
+);
+
 create table checks (
 	check_id BIGINT AUTO_INCREMENT NOT NULL,
 	check_name VARCHAR(50) NOT NULL,
@@ -172,6 +196,9 @@ create table checks (
 insert into checks(check_name)
 values('UNIVARIATE_OUTLIER');
 
+insert into checks(check_name)
+values('BIVARIATE_OUTLIER');
+
 create table check_param (
 	check_param_id BIGINT AUTO_INCREMENT NOT NULL,
 	param_name VARCHAR(50) NOT NULL,
@@ -180,6 +207,8 @@ create table check_param (
 	study_id BIGINT,
 	dataset_id BIGINT,
 	field_id BIGINT,
+	field_instance_id BIGINT,
+	field_instance_id_2 BIGINT,
 	check_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	modified_by VARCHAR(50),
@@ -187,6 +216,10 @@ create table check_param (
 	CONSTRAINT fk_check_param_2_study FOREIGN KEY (study_id) REFERENCES study(study_id),
 	CONSTRAINT fk_check_param_2_dataset FOREIGN KEY (dataset_id) REFERENCES dataset(dataset_id),
 	CONSTRAINT fk_check_param_2_field FOREIGN KEY (field_id) REFERENCES field(field_id),
+	CONSTRAINT fk_check_param_2_field_instance_1 FOREIGN KEY (field_instance_id)
+		REFERENCES field_instance (field_instance_id),
+	CONSTRAINT fk_check_param_2_field_instance_2 FOREIGN KEY (field_instance_id_2)
+		REFERENCES field_instance (field_instance_id),	
 	CONSTRAINT fk_check_param_2_checks FOREIGN KEY (check_id) REFERENCES checks(check_id)
 );
 
@@ -201,6 +234,12 @@ values('filter_identifying', 'on', 'GLOBAL', (select check_id from checks where 
 
 insert into check_param (param_name, param_value, param_scope, check_id)
 values('sd', '2', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));
+
+insert into check_param (param_name, param_value, param_scope, check_id)
+values('sd-residual', '2', 'GLOBAL', (select check_id from checks where check_name = 'BIVARIATE_OUTLIER'));
+
+insert into check_param (param_name, param_value, param_scope, check_id)
+values('sd-density', '6', 'GLOBAL', (select check_id from checks where check_name = 'BIVARIATE_OUTLIER'));
 
 create table check_run (
 	check_run_id BIGINT AUTO_INCREMENT NOT NULL,
@@ -355,5 +394,3 @@ join datum_version dv on dv.datum_version_id = adv.datum_version_id
 join datum d on d.datum_id = dv.datum_id
 join field f on f.field_id = d.field_id 
 join anomaly_check_run acr on acr.anomaly_id = adv.anomaly_id;
-
-
