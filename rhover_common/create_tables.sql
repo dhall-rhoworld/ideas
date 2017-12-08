@@ -177,12 +177,15 @@ create table correlation (
 	correlation_id BIGINT AUTO_INCREMENT NOT NULL,
 	field_instance_id_1 BIGINT NOT NULL,
 	field_instance_id_2 BIGINT NOT NULL,
+	study_id BIGINT NOT NULL,
 	coefficient DOUBLE NOT NULL,
 	CONSTRAINT pk_correlation PRIMARY KEY (correlation_id),
 	CONSTRAINT fk_correlation_2_field_instance_1 FOREIGN KEY (field_instance_id_1)
 		REFERENCES field_instance(field_instance_id),
 	CONSTRAINT fk_correlation_2_field_instance_2 FOREIGN KEY (field_instance_id_2)
-		REFERENCES field_instance(field_instance_id)
+		REFERENCES field_instance(field_instance_id),
+	CONSTRAINT fk_correlation_2_study FOREIGN KEY (study_id)
+		REFERENCES study(study_id)
 );
 
 create table checks (

@@ -92,4 +92,5 @@ public class AnomalyRestController {
 				+ " - " + upperThreshold);
 		return new ResponseEntity<Integer>(0, HttpStatus.OK);
 	}
+	
 }

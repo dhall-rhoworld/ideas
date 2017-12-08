@@ -337,6 +337,14 @@ public class StudyAdminController {
 		return "/admin/study/anomaly_settings";
 	}
 	
+	@RequestMapping("/new_bivariate")
+	public String newBivariate(
+			@RequestParam(name="study_id") Long studyId,
+			Model model) {
+		model.addAttribute("study", studyRepository.findOne(studyId));
+		return "/admin/study/new_bivariate";
+	}
+	
 	private static final class DataTypeComparator implements Comparator<Field> {
 		
 		private static Map<String, Integer> ORDINALITY = new HashMap<>();

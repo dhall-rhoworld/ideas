@@ -431,7 +431,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 						if (absCoefficient >= MIN_COEFFICIENT && absCoefficient <= MAX_COEFFICIENT) {
 							logger.debug("Coefficient for " + dataset.getDatasetName() + " " + field1.getDisplayName() +
 									" and " + dataset.getDatasetName() + " " + field2.getDisplayName() + ": " + coefficient);
-							saveCorrelation(field1, dataset, field2, dataset, coefficient);
+							saveCorrelation(dataset.getStudy(), field1, dataset, field2, dataset, coefficient);
 						}
 					}
 				}
@@ -466,7 +466,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 						if (absCoefficient >= MIN_COEFFICIENT && absCoefficient <= MAX_COEFFICIENT) {
 							logger.debug("Coefficient for " + dataset1.getDatasetName() + " " + field1.getDisplayName() +
 									" and " + dataset2.getDatasetName() + " " + field2.getDisplayName() + ": " + coefficient);
-							saveCorrelation(field1, dataset1, field2, dataset2, coefficient);
+							saveCorrelation(study, field1, dataset1, field2, dataset2, coefficient);
 						}
 					}
 				}
@@ -544,7 +544,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		return coefficient;
 	}
 	
-	private void saveCorrelation(Field field1, Dataset dataset1, Field field2, Dataset dataset2, double coeff) {
+	private void saveCorrelation(Study study, Field field1, Dataset dataset1, Field field2, Dataset dataset2, double coeff) {
 		if (Double.isNaN(coeff)) {
 			return;
 		}
@@ -552,7 +552,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		FieldInstance fieldInstance2 = fieldInstanceRepository.findByFieldAndDataset(field2, dataset2);
 		Correlation correlation = correlationService.getCorrelationWithAnyFieldOrder(fieldInstance1, fieldInstance2);
 		if (correlation == null) {
-			correlation = new Correlation(fieldInstance1, fieldInstance2, coeff);
+			correlation = new Correlation(study, fieldInstance1, fieldInstance2, coeff);
 		}
 		else {
 			correlation.setCoefficient(coeff);

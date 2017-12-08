@@ -9,6 +9,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 import com.rho.rhover.common.study.FieldInstance;
+import com.rho.rhover.common.study.Study;
 
 @Entity
 public class Correlation {
@@ -26,6 +27,10 @@ public class Correlation {
 	@JoinColumn(name="field_instance_id_2")
 	private FieldInstance fieldInstance2;
 	
+	@ManyToOne
+	@JoinColumn(name="study_id")
+	private Study study;
+	
 	@Column(name="coefficient")
 	private Double coefficient;
 	
@@ -33,8 +38,9 @@ public class Correlation {
 		
 	}
 
-	public Correlation(FieldInstance fieldInstance1, FieldInstance fieldInstance2, Double correlation) {
+	public Correlation(Study study, FieldInstance fieldInstance1, FieldInstance fieldInstance2, Double correlation) {
 		super();
+		this.study = study;
 		this.fieldInstance1 = fieldInstance1;
 		this.fieldInstance2 = fieldInstance2;
 		this.coefficient = correlation;
@@ -70,6 +76,14 @@ public class Correlation {
 
 	public void setCoefficient(Double coefficient) {
 		this.coefficient = coefficient;
+	}
+
+	public Study getStudy() {
+		return study;
+	}
+
+	public void setStudy(Study study) {
+		this.study = study;
 	}
 
 }

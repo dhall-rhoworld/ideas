@@ -1,0 +1,47 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>RhoVer Add Bivariate Check</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="/rhover.css"/>
+    <link rel="stylesheet" href="/jquery-ui.css"/>
+    <script src="/jquery-3.2.1.min.js"></script>
+    <script src="/jquery-ui.js"></script>
+</head>
+<body>
+	<div class="page-header">RhoVer (Prototype)</div>
+	
+	<div class="menu-bar">
+		<ul>
+			<li><a href="/">Home</a></li>
+			<li><a href="/browse/studies">Browse</a></li>
+			<li><a href="/search/form">Search</a></li>
+			<li><a href="/admin/study/all" class="active-menu-item">Admin</a></li>
+		</ul>
+	</div>
+	
+    <div id="content">
+    
+    
+    </div>
+</body>
+
+<script th:inline="javascript">
+	const studyId = [[${study.studyId}]];
+</script>
+
+<script>
+	const url = "/rest/admin/study/correlations?study_id=" + studyId;
+	
+	$(function() {
+		$.get(url)
+			.done(function(data) {
+				console.log(data);
+			})
+			.fail(function() {
+				console.log("Fail");
+			});
+	});
+
+</script>
+</html>

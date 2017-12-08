@@ -1,6 +1,7 @@
 package com.rho.rhover.web.controller;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -31,7 +32,9 @@ import com.rho.rhover.common.study.FieldRepository;
 import com.rho.rhover.common.study.Study;
 import com.rho.rhover.common.study.StudyRepository;
 import com.rho.rhover.web.dto.CheckParamDto;
+import com.rho.rhover.web.dto.CorrDatasetDto;
 import com.rho.rhover.web.dto.FieldDtoGroup;
+import com.rho.rhover.web.service.CorrDatasetDtoService;
 
 @RestController
 @RequestMapping("/rest/admin/study")
@@ -56,6 +59,9 @@ public class StudyAdminRestController {
 	
 	@Autowired
 	private DatasetVersionRepository datasetVersionRepository;
+	
+	@Autowired
+	private CorrDatasetDtoService corrDatasetDtoService;
 	
 	@Value("${checker.url}")
 	private String checkerUrl;
@@ -164,5 +170,11 @@ public class StudyAdminRestController {
 		String url = checkerUrl + "/rest/check_study?study_id=" + studyId;
 		RestTemplate restTemplate = new RestTemplate();
 		return new ResponseEntity<>("OK", HttpStatus.OK);
+	}
+	
+	@RequestMapping("/correlations")
+	public Collection<CorrDatasetDto> getCorrelationData(@RequestParam("study_id") Long studyId) {
+		Study study = studyRepository.findOne(studyId);
+		return corrDatasetDtoService.getCorrDatasetDtos(study);
 	}
 }
