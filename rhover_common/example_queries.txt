@@ -378,3 +378,25 @@ join dataset_version_field dvf on dvf.dataset_version_id = cr.dataset_version_id
 join field f on f.field_id = dvf.field_id
 where cr.check_run_id = 245
 and f.is_identifying = 1;
+
+select ds.dataset_name, f.field_label
+from field f
+join dataset_version_field dvf on dvf.field_id = f.field_id
+join dataset_version dv on dv.dataset_version_id = dvf.dataset_version_id
+join dataset ds on ds.dataset_id = dv.dataset_id
+join field_instance fi on fi.field_id = f.field_id
+where fi.field_instance_id in
+(
+	select field_instance_id_1 from correlation
+	union
+	select field_instance_id_2 from correlation
+)
+and dv.is_current = 1
+order by ds.dataset_name;
+
+select ds.dataset_name, f.field_name
+from field f
+join dataset_version_field dvf on dvf.field_id = f.field_id
+join dataset_version dv on dv.dataset_version_id = dvf.dataset_version_id
+join dataset ds on ds.dataset_id = dv.dataset_id
+where f.field_label = 'Neutrophils (K/uL)';

@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="/jquery-ui.css"/>
     <script src="/jquery-3.2.1.min.js"></script>
     <script src="/jquery-ui.js"></script>
+    <script src="/d3.v4.min.js"></script>
+    <link rel="stylesheet" href="/radial.css" />
+    <script src="/radial.js"></script>
 </head>
 <body>
 	<div class="page-header">RhoVer (Prototype)</div>
@@ -22,6 +25,7 @@
 	
     <div id="content">
     
+    	<div id="chart"/>
     
     </div>
 </body>
@@ -30,18 +34,4 @@
 	const studyId = [[${study.studyId}]];
 </script>
 
-<script>
-	const url = "/rest/admin/study/correlations?study_id=" + studyId;
-	
-	$(function() {
-		$.get(url)
-			.done(function(data) {
-				console.log(data);
-			})
-			.fail(function() {
-				console.log("Fail");
-			});
-	});
-
-</script>
 </html>

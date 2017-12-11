@@ -5,6 +5,8 @@ import java.util.Set;
 
 public class CorrFieldDto {
 	
+	private String fieldId;
+	
 	private String fieldName;
 	
 	private Set<String> correlatedFields = new HashSet<>();
@@ -27,6 +29,14 @@ public class CorrFieldDto {
 
 	public void setCorrelatedFields(Set<String> correlatedFields) {
 		this.correlatedFields = correlatedFields;
+	}
+
+	public String getFieldId() {
+		return fieldId;
+	}
+
+	public void setFieldId(String fieldId) {
+		this.fieldId = fieldId;
 	}
 
 }

@@ -180,12 +180,24 @@ public class Field {
 		}
 		return displayName;
 	}
+	
+	public String getTruncatedDisplayName(int length) {
+		String name = fieldName;
+		if (fieldLabel != null) {
+			name = getTruncatedFieldLabel(length);
+		}
+		return name;
+	}
 
 	public String getTruncatedFieldLabel() {
-		if (fieldLabel.length() < DISPLAY_LENGTH) {
+		return getTruncatedFieldLabel(DISPLAY_LENGTH);
+	}
+	
+	public String getTruncatedFieldLabel(int length) {
+		if (fieldLabel.length() < length) {
 			return fieldLabel;
 		}
-		int segLen = DISPLAY_LENGTH / 2;
+		int segLen = length / 2;
 		int p = fieldLabel.substring(0, segLen).lastIndexOf(" ");
 		if (p < 0) {
 			p = segLen;
