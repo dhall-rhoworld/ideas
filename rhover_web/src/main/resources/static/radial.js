@@ -95,7 +95,8 @@ $(function() {
 		      .text(function(d) {return d.data.name; })
 		      .on("mouseover", mouseovered)
 		      .on("mouseout", mouseouted)
-		      .on("click", handleClick);
+		      .on("click", handleClick)
+		      .classed("has-checks", function(d) {return d.data.checkFieldInstanceIds.length > 0;})
 	});
 	
 	function createHierarchy(datasets) {

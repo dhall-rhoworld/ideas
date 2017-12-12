@@ -3,6 +3,10 @@
   fill: #bbb;
 }
 
+.has-checks {
+	fill: red;
+}
+
 .node:hover {
   fill: #000;
 }
