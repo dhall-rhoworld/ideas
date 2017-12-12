@@ -5,11 +5,13 @@ import java.util.Set;
 
 public class CorrFieldDto {
 	
-	private String fieldId;
+	private String fieldInstanceId;
 	
 	private String fieldName;
 	
-	private Set<String> correlatedFields = new HashSet<>();
+	private String fieldLabel;
+	
+	private Set<String> correlatedFieldInstanceIds = new HashSet<>();
 
 	public CorrFieldDto() {
 		
@@ -23,20 +25,28 @@ public class CorrFieldDto {
 		this.fieldName = fieldName;
 	}
 
-	public Set<String> getCorrelatedFields() {
-		return correlatedFields;
+	public Set<String> getCorrelatedFieldInstanceIds() {
+		return correlatedFieldInstanceIds;
 	}
 
-	public void setCorrelatedFields(Set<String> correlatedFields) {
-		this.correlatedFields = correlatedFields;
+	public void setCorrelatedFieldInstanceIds(Set<String> correlatedFieldInstanceIds) {
+		this.correlatedFieldInstanceIds = correlatedFieldInstanceIds;
 	}
 
-	public String getFieldId() {
-		return fieldId;
+	public String getFieldInstanceId() {
+		return fieldInstanceId;
 	}
 
-	public void setFieldId(String fieldId) {
-		this.fieldId = fieldId;
+	public void setFieldInstanceId(String fieldInstanceId) {
+		this.fieldInstanceId = fieldInstanceId;
+	}
+
+	public String getFieldLabel() {
+		return fieldLabel;
+	}
+
+	public void setFieldLabel(String fieldLabel) {
+		this.fieldLabel = fieldLabel;
 	}
 
 }

@@ -12,6 +12,7 @@ import com.rho.rhover.common.check.Correlation;
 import com.rho.rhover.common.check.CorrelationRepository;
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.Field;
+import com.rho.rhover.common.study.FieldInstance;
 import com.rho.rhover.common.study.Study;
 import com.rho.rhover.web.dto.CorrDatasetDto;
 import com.rho.rhover.web.dto.CorrFieldDto;
@@ -30,38 +31,47 @@ public class CorrDatasetDtoServiceImpl implements CorrDatasetDtoService {
 		Map<String, CorrDatasetDto> dtoMap = new HashMap<>();
 		for (Correlation correlation : correlations) {
 			if (correlation.getCoefficient() > 0.6) {
-				Field field1 = correlation.getFieldInstance1().getField();
-				Field field2 = correlation.getFieldInstance2().getField();
+				FieldInstance fieldInstance1 = correlation.getFieldInstance1();
+				FieldInstance fieldInstance2 = correlation.getFieldInstance2();
 				Dataset dataset1 = correlation.getFieldInstance1().getDataset();
 				Dataset dataset2 = correlation.getFieldInstance2().getDataset();
-				updateDtoMap(dtoMap, dataset1, field1, field2);
-				updateDtoMap(dtoMap, dataset2, field2, field1);
+				updateDtoMap(dtoMap, dataset1, fieldInstance1, fieldInstance2);
+				updateDtoMap(dtoMap, dataset2, fieldInstance2, fieldInstance1);
 			}
 		}
 		return dtoMap.values();
 	}
 
-	private void updateDtoMap(Map<String, CorrDatasetDto> dtoMap, Dataset dataset, Field field1, Field field2) {
+	private void updateDtoMap(Map<String, CorrDatasetDto> dtoMap, Dataset dataset, FieldInstance fieldInstance1, FieldInstance
+			fieldInstance2) {
 		CorrDatasetDto dto = dtoMap.get(dataset.getDatasetName());
 		if (dto == null) {
 			dto = new CorrDatasetDto();
+			dto.setDatasetId(dataset.getDatasetId().toString());
 			dto.setDatasetName(dataset.getDatasetName());
 			dtoMap.put(dataset.getDatasetName(), dto);
 		}
 		List<CorrFieldDto> fieldDtos = dto.getFields();
 		CorrFieldDto fieldDto = null;
 		for (CorrFieldDto d : fieldDtos) {
-			if (d.getFieldId().equals(field1.getFieldId().toString())) {
+			if (d.getFieldInstanceId().equals(fieldInstance1.getFieldInstanceId().toString())) {
 				fieldDto = d;
 				break;
 			}
 		}
 		if (fieldDto == null) {
 			fieldDto = new CorrFieldDto();
-			fieldDto.setFieldName(field1.getTruncatedDisplayName(DISPLAY_LENGTH));
-			fieldDto.setFieldId(field1.getFieldId().toString());
+			fieldDto.setFieldName(fieldInstance1.getField().getTruncatedDisplayName(DISPLAY_LENGTH));
+			fieldDto.setFieldInstanceId(fieldInstance1.getFieldInstanceId().toString());
+			fieldDto.setFieldLabel(fieldInstance1.getField().getFieldLabel());
 			fieldDtos.add(fieldDto);
 		}
-		fieldDto.getCorrelatedFields().add(field2.getFieldId().toString());
+		fieldDto.getCorrelatedFieldInstanceIds().add(fieldInstance2.getFieldInstanceId().toString());
+	}
+
+	@Override
+	public Collection<CorrDatasetDto> getCorrelatedFields(Field field, Dataset dataset) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

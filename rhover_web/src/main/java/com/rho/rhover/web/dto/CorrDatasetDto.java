@@ -5,12 +5,14 @@ import java.util.List;
 
 public class CorrDatasetDto {
 	
+	private String datasetId;
+	
 	private String datasetName;
 	
 	private List<CorrFieldDto> fields = new ArrayList<>();
 
 	public CorrDatasetDto() {
-		// TODO Auto-generated constructor stub
+		
 	}
 
 	public String getDatasetName() {
@@ -27,6 +29,14 @@ public class CorrDatasetDto {
 
 	public void setFields(List<CorrFieldDto> fields) {
 		this.fields = fields;
+	}
+
+	public String getDatasetId() {
+		return datasetId;
+	}
+
+	public void setDatasetId(String datasetId) {
+		this.datasetId = datasetId;
 	}
 
 }

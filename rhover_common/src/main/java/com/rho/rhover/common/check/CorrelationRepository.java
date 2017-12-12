@@ -13,4 +13,7 @@ public interface CorrelationRepository extends CrudRepository<Correlation, Long>
 
 	List<Correlation> findByStudy(Study study);
 
+	List<Correlation> findByFieldInstance1(FieldInstance fieldInstance1);
+	
+	List<Correlation> findByFieldInstance2(FieldInstance fieldInstance2);
 }

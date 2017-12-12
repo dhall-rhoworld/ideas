@@ -1,8 +1,39 @@
 $(function() {
+	
+	$("#dialog").dialog({
+		autoOpen: false,
+		modal: true,
+		minWidth: 600,
+		buttons: [
+			{
+				text: "Cancel",
+				click: function() {
+					$(this).dialog("close");
+				}
+			},
+			{
+				text: "OK",
+				click: function() {
+					const params = $("form").serialize();
+					const url = "/rest/admin/study/save_bivariates_correlated";
+					$.post(url, params)
+						.done(function() {
+							console.log("OK");
+						})
+						.fail(function() {
+							console.log("Error");
+						})
+						.always(function() {
+							$("#dialog").dialog("close");
+						});
+				}
+			}
+		]
+	});
 
 	var diameter = 800,
 	    radius = diameter / 2,
-	    innerRadius = radius - 200;
+	    innerRadius = radius - 150;
 	
 	var cluster = d3.cluster()
 	    .size([360, innerRadius]);
@@ -28,7 +59,7 @@ $(function() {
 		  if (error) {
 			  throw error;
 		  }
-		  console.log(data);
+		  //console.log(data);
 		  const root = createHierarchy(data).sum(function(d) {
 			  let n = 1;
 			  if (d.children) {
@@ -54,7 +85,8 @@ $(function() {
 		      .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
 		      .text(function(d) {return d.data.name; })
 		      .on("mouseover", mouseovered)
-		      .on("mouseout", mouseouted);
+		      .on("mouseout", mouseouted)
+		      .on("click", handleClick);
 	});
 	
 	function createHierarchy(datasets) {
@@ -73,8 +105,11 @@ $(function() {
 				let field = dataset.fields[j];
 				let subNode = {
 					name: field.fieldName,
-					fieldId: field.fieldId,
-					correlatedFields: field.correlatedFields
+					label: field.fieldLabel,
+					fieldInstanceId: field.fieldInstanceId,
+					correlatedFieldInstanceIds: field.correlatedFieldInstanceIds,
+					parentDatasetId: dataset.datasetId,
+					correlatedFields: []
 				}
 				node.children.push(subNode);
 			}
@@ -87,13 +122,14 @@ $(function() {
 		let correlates = [];
 		
 		nodes.forEach(function(d) {
-			map[d.data.fieldId] = d;
+			map[d.data.fieldInstanceId] = d;
 		});
 		
 		nodes.forEach(function(d) {
-			if (d.data.correlatedFields) {
-				d.data.correlatedFields.forEach(function(i) {
-					correlates.push(map[d.data.fieldId].path(map[i]));
+			if (d.data.correlatedFieldInstanceIds) {
+				d.data.correlatedFieldInstanceIds.forEach(function(i) {
+					correlates.push(map[d.data.fieldInstanceId].path(map[i]));
+					d.data.correlatedFields.push(map[i]);
 				});
 			}
 		});
@@ -123,6 +159,23 @@ $(function() {
 	  node
 	      .classed("node--target", false)
 	      .classed("node--source", false);
+	}
+	
+	function handleClick(d) {
+//		const url = "/rest/admin/study/correlated_fields?field_id=" + d.data.fieldId +
+//			"&dataset_id=" + d.data.parentDatasetId;
+//		console.log(url);
+		$("#h_field").html(d.data.name);
+		$("#source_field_instance_id").val(d.data.fieldInstanceId);
+		let html = "";
+		d.data.correlatedFields.forEach(function(field) {
+			html += "<div>";
+			html += "<input type='checkbox' name='target-" + field.data.fieldInstanceId + "'/>";
+			html += field.data.label;
+			html += "</div>";
+		});
+		$("#fields_2").html(html);
+		$("#dialog").dialog("open");
 	}
 	
 });

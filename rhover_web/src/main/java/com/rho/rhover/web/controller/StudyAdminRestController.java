@@ -177,4 +177,20 @@ public class StudyAdminRestController {
 		Study study = studyRepository.findOne(studyId);
 		return corrDatasetDtoService.getCorrDatasetDtos(study);
 	}
+	
+	@RequestMapping(value = "/save_bivariates_correlated", method = RequestMethod.POST)
+	public String saveBivariateChecksForCorrelatedFields(
+			@RequestParam MultiValueMap<String, String> params,
+			@RequestParam("source_field_instance_id") Long sourceFieldInstanceId
+	) {
+		logger.debug("Saving bivariate checks for field instance: " + sourceFieldInstanceId);
+		for (String key : params.keySet()) {
+			if (key.equals("source_field_instance_id")) {
+				continue;
+			}
+			Long targetFieldInstanceId = new Long(key.substring("target-".length()));
+			logger.debug("Target field instance: " + targetFieldInstanceId);
+		}
+		return "OK";
+	}
 }

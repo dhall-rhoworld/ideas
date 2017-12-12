@@ -1,5 +1,9 @@
 package com.rho.rhover.common.check;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +27,20 @@ public class CorrelationServiceImpl implements CorrelationService {
 	@Override
 	public void save(Correlation correlation) {
 		correlationRepository.save(correlation);
+	}
+
+	@Override
+	public Collection<FieldInstance> getCorrelatedFields(FieldInstance fieldInstance) {
+		Collection<FieldInstance> instances = new ArrayList<>();
+		List<Correlation> correlations = correlationRepository.findByFieldInstance1(fieldInstance);
+		for (Correlation correlation : correlations) {
+			instances.add(correlation.getFieldInstance2());
+		}
+		correlations = correlationRepository.findByFieldInstance2(fieldInstance);
+		for (Correlation correlation : correlations) {
+			instances.add(correlation.getFieldInstance1());
+		}
+		return instances;
 	}
 
 }
