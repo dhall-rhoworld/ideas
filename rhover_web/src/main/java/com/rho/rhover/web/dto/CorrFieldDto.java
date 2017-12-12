@@ -12,6 +12,8 @@ public class CorrFieldDto {
 	private String fieldLabel;
 	
 	private Set<String> correlatedFieldInstanceIds = new HashSet<>();
+	
+	private Set<String> checkFieldInstanceIds = new HashSet<>();
 
 	public CorrFieldDto() {
 		
@@ -47,6 +49,14 @@ public class CorrFieldDto {
 
 	public void setFieldLabel(String fieldLabel) {
 		this.fieldLabel = fieldLabel;
+	}
+
+	public Set<String> getCheckFieldInstanceIds() {
+		return checkFieldInstanceIds;
+	}
+
+	public void setCheckFieldInstanceIds(Set<String> checkFieldInstanceIds) {
+		this.checkFieldInstanceIds = checkFieldInstanceIds;
 	}
 
 }

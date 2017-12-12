@@ -205,7 +205,7 @@ public class StudyAdminRestController {
 			FieldInstance target = fieldInstanceRepository.findOne(targetFieldInstanceId);
 			BivariateCheck biCheck = bivariateCheckRepository.findByXFieldInstanceAndYFieldInstance(source, target);
 			if (biCheck == null) {
-				biCheck = new BivariateCheck(source, target, check);
+				biCheck = new BivariateCheck(source, target, check, source.getDataset().getStudy());
 				bivariateCheckRepository.save(biCheck);
 			}
 		}

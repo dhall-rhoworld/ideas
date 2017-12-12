@@ -18,7 +18,14 @@ $(function() {
 					const url = "/rest/admin/study/save_bivariates_correlated";
 					$.post(url, params)
 						.done(function() {
-							console.log("OK");
+							$(".cb-target:checked").each(function() {
+								let fieldInstanceId = this.dataset.field_instance_id;
+								console.log(this);
+								console.log(fieldInstanceId);
+								if (!targetNode.data.checkFieldInstanceIds.includes(fieldInstanceId)) {
+									targetNode.data.checkFieldInstanceIds.push(fieldInstanceId);
+								}
+							});
 						})
 						.fail(function() {
 							console.log("Error");
@@ -30,6 +37,8 @@ $(function() {
 			}
 		]
 	});
+	
+	let targetNode = null;
 
 	var diameter = 800,
 	    radius = diameter / 2,
@@ -109,6 +118,7 @@ $(function() {
 					fieldInstanceId: field.fieldInstanceId,
 					correlatedFieldInstanceIds: field.correlatedFieldInstanceIds,
 					parentDatasetId: dataset.datasetId,
+					checkFieldInstanceIds: field.checkFieldInstanceIds,
 					correlatedFields: []
 				}
 				node.children.push(subNode);
@@ -162,15 +172,18 @@ $(function() {
 	}
 	
 	function handleClick(d) {
-//		const url = "/rest/admin/study/correlated_fields?field_id=" + d.data.fieldId +
-//			"&dataset_id=" + d.data.parentDatasetId;
-//		console.log(url);
+		targetNode = d;
 		$("#h_field").html(d.data.name);
 		$("#source_field_instance_id").val(d.data.fieldInstanceId);
 		let html = "";
 		d.data.correlatedFields.forEach(function(field) {
 			html += "<div>";
-			html += "<input type='checkbox' name='target-" + field.data.fieldInstanceId + "'/>";
+			html += "<input type='checkbox' class='cb-target' data-field_instance_id='" + field.data.fieldInstanceId + "' name='target-"
+				+ field.data.fieldInstanceId + "'";
+			if (d.data.checkFieldInstanceIds.includes(field.data.fieldInstanceId)) {
+				html += " checked";
+			}
+			html += "/>";
 			html += field.data.label;
 			html += "</div>";
 		});

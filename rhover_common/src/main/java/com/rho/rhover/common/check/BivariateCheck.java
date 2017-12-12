@@ -9,6 +9,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 import com.rho.rhover.common.study.FieldInstance;
+import com.rho.rhover.common.study.Study;
 
 @Entity
 public class BivariateCheck {
@@ -29,16 +30,21 @@ public class BivariateCheck {
 	@ManyToOne
 	@JoinColumn(name="check_id")
 	private Check check;
+	
+	@ManyToOne
+	@JoinColumn(name="study_id")
+	private Study study;
 
 	public BivariateCheck() {
 		
 	}
 
-	public BivariateCheck(FieldInstance xFieldInstance, FieldInstance yFieldInstance, Check check) {
+	public BivariateCheck(FieldInstance xFieldInstance, FieldInstance yFieldInstance, Check check, Study study) {
 		super();
 		this.xFieldInstance = xFieldInstance;
 		this.yFieldInstance = yFieldInstance;
 		this.check = check;
+		this.study = study;
 	}
 
 	public Long getBivariateCheckId() {
@@ -71,5 +77,13 @@ public class BivariateCheck {
 
 	public void setCheck(Check check) {
 		this.check = check;
+	}
+
+	public Study getStudy() {
+		return study;
+	}
+
+	public void setStudy(Study study) {
+		this.study = study;
 	}
 }

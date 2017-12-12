@@ -207,13 +207,16 @@ create table bivariate_check (
 	x_field_instance_id BIGINT NOT NULL,
 	y_field_instance_id BIGINT NOT NULL,
 	check_id BIGINT NOT NULL,
+	study_id BIGINT NOT NULL,
 	CONSTRAINT pk_bivariate_check PRIMARY KEY (bivariate_check_id),
 	CONSTRAINT fk_bivariate_check_2_field_instance_1 FOREIGN KEY (x_field_instance_id)
 		REFERENCES field_instance (field_instance_id),
 	CONSTRAINT fk_bivariate_check_2_field_instance_2 FOREIGN KEY (y_field_instance_id)
 		REFERENCES field_instance (field_instance_id),
 	CONSTRAINT fk_bivariate_check_2_check FOREIGN KEY (check_id)
-		REFERENCES checks(check_id)
+		REFERENCES checks(check_id),
+	CONSTRAINT fk_bivariate_check_2_study FOREIGN KEY (study_id)
+		REFERENCES study(study_id)
 );
 
 create table check_param (
