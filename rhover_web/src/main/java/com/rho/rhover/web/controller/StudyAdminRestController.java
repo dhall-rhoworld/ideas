@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import com.rho.rhover.common.check.BivariateCheck;
+import com.rho.rhover.common.check.BivariateCheckRepository;
 import com.rho.rhover.common.check.Check;
 import com.rho.rhover.common.check.CheckParam;
 import com.rho.rhover.common.check.CheckParamRepository;
@@ -28,6 +30,8 @@ import com.rho.rhover.common.study.DatasetRepository;
 import com.rho.rhover.common.study.DatasetVersion;
 import com.rho.rhover.common.study.DatasetVersionRepository;
 import com.rho.rhover.common.study.Field;
+import com.rho.rhover.common.study.FieldInstance;
+import com.rho.rhover.common.study.FieldInstanceRepository;
 import com.rho.rhover.common.study.FieldRepository;
 import com.rho.rhover.common.study.Study;
 import com.rho.rhover.common.study.StudyRepository;
@@ -62,6 +66,12 @@ public class StudyAdminRestController {
 	
 	@Autowired
 	private CorrDatasetDtoService corrDatasetDtoService;
+	
+	@Autowired
+	private BivariateCheckRepository bivariateCheckRepository;
+	
+	@Autowired
+	private FieldInstanceRepository fieldInstanceRepository;
 	
 	@Value("${checker.url}")
 	private String checkerUrl;
@@ -183,13 +193,21 @@ public class StudyAdminRestController {
 			@RequestParam MultiValueMap<String, String> params,
 			@RequestParam("source_field_instance_id") Long sourceFieldInstanceId
 	) {
+		Check check = checkRepository.findByCheckName("BIVARIATE_OUTLIER");
 		logger.debug("Saving bivariate checks for field instance: " + sourceFieldInstanceId);
+		FieldInstance source = fieldInstanceRepository.findOne(sourceFieldInstanceId);
 		for (String key : params.keySet()) {
 			if (key.equals("source_field_instance_id")) {
 				continue;
 			}
 			Long targetFieldInstanceId = new Long(key.substring("target-".length()));
 			logger.debug("Target field instance: " + targetFieldInstanceId);
+			FieldInstance target = fieldInstanceRepository.findOne(targetFieldInstanceId);
+			BivariateCheck biCheck = bivariateCheckRepository.findByXFieldInstanceAndYFieldInstance(source, target);
+			if (biCheck == null) {
+				biCheck = new BivariateCheck(source, target, check);
+				bivariateCheckRepository.save(biCheck);
+			}
 		}
 		return "OK";
 	}

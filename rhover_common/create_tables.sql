@@ -202,6 +202,20 @@ values('UNIVARIATE_OUTLIER');
 insert into checks(check_name)
 values('BIVARIATE_OUTLIER');
 
+create table bivariate_check (
+	bivariate_check_id BIGINT AUTO_INCREMENT NOT NULL,
+	x_field_instance_id BIGINT NOT NULL,
+	y_field_instance_id BIGINT NOT NULL,
+	check_id BIGINT NOT NULL,
+	CONSTRAINT pk_bivariate_check PRIMARY KEY (bivariate_check_id),
+	CONSTRAINT fk_bivariate_check_2_field_instance_1 FOREIGN KEY (x_field_instance_id)
+		REFERENCES field_instance (field_instance_id),
+	CONSTRAINT fk_bivariate_check_2_field_instance_2 FOREIGN KEY (y_field_instance_id)
+		REFERENCES field_instance (field_instance_id),
+	CONSTRAINT fk_bivariate_check_2_check FOREIGN KEY (check_id)
+		REFERENCES checks(check_id)
+);
+
 create table check_param (
 	check_param_id BIGINT AUTO_INCREMENT NOT NULL,
 	param_name VARCHAR(50) NOT NULL,
@@ -210,8 +224,7 @@ create table check_param (
 	study_id BIGINT,
 	dataset_id BIGINT,
 	field_id BIGINT,
-	field_instance_id BIGINT,
-	field_instance_id_2 BIGINT,
+	bivariate_check_id BIGINT,
 	check_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	modified_by VARCHAR(50),
@@ -219,10 +232,7 @@ create table check_param (
 	CONSTRAINT fk_check_param_2_study FOREIGN KEY (study_id) REFERENCES study(study_id),
 	CONSTRAINT fk_check_param_2_dataset FOREIGN KEY (dataset_id) REFERENCES dataset(dataset_id),
 	CONSTRAINT fk_check_param_2_field FOREIGN KEY (field_id) REFERENCES field(field_id),
-	CONSTRAINT fk_check_param_2_field_instance_1 FOREIGN KEY (field_instance_id)
-		REFERENCES field_instance (field_instance_id),
-	CONSTRAINT fk_check_param_2_field_instance_2 FOREIGN KEY (field_instance_id_2)
-		REFERENCES field_instance (field_instance_id),	
+	CONSTRAINT fk_check_param_2_bivariate_check FOREIGN KEY (bivariate_check_id) REFERENCES bivariate_check(bivariate_check_id),
 	CONSTRAINT fk_check_param_2_checks FOREIGN KEY (check_id) REFERENCES checks(check_id)
 );
 

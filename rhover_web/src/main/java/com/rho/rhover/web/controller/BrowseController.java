@@ -11,8 +11,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.rho.rhover.common.anomaly.BivariateCheck;
-import com.rho.rhover.common.anomaly.BivariateCheckRepository;
+import com.rho.rhover.common.anomaly.BivariateCheckOld;
+import com.rho.rhover.common.anomaly.BivariateCheckRepositoryOld;
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.DatasetRepository;
 import com.rho.rhover.common.study.Site;
@@ -44,7 +44,7 @@ public class BrowseController {
 	private SubjectRepository subjectRepository;
 	
 	@Autowired
-	private BivariateCheckRepository bivariateCheckRepository;
+	private BivariateCheckRepositoryOld bivariateCheckRepository;
 	
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 

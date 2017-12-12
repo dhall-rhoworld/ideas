@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.rho.rhover.common.anomaly.Anomaly;
 import com.rho.rhover.common.anomaly.AnomalyRepository;
 import com.rho.rhover.common.anomaly.AnomalyRepositoryOld;
-import com.rho.rhover.common.anomaly.BivariateCheckRepository;
+import com.rho.rhover.common.anomaly.BivariateCheckRepositoryOld;
 import com.rho.rhover.common.anomaly.DataPropertyRepository;
 import com.rho.rhover.common.check.Check;
 import com.rho.rhover.common.check.CheckRepository;
@@ -62,7 +62,7 @@ public class AnomalyController {
 	private DataFieldRepository dataFieldRepository;
 	
 	@Autowired
-	private BivariateCheckRepository bivariateCheckRepository;
+	private BivariateCheckRepositoryOld bivariateCheckRepository;
 	
 	@Autowired
 	private StudyDataRepository studyDataRepository;

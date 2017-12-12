@@ -14,8 +14,8 @@ import org.springframework.stereotype.Service;
 
 import com.rho.rhover.common.anomaly.AnomalyOld;
 import com.rho.rhover.common.anomaly.AnomalyRepositoryOld;
-import com.rho.rhover.common.anomaly.BivariateCheck;
-import com.rho.rhover.common.anomaly.BivariateCheckRepository;
+import com.rho.rhover.common.anomaly.BivariateCheckOld;
+import com.rho.rhover.common.anomaly.BivariateCheckRepositoryOld;
 
 @Service
 public class StudyDataRepositoryImpl implements StudyDataRepository {
@@ -34,7 +34,7 @@ public class StudyDataRepositoryImpl implements StudyDataRepository {
 	private DataFieldRepository dataFieldRepository;
 	
 	@Autowired
-	private BivariateCheckRepository bivariateCheckRepository;
+	private BivariateCheckRepositoryOld bivariateCheckRepository;
 
 	@Override
 	public String getUnivariateData(Long dataFieldId) {
@@ -98,7 +98,7 @@ public class StudyDataRepositoryImpl implements StudyDataRepository {
 
 	@Override
 	public String getBivariateData(Long bivariateCheckId) {
-		BivariateCheck check = bivariateCheckRepository.findOne(bivariateCheckId);
+		BivariateCheckOld check = bivariateCheckRepository.findOne(bivariateCheckId);
 		StringBuilder builder = new StringBuilder();
 		BufferedReader reader = null;
 		try {

@@ -11,7 +11,7 @@ import javax.persistence.ManyToOne;
 import com.rho.rhover.common.study.Dataset;
 
 @Entity
-public class BivariateCheck {
+public class BivariateCheckOld {
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -35,7 +35,7 @@ public class BivariateCheck {
 	@Column(name="file_path")
 	private String filePath;
 	
-	public BivariateCheck() {
+	public BivariateCheckOld() {
 		
 	}
 
