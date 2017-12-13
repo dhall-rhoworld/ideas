@@ -37,31 +37,23 @@
 			<li><a href="/admin/study/all" class="active-menu-item">Configuration</a></li>
 		</ul>
 	</div>
-		
-    <div id="content">
-   		<h2>Studies</h2>
-   		<table class="wide">
-   			<tr>
-   				<th>Study</th>
-   				<th>View/Edit</th>
-   				<th></th>
-   			</tr>
-   			<tr th:each="study : ${studies}">
-   				<td th:text="${study.studyName}"/>
-   				<td>
-   					<a th:href="@{/admin/study/data_locations(study_id=${study.studyId})}">Data Folders</a> |
-   					<a th:href="@{/admin/study/identifying_fields(study_id=${study.studyId})}">Identifiers</a> |
-   					<a th:href="@{/admin/study/study_univariate(study_id=${study.studyId})}">Univariate</a> |
-   					<a th:href="@{/admin/study/correlations(study_id=${study.studyId})}">Bivariate</a>
-   				</td>
-   				<td>
-   					<button type="button" class="check-runner" th:id="'button_' + ${study.studyId}" th:attr="data-study_id=${study.studyId}">Run Checks</button>
-   				</td>
-   			</tr>
-   		</table>
-   		<p>
- 			<button type="button" onclick="onAddStudy()">Add Study</button>
- 		</p>
+    
+    <div class="content-left-align">
+    	<div style="position: absolute; left: 15%; top: 125px; width: 600px;">
+	    	<div th:each="study : ${studies}" style="height: 90px; position: relative">
+	    		<img src="/images/research-small.png" style="float:left;"/>
+	    		<div style="position: absolute; left: 85px; top: 15px;">
+	    		<strong><span th:text="${study.studyName}"/></strong><br/>
+	    		<a th:href="@{/admin/study/data_locations(study_id=${study.studyId})}" class="action-link">Data Folders</a> |
+	   			<a th:href="@{/admin/study/identifying_fields(study_id=${study.studyId})}" class="action-link">Identifying Fields</a> |
+	   			<a th:href="@{/admin/study/study_univariate(study_id=${study.studyId})}" class="action-link">Univariate Checks</a> |
+	   			<a th:href="@{/admin/study/correlations(study_id=${study.studyId})}" class="action-link">Bivariate Checks</a>
+	   			</div>	
+	    	</div>	
+	    	<p>
+	 			<button type="button" onclick="onAddStudy()" style="position: absolute; left: 40%;">Add Study</button>
+	 		</p>
+	 	</div>
     </div>
 </body>
 </html>

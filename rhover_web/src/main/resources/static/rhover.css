@@ -207,3 +207,13 @@ img.bg {
 	left: 50%;
 	transform: translate(-50%, -50%);
 }
+
+a.action-link:link,
+a.action-link:visited {
+	color: #004080;
+	text-decoration: none;
+}
+
+a.action-link:hover {
+	text-decoration: underline;
+}
