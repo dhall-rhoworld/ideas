@@ -4,6 +4,7 @@
     <title>RhoVer Data Fields</title> 
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" href="/rhover.css"/>
+    <link rel="icon" type="image/png" href="/images/rover-favicon.png" />
 </head>
 <body>
 	<div class="page-header">RhoVer (Prototype)</div>
@@ -11,8 +12,8 @@
 	<div class="menu-bar">
 		<ul>
 			<li><a href="/">Home</a></li>
-			<li><a href="/browse/studies" class="active-menu-item">Browse</a></li>
-			<li><a href="/search/form">Search</a></li>
+			<li><a href="/browse/studies" class="active-menu-item">Anomalies</a></li>
+			<li><a href="/admin/study/all">Configuration</a></li>
 		</ul>
 	</div>
 	
@@ -43,7 +44,7 @@
 	</div>
 		
     <div id="content">
-    	<h2>Univeriate Outliers</h2>
+    	<h2>Univariate Outliers</h2>
    		<table class="wide">
    			<tr>
    				<th>Label</th>
@@ -67,13 +68,9 @@
    					<a th:if="${site}" th:href="@{/anomaly/table(field_id=${summary.entityId}, site_id=${site.siteId})}">Table</a>
    					<a th:if="${subject}" th:href="@{/anomaly/table(field_id=${summary.entityId}, subject_id=${subject.subjectId})}">Table</a>
    					|
-   					<a th:if="${site == null and subject == null}" th:href="@{/anomaly/beeswarm(field_id=${summary.entityId})}">Beeswarm</a>
-   					<a th:if="${site}" th:href="@{/anomaly/beeswarm(field_id=${summary.entityId}, site_id=${site.siteId})}">Beeswarm</a>
-   					<a th:if="${subject}" th:href="@{/anomaly/beeswarm(field_id=${summary.entityId}, subject_id=${subject.subjectId})}">Beeswarm</a>
-   					|
-   					<a th:if="${site == null and subject == null}" th:href="@{/anomaly/boxplot(field_id=${summary.entityId})}">Boxplot</a>
-   					<a th:if="${site}" th:href="@{/anomaly/boxplot(field_id=${summary.entityId}, site_id=${site.siteId})}">Boxplot</a>
-   					<a th:if="${subject}" th:href="@{/anomaly/boxplot(field_id=${summary.entityId}, subject_id=${subject.subjectId})}">Boxplot</a>
+   					<a th:if="${site == null and subject == null}" th:href="@{/anomaly/beeswarm(field_id=${summary.entityId})}">Chart</a>
+   					<a th:if="${site}" th:href="@{/anomaly/beeswarm(field_id=${summary.entityId}, site_id=${site.siteId})}">Chart</a>
+   					<a th:if="${subject}" th:href="@{/anomaly/beeswarm(field_id=${summary.entityId}, subject_id=${subject.subjectId})}">Chart</a>
    				</td>
    			</tr>
    		</table>

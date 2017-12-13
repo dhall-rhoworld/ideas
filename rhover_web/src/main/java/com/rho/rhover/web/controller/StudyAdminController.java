@@ -337,12 +337,12 @@ public class StudyAdminController {
 		return "/admin/study/anomaly_settings";
 	}
 	
-	@RequestMapping("/new_bivariate")
+	@RequestMapping("/correlations")
 	public String newBivariate(
 			@RequestParam(name="study_id") Long studyId,
 			Model model) {
 		model.addAttribute("study", studyRepository.findOne(studyId));
-		return "/admin/study/new_bivariate";
+		return "/admin/study/correlations";
 	}
 	
 	private static final class DataTypeComparator implements Comparator<Field> {

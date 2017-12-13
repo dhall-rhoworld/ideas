@@ -5,6 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" href="/rhover.css"/>
     <link rel="stylesheet" href="/jquery-ui.css"/>
+    <link rel="icon" type="image/png" href="/images/rover-favicon.png" />
     <script src="/jquery-3.2.1.min.js"></script>
     <script src="/jquery-ui.js"></script>
 </head>
@@ -67,7 +68,7 @@
 			<div th:each="datasetVersion : ${dataset_versions}" th:title="${datasetVersion.numericFieldSummary}" class="dataset-selector">
 				<input type="checkbox" class="radio-dataset" th:name="'check_dataset-' + ${datasetVersion.dataset.datasetId}"
 					th:checked="${datasetVersion.dataset.isChecked}" th:id="'cb-' + ${datasetVersion.dataset.datasetId}"/>
-				<label th:for="'cb-' + ${datasetVersion.dataset.datasetId}" th:text="${datasetVersion.dataset.datasetName}" style="width: 150px"/>
+				<label th:for="'cb-' + ${datasetVersion.dataset.datasetId}" th:text="${datasetVersion.dataset.datasetName}" style="width: 175px"/>
 			</div>
 		</div>
 		<p>

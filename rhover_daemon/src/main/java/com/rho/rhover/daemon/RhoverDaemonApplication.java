@@ -38,8 +38,10 @@ public class RhoverDaemonApplication implements CommandLineRunner {
 		Iterable<Study> studies = studyRepository.findAll();
 		for (Study study : studies) {
 			try {
-				dataLoaderService.updateStudy(study);
-				dataLoaderService.calculateAndSaveCorrelations(study);
+				boolean changedData = dataLoaderService.updateStudy(study);
+				if (changedData) {
+					dataLoaderService.calculateAndSaveCorrelations(study);
+				}
 			}
 			catch (SourceDataException e) {
 				logger.error("Data error encountered: " + e.getMessage());

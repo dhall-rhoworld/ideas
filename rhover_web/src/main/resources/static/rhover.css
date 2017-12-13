@@ -186,3 +186,24 @@ table.invisible tr, td {
 	top: 50%;
 	transform: translateY(-50%);
 }
+
+ul.paws {
+	list-style-image: url('/images/rover-small.png');
+}
+
+img.bg {
+	opacity: 0.3;
+}
+
+.container {
+	position: relative;
+	text-align: center;
+	color: white;
+}
+
+.centered-text {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
