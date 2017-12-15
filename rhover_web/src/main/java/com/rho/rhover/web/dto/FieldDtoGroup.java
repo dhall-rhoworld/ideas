@@ -53,7 +53,6 @@ public class FieldDtoGroup implements Comparable<FieldDtoGroup> {
 
 	@Override
 	public int compareTo(FieldDtoGroup other) {
-		logger.debug(this.dataType + " " + other.dataType);
 		Integer thisOrdinal = DATA_TYPE_ORDINALS.get(this.getDataType());
 		Integer otherOrdinal = DATA_TYPE_ORDINALS.get(other.getDataType());
 		return thisOrdinal.compareTo(otherOrdinal);

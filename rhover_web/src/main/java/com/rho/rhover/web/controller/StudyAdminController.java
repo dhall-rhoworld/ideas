@@ -345,6 +345,14 @@ public class StudyAdminController {
 		return "/admin/study/correlations";
 	}
 	
+	@RequestMapping("/bivariates")
+	public String showBivariates(
+			@RequestParam(name="study_id") Long studyId,
+			Model model) {
+		model.addAttribute("study_id", studyId);
+		return "/admin/study/all_bivariates";
+	}
+	
 	@RequestMapping("/add_bivariate")
 	public String addBivariate(
 			@RequestParam(name="study_id") Long studyId,
@@ -353,6 +361,11 @@ public class StudyAdminController {
 		model.addAttribute("study_id", studyId);
 		Study study = studyRepository.findOne(studyId);
 		model.addAttribute("datasets", datasetRepository.findByStudy(study));
+		return "/admin/study/new_bivariate";
+	}
+	
+	public String saveBivariate() {
+		
 		return "/admin/study/new_bivariate";
 	}
 	

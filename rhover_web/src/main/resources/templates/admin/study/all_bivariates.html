@@ -9,7 +9,6 @@
     <script src="/jquery-ui.js"></script>
     <script src="/d3.v4.min.js"></script>
     <link rel="stylesheet" href="/radial.css" />
-    <script src="/radial.js"></script>
     <link rel="icon" type="image/png" href="/images/rover-favicon.png" />
 </head>
 <body>
@@ -25,27 +24,24 @@
 	
     <div id="content">
     
-    	<strong>Explore Correlations</strong> |
-    	<a th:href="@{/admin/study/bivariates(study_id=${study.studyId})}">Bivariate Checks</a>
-    
-    	<h3>Correlated Continuous Variables</h3>
-    
-    	<div id="chart"/>
+        <a th:href="@{/admin/study/correlations(study_id=${study_id})}">Explore Correlations</a> |
+    	<strong>Bivariate Checks</strong>
     	
-    	<div id="dialog">
-    		<h3 id="h_field"/>
-    		<h4>Select Correlated Fields for Bivariate Checks</h4>
-    		<form>
-    			<input type="hidden" id="source_field_instance_id" name="source_field_instance_id"/>
-    			<div id="fields_2"/>
-    		</form>
-    	</div>
-    
+    	<p>
+    		<button type="button" id="button_add">Add Checks</button>
+    	</p>
+    	
     </div>
 </body>
 
 <script th:inline="javascript">
-	const studyId = [[${study.studyId}]];
-</script>
 
+	const studyId = [[${study_id}]];
+	
+	$("#button_add").click(function() {
+		const url = "/admin/study/add_bivariate?study_id=" + studyId;
+		document.location.href = url;
+	});
+
+</script>
 </html>

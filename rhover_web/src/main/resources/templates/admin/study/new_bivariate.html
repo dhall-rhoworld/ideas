@@ -26,38 +26,36 @@
     <div id="content">
     
         <a th:href="@{/admin/study/correlations(study_id=${study_id})}">Explore Correlations</a> |
-    	<atrong>Add Checks to Any Field</atrong> |
-    	<a href="#">Set Parameters</a>
+    	<strong>Bivariate Checks</strong>
     
-    	<h3>Add New Bivariate Check</h3>
-    	<form>
+    	<h3>Add New Bivariate Checks</h3>
+    	<form action="/admin/study/new_bivariate">
     		<p>
-    			X-Axis:
-    			&nbsp;&nbsp;
-	    		<select id="dataset_x">
-	    			<option value="0">---Select Dataset---</option>
-	    			<option th:each="dataset : ${datasets}" th:value="${dataset.datasetId}"
-	    				th:text="${dataset.datasetName}"/>
-	    		</select>
-	    		&nbsp;&nbsp;
-	    		<select id="variable_x" name="variable_x">
-	    			<option value="0">---Select Variable---</option>
-	    		</select>
-	    	</p>
-	    	
-    		<p>
-    			Y-Axis:
-    			&nbsp;&nbsp;
-	    		<select id="dataset_y">
-	    			<option value="0">---Select Dataset---</option>
-	    			<option th:each="dataset : ${datasets}" th:value="${dataset.datasetId}"
-	    				th:text="${dataset.datasetName}"/>
-	    		</select>
-	    		&nbsp;&nbsp;
-	    		<select id="variable_y" name="variable_y">
-	    			<option value="0">---Select Variable---</option>
-	    		</select>
-	    	</p>
+    			<table class="invisible">
+    				<tr>
+    					<td>X-Axis</td>
+    					<td>
+	    					<select id="dataset_x">
+				    			<option value="0">---Select Dataset---</option>
+				    			<option th:each="dataset : ${datasets}" th:value="${dataset.datasetId}"
+				    				th:text="${dataset.datasetName}"/>
+				    		</select>
+    					</td>
+    					<td id="td_variable_x"/>
+    				</tr>
+    				<tr>
+    					<td valign="top">Y-Axis</td>
+    					<td valign="top">
+	    					<select id="dataset_y">
+				    			<option value="0">---Select Dataset---</option>
+				    			<option th:each="dataset : ${datasets}" th:value="${dataset.datasetId}"
+				    				th:text="${dataset.datasetName}"/>
+				    		</select>
+    					</td>
+    					<td id="td_variable_y" align="left" valign="top"/>
+    				</tr>
+    			</table>
+    		</p>
 	    	
 	    	<table class="half-wide">
 				<tr>
