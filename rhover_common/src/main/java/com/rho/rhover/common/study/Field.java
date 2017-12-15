@@ -183,7 +183,7 @@ public class Field {
 	
 	public String getTruncatedDisplayName(int length) {
 		String name = fieldName;
-		if (fieldLabel != null) {
+		if (fieldLabel != null && fieldLabel.trim().length() > 0) {
 			name = getTruncatedFieldLabel(length);
 		}
 		return name;

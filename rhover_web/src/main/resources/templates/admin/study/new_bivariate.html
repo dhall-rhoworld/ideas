@@ -1,0 +1,94 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>RhoVer Add Bivariate Check</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="/rhover.css"/>
+    <link rel="stylesheet" href="/jquery-ui.css"/>
+    <script src="/jquery-3.2.1.min.js"></script>
+    <script src="/jquery-ui.js"></script>
+    <script src="/d3.v4.min.js"></script>
+    <script src="/new_bivariate.js"></script>
+    <link rel="stylesheet" href="/radial.css" />
+    <link rel="icon" type="image/png" href="/images/rover-favicon.png" />
+</head>
+<body>
+	<div class="page-header">RhoVer (Prototype)</div>
+	
+	<div class="menu-bar">
+		<ul>
+			<li><a href="/">Home</a></li>
+			<li><a href="/browse/studies">Anomalies</a></li>
+			<li><a href="/admin/study/all" class="active-menu-item">Configuration</a></li>
+		</ul>
+	</div>
+	
+    <div id="content">
+    
+        <a th:href="@{/admin/study/correlations(study_id=${study_id})}">Explore Correlations</a> |
+    	<atrong>Add Checks to Any Field</atrong> |
+    	<a href="#">Set Parameters</a>
+    
+    	<h3>Add New Bivariate Check</h3>
+    	<form>
+    		<p>
+    			X-Axis:
+    			&nbsp;&nbsp;
+	    		<select id="dataset_x">
+	    			<option value="0">---Select Dataset---</option>
+	    			<option th:each="dataset : ${datasets}" th:value="${dataset.datasetId}"
+	    				th:text="${dataset.datasetName}"/>
+	    		</select>
+	    		&nbsp;&nbsp;
+	    		<select id="variable_x" name="variable_x">
+	    			<option value="0">---Select Variable---</option>
+	    		</select>
+	    	</p>
+	    	
+    		<p>
+    			Y-Axis:
+    			&nbsp;&nbsp;
+	    		<select id="dataset_y">
+	    			<option value="0">---Select Dataset---</option>
+	    			<option th:each="dataset : ${datasets}" th:value="${dataset.datasetId}"
+	    				th:text="${dataset.datasetName}"/>
+	    		</select>
+	    		&nbsp;&nbsp;
+	    		<select id="variable_y" name="variable_y">
+	    			<option value="0">---Select Variable---</option>
+	    		</select>
+	    	</p>
+	    	
+	    	<table class="half-wide">
+				<tr>
+					<th colspan="2" style="background-color: CornflowerBlue; color: white">Parameters</th>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<input type="checkbox" id="cb_defaults" name="use_study_defaults" checked="true" /> Use study-level defaults
+					</td>
+				</tr>
+				<tr class="dataset-params deactivated">
+					<td>Standard Deviations from Regression Line</td>
+					<td style="text-align: left">
+						<input type="text" name="param_sd-residual" id="text_sd-residual" class="input-params" size="3"
+							disabled="true"/>
+					</td>
+				</tr>
+				<tr class="dataset-params deactivated">
+					<td>Standard Deviations from Mean Distance to Neighbors</td>
+					<td style="text-align: left">
+						<input type="text" name="param_sd-density" id="text_sd-density" class="input-params" size="3"
+							disabled="true"/>
+					</td>
+				</tr>
+			</table>
+	    	
+	    	<p>
+	    		<button type="submit" id="button_submit" disabled="true">Add Check</button>
+	    	</p>
+    	</form>
+    </div>
+    
+</body>
+</html>

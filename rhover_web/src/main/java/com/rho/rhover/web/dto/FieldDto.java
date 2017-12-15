@@ -3,6 +3,8 @@ package com.rho.rhover.web.dto;
 import com.rho.rhover.common.study.Field;
 
 public class FieldDto implements Comparable<FieldDto> {
+	
+	private static final int MAX_LABEL_LENGTH = 40;
 
 	private Long fieldId;
 	
@@ -18,15 +20,13 @@ public class FieldDto implements Comparable<FieldDto> {
 		super();
 		this.fieldId = fieldId;
 		this.fieldName = fieldName;
-		if (!fieldName.equals(fieldLabel)) {
-			this.fieldLabel = fieldLabel;
-		}
+		this.fieldLabel = fieldLabel;
 		this.dataType = dataType;
 		this.isIdentifying = isIdentifying;
 	}
 
 	public FieldDto(Field field) {
-		this(field.getFieldId(), field.getFieldName(), field.getFieldLabel(), field.getDataType(), field.getIsIdentifying());
+		this(field.getFieldId(), field.getFieldName(), field.getTruncatedDisplayName(MAX_LABEL_LENGTH), field.getDisplayDataType(), field.getIsIdentifying());
 	}
 
 	public Long getFieldId() {

@@ -48,6 +48,25 @@ table.wide tr:nth-child(even) {
 	background-color: #f2f2f2;
 }
 
+table.half-wide {
+	border-collapse: collapse;
+	width: 75%;
+	border: 1px solid #d3d3d3;
+	margin: auto;
+}
+
+table.half-wide th, table.half-wide td {
+	border: 1px solid #d3d3d3;
+}
+
+table.half-wide th, table.half-wide td {
+	padding: 5px;
+}
+
+table.half-wide tr:nth-child(even) {
+	background-color: #f2f2f2;
+}
+
 .attention {
 	color: red;
 	font-weight: bold;

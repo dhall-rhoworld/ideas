@@ -6,20 +6,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.rho.rhover.common.study.Field;
 
 public class FieldDtoGroup implements Comparable<FieldDtoGroup> {
 	
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+	
 	private static final Map<String, Integer> DATA_TYPE_ORDINALS = new HashMap<>();
 	
 	static {
-		DATA_TYPE_ORDINALS.put("Double", 1);
-		DATA_TYPE_ORDINALS.put("Integer", 2);
-		DATA_TYPE_ORDINALS.put("String", 3);
-		DATA_TYPE_ORDINALS.put("Date", 4);
-		DATA_TYPE_ORDINALS.put("Boolean", 5);
-		DATA_TYPE_ORDINALS.put("MixedType", 6);
-		DATA_TYPE_ORDINALS.put("UnknownType", 7);
+		DATA_TYPE_ORDINALS.put("CONTINUOUS", 1);
+		DATA_TYPE_ORDINALS.put("INTEGER", 2);
+		DATA_TYPE_ORDINALS.put("CHARACTER", 3);
+		DATA_TYPE_ORDINALS.put("DATE", 4);
+		DATA_TYPE_ORDINALS.put("YES/NO", 5);
+		DATA_TYPE_ORDINALS.put("MIXED", 6);
+		DATA_TYPE_ORDINALS.put("UNKNOWN", 7);
 	}
 
 	private String dataType;
@@ -48,6 +53,7 @@ public class FieldDtoGroup implements Comparable<FieldDtoGroup> {
 
 	@Override
 	public int compareTo(FieldDtoGroup other) {
+		logger.debug(this.dataType + " " + other.dataType);
 		Integer thisOrdinal = DATA_TYPE_ORDINALS.get(this.getDataType());
 		Integer otherOrdinal = DATA_TYPE_ORDINALS.get(other.getDataType());
 		return thisOrdinal.compareTo(otherOrdinal);
@@ -56,11 +62,11 @@ public class FieldDtoGroup implements Comparable<FieldDtoGroup> {
 	public static List<FieldDtoGroup> toDtoGroups(Iterable<Field> fields) {
 		Map<String, FieldDtoGroup> groupMap = new HashMap<>();
 		for (Field field : fields) {
-			FieldDtoGroup group = groupMap.get(field.getDataType());
+			FieldDtoGroup group = groupMap.get(field.getDisplayDataType());
 			if (group == null) {
 				group = new FieldDtoGroup();
-				group.setDataType(field.getDataType());
-				groupMap.put(field.getDataType(), group);
+				group.setDataType(field.getDisplayDataType());
+				groupMap.put(field.getDisplayDataType(), group);
 			}
 			group.addFieldDto(new FieldDto(field));
 		}

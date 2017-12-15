@@ -338,11 +338,22 @@ public class StudyAdminController {
 	}
 	
 	@RequestMapping("/correlations")
-	public String newBivariate(
+	public String correlations(
 			@RequestParam(name="study_id") Long studyId,
 			Model model) {
 		model.addAttribute("study", studyRepository.findOne(studyId));
 		return "/admin/study/correlations";
+	}
+	
+	@RequestMapping("/add_bivariate")
+	public String addBivariate(
+			@RequestParam(name="study_id") Long studyId,
+			Model model
+	) {
+		model.addAttribute("study_id", studyId);
+		Study study = studyRepository.findOne(studyId);
+		model.addAttribute("datasets", datasetRepository.findByStudy(study));
+		return "/admin/study/new_bivariate";
 	}
 	
 	private static final class DataTypeComparator implements Comparator<Field> {
