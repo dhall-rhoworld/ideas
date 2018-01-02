@@ -8,7 +8,7 @@ $(function() {
 		const url = "/rest/admin/study/fields?dataset_id=" + datasetId;
 		$.get(url)
 			.done(function(fieldGroups) {
-				let html = "<select id='variable_x'><option value='0'>--- Select Variable ---</option>";
+				let html = "<option value='0'>---Select Variable---</option>";
 				for (let i = 0; i < fieldGroups.length; i++) {
 					fieldGroup = fieldGroups[i];
 					let enabled = (fieldGroup.dataType == "CONTINUOUS" || fieldGroup.dataType == "INTEGER");
@@ -26,15 +26,16 @@ $(function() {
 					}
 					html += "</optgroup>";
 				}
-				html += "</select>";
-				$("#td_variable_x").html(html);
-				$("#variable_x").change(function() {
-					setSubmitButtonState();
-				});
+				$("#variable_x").html(html);
 			})
 			.fail(function() {
 				console.log("Error");
 			});
+	});
+	
+	$("#variable_x").change(function() {
+		$("#tr_search_x").empty();
+		setSubmitButtonState();
 	});
 	
 	$("#dataset_y").change(function() {
@@ -77,6 +78,8 @@ $(function() {
 				$("#variable_y").change(function() {
 					setSubmitButtonState();
 				});
+				$("#tr_correlated").empty();
+				$("#tr_search_y").empty();
 				setSubmitButtonState();
 			})
 			.fail(function() {
@@ -111,6 +114,21 @@ $(function() {
 		let numericOnly = $(this).val().replace(/[^0-9.]/g,"");
 		$(this).val(numericOnly);
 		setSubmitButtonState();
+	});
+	
+	$("#text_search_x").autocomplete({
+		minLength: 4,
+		source: function(request, response) {
+			const url = "/rest/admin/study/get_matching_field_instances?study_id="
+				+ studyId + "&term=" + request.term;
+			$.get(url)
+				.done(function(data) {
+					response(data);
+				})
+				.fail(function() {
+					console.log("Error");
+				});
+		}
 	});
 	
 	function xAxisFieldsComplete() {

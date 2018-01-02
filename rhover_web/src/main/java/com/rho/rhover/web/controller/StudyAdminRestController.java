@@ -38,6 +38,8 @@ import com.rho.rhover.common.study.StudyRepository;
 import com.rho.rhover.web.dto.CheckParamDto;
 import com.rho.rhover.web.dto.CorrDatasetDto;
 import com.rho.rhover.web.dto.FieldDtoGroup;
+import com.rho.rhover.web.dto.JqueryUiAutocompleteDto;
+import com.rho.rhover.web.service.AutocompleteHelperService;
 import com.rho.rhover.web.service.CorrDatasetDtoService;
 
 @RestController
@@ -72,6 +74,9 @@ public class StudyAdminRestController {
 	
 	@Autowired
 	private FieldInstanceRepository fieldInstanceRepository;
+	
+	@Autowired
+	private AutocompleteHelperService autocompleteHelperService;
 	
 	@Value("${checker.url}")
 	private String checkerUrl;
@@ -210,5 +215,13 @@ public class StudyAdminRestController {
 			}
 		}
 		return "OK";
+	}
+	
+	@RequestMapping("/get_matching_field_instances")
+	private List<JqueryUiAutocompleteDto> getMatchingFieldInstances(
+			@RequestParam("study_id") Long studyId,
+			@RequestParam("term") String term
+	) {
+		return autocompleteHelperService.findMatchingFieldInstances(term, studyId);
 	}
 }

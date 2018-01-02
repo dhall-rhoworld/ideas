@@ -9,8 +9,11 @@
     <script src="/jquery-ui.js"></script>
     <script src="/d3.v4.min.js"></script>
     <script src="/new_bivariate.js"></script>
-    <link rel="stylesheet" href="/radial.css" />
     <link rel="icon" type="image/png" href="/images/rover-favicon.png" />
+    
+    <script th:inline="javascript">
+		const studyId = [[${study_id}]];
+	</script>
 </head>
 <body>
 	<div class="page-header">RhoVer (Prototype)</div>
@@ -28,24 +31,38 @@
         <a th:href="@{/admin/study/correlations(study_id=${study_id})}">Explore Correlations</a> |
     	<strong>Bivariate Checks</strong>
     
-    	<h3>Add New Bivariate Checks</h3>
     	<form action="/admin/study/new_bivariate">
+    		<h3>Step 1: Select First Variable</h3>
+   			<table class="invisible">
+   				<tr id="tr_browse_x">
+   					<td>Browse</td>
+   					<td>
+    					<select id="dataset_x">
+			    			<option value="0">---Select Dataset---</option>
+			    			<option th:each="dataset : ${datasets}" th:value="${dataset.datasetId}"
+			    				th:text="${dataset.datasetName}"/>
+			    		</select>
+			    		
+			    		<select id="variable_x">
+			    			<option value="0">---Select Variable---</option>
+			    		</select>
+   					</td>
+   				</tr>
+   				<tr id="tr_search_x">
+   					<td>Search</td>
+   					<td align="left">
+   						<input type="text" id="text_search_x"/>
+   						<button type="button" id="button_search_x">OK</button>
+   					</td>
+   				</tr>
+   			</table>
+
+			<h3>Step 2: Select Second Variable(s)</h3>
     		<p>
     			<table class="invisible">
-    				<tr>
-    					<td>X-Axis</td>
-    					<td>
-	    					<select id="dataset_x">
-				    			<option value="0">---Select Dataset---</option>
-				    			<option th:each="dataset : ${datasets}" th:value="${dataset.datasetId}"
-				    				th:text="${dataset.datasetName}"/>
-				    		</select>
-    					</td>
-    					<td id="td_variable_x"/>
-    				</tr>
-    				<tr>
-    					<td valign="top">Y-Axis</td>
-    					<td valign="top">
+    				<tr id="tr_browse_y">
+    					<td valign="top" align="right">Browse All</td>
+    					<td valign="top" align="left">
 	    					<select id="dataset_y">
 				    			<option value="0">---Select Dataset---</option>
 				    			<option th:each="dataset : ${datasets}" th:value="${dataset.datasetId}"
@@ -54,12 +71,28 @@
     					</td>
     					<td id="td_variable_y" align="left" valign="top"/>
     				</tr>
+    				<tr id="tr_correlated">
+    					<td align="right">Browse Correlated</td>
+    					<td align="left">
+    						<button type="button">Find</button>
+    					</td>
+    					<td/>
+    				</tr>
+    				<tr id="tr_search_y">
+    					<td align="right">Search</td>
+    					<td align="left">
+	    					<input type="text"/>
+	   						<button type="button" id="button_search_x">OK</button>
+    					</td>
+    					<td/>
+    				</tr>
     			</table>
     		</p>
 	    	
+	    	<h3>Step 3: Set Check Parameters</h3>
 	    	<table class="half-wide">
 				<tr>
-					<th colspan="2" style="background-color: CornflowerBlue; color: white">Parameters</th>
+					<th colspan="2" style="background-color: CornflowerBlue; color: white">Parameter</th>
 				</tr>
 				<tr>
 					<td colspan="2">
