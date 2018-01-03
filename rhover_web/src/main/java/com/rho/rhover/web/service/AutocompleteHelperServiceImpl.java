@@ -47,10 +47,10 @@ public class AutocompleteHelperServiceImpl implements AutocompleteHelperService 
 			String fieldLabel = rs.getString(2);
 			String datasetName = rs.getString(4);
 			if (fieldLabel != null && fieldLabel.trim().length() > 0) {
-				dto.setLabel(fieldLabel + " (" + fieldName + "a) [" + datasetName + "]");
+				dto.setLabel(fieldLabel + " (" + fieldName + ") [" + datasetName + "]");
 			}
 			else {
-				dto.setLabel(fieldName + " (" + fieldName + "a) [" + datasetName + "]");
+				dto.setLabel(fieldName + " (" + fieldName + ") [" + datasetName + "]");
 			}
 			dto.setValue(dto.getLabel());
 			return dto;

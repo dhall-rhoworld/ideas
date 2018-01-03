@@ -10,4 +10,6 @@ public interface DatasetRepository extends CrudRepository<Dataset, Long>{
 
 	List<Dataset> findByStudy(Study study);
 	
+	Dataset findByStudyAndDatasetName(Study study, String datasetName);
+	
 }

@@ -36,7 +36,7 @@
    			<table class="invisible">
    				<tr id="tr_browse_x">
    					<td>Browse</td>
-   					<td>
+   					<td align="left">
     					<select id="dataset_x">
 			    			<option value="0">---Select Dataset---</option>
 			    			<option th:each="dataset : ${datasets}" th:value="${dataset.datasetId}"
@@ -51,7 +51,7 @@
    				<tr id="tr_search_x">
    					<td>Search</td>
    					<td align="left">
-   						<input type="text" id="text_search_x"/>
+   						<input type="text" id="text_search_x" size="40"/>
    						<button type="button" id="button_search_x">OK</button>
    					</td>
    				</tr>
@@ -72,17 +72,17 @@
     					<td id="td_variable_y" align="left" valign="top"/>
     				</tr>
     				<tr id="tr_correlated">
-    					<td align="right">Browse Correlated</td>
-    					<td align="left">
-    						<button type="button">Find</button>
+    					<td align="right" id="td_correlated_label">Browse Correlated</td>
+    					<td align="left" id="td_correlated">
+    						<button type="button" id="button_correlated" disabled="true">Show Correlated Variables</button>
     					</td>
     					<td/>
     				</tr>
     				<tr id="tr_search_y">
     					<td align="right">Search</td>
     					<td align="left">
-	    					<input type="text"/>
-	   						<button type="button" id="button_search_x">OK</button>
+	    					<input type="text" id="text_search_y" size="40"/>
+	   						<button type="button" id="button_search_y">OK</button>
     					</td>
     					<td/>
     				</tr>
@@ -121,5 +121,12 @@
     	</form>
     </div>
     
+    <div id="dialog_error">
+    	<div id="message_error"/>
+    </div>
+    
+    <div id="dialog_progress">
+    	<img src="/images/progress_wheel.gif"/>
+    </div>
 </body>
 </html>

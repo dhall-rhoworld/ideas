@@ -25,6 +25,8 @@ import com.rho.rhover.common.check.Check;
 import com.rho.rhover.common.check.CheckParam;
 import com.rho.rhover.common.check.CheckParamRepository;
 import com.rho.rhover.common.check.CheckRepository;
+import com.rho.rhover.common.check.Correlation;
+import com.rho.rhover.common.check.CorrelationFinder;
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.DatasetRepository;
 import com.rho.rhover.common.study.DatasetVersion;
@@ -37,7 +39,9 @@ import com.rho.rhover.common.study.Study;
 import com.rho.rhover.common.study.StudyRepository;
 import com.rho.rhover.web.dto.CheckParamDto;
 import com.rho.rhover.web.dto.CorrDatasetDto;
+import com.rho.rhover.web.dto.FieldDto;
 import com.rho.rhover.web.dto.FieldDtoGroup;
+import com.rho.rhover.web.dto.FieldInstanceDto;
 import com.rho.rhover.web.dto.JqueryUiAutocompleteDto;
 import com.rho.rhover.web.service.AutocompleteHelperService;
 import com.rho.rhover.web.service.CorrDatasetDtoService;
@@ -45,6 +49,8 @@ import com.rho.rhover.web.service.CorrDatasetDtoService;
 @RestController
 @RequestMapping("/rest/admin/study")
 public class StudyAdminRestController {
+	
+	private static final double MIN_CORRELATION_COEF = 0.5;
 	
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 	
@@ -77,6 +83,9 @@ public class StudyAdminRestController {
 	
 	@Autowired
 	private AutocompleteHelperService autocompleteHelperService;
+	
+	@Autowired
+	private CorrelationFinder correlationFinder;
 	
 	@Value("${checker.url}")
 	private String checkerUrl;
@@ -223,5 +232,48 @@ public class StudyAdminRestController {
 			@RequestParam("term") String term
 	) {
 		return autocompleteHelperService.findMatchingFieldInstances(term, studyId);
+	}
+	
+	@RequestMapping("/fetch_variable_instance_id")
+	private Long fetchVariableInstanceId(
+			@RequestParam("study_id") Long studyId,
+			@RequestParam("variable_name") String variableName,
+			@RequestParam("dataset_name") String datasetName
+	) {
+		Study study = studyRepository.findOne(studyId);
+		Dataset dataset = datasetRepository.findByStudyAndDatasetName(study, datasetName);
+		Field field = fieldRepository.findByStudyAndFieldName(study, variableName);
+		FieldInstance fieldInstance = fieldInstanceRepository.findByFieldAndDataset(field, dataset);
+		return fieldInstance.getFieldInstanceId();
+	}
+	
+	
+	// TODO: Move this to the checker component when that is turned into
+	// a service so that this potentially compute-intensive method can be
+	// offloaded to a beefy server
+	@RequestMapping("/find_correlated_fields")
+	public List<FieldInstanceDto> findCorrelatedFields(
+			@RequestParam("field_instance_id") Long fieldInstanceId) {
+		FieldInstance fieldInstance = fieldInstanceRepository.findOne(fieldInstanceId);
+		List<FieldInstanceDto> dtos = new ArrayList<>();
+		List<Correlation> correlations = correlationFinder.findAllCorrelatedFields(fieldInstance, MIN_CORRELATION_COEF);
+		for (Correlation correlation : correlations) {
+			FieldInstance fieldInstance2 = correlation.getFieldInstance2();
+			FieldInstanceDto dto = new FieldInstanceDto();
+			dto.setDataSetName(fieldInstance2.getDataset().getDatasetName());
+			dto.setDataTypeDisplayName(fieldInstance2.getField().getDisplayDataType());
+			Field field = fieldInstance2.getField();
+			if (field.getFieldLabel() == null || field.getFieldLabel().length() == 0) {
+				dto.setFieldDisplayName(field.getFieldName() + " ("
+						+ field.getFieldName() + ")");
+			}
+			else {
+				dto.setFieldDisplayName(field.getFieldLabel() + " ("
+						+ field.getFieldName() + ")");
+			}
+			dto.setFieldInstanceId(fieldInstance2.getFieldInstanceId());
+			dtos.add(dto);
+		}
+		return dtos;
 	}
 }

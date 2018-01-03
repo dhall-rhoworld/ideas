@@ -131,6 +131,154 @@ $(function() {
 		}
 	});
 	
+	$("#text_search_y").autocomplete({
+		minLength: 4,
+		source: function(request, response) {
+			const url = "/rest/admin/study/get_matching_field_instances?study_id="
+				+ studyId + "&term=" + request.term;
+			$.get(url)
+				.done(function(data) {
+					response(data);
+				})
+				.fail(function() {
+					console.log("Error");
+				});
+		}
+	});
+	
+	// Prior to this button being clicked, the autocomplete should have
+	// populated the corresponding text input field with a string formatted as such:
+	// "VARIABLE_LABEL (VARIABLE_NAME) [DATASET]"
+	$("#button_search_x").click(function() {
+		
+		// Extract variable name and dataset
+		const varName = $("#text_search_x").val();
+		if (varName.trim().length == 0) {
+			return;
+		}
+		const namePatt = new RegExp("\\(.*\\)");
+		const nameField = namePatt.exec(varName);
+		const datasetPatt = new RegExp("\\[.*\\]");
+		const datasetField = datasetPatt.exec(varName);
+		if (nameField == null || datasetField == null) {
+			$("#message_error").html("Unknown variable");
+			$("#dialog_error").dialog("open");
+			return;
+		}
+		const name = nameField[0].substring(1, nameField[0].length - 1);
+		const dataset = datasetField[0].substring(1, datasetField[0].length - 1);
+		
+		// Fetch variable instance ID
+		const url = "/rest/admin/study/fetch_variable_instance_id?"
+			+ "study_id=" + studyId
+			+ "&variable_name=" + name
+			+ "&dataset_name=" + dataset;
+		$.get(url)
+			.done(function(data) {
+				let html = "<input type='hidden' name='variable_instance_x' id='variable_instance_x' value='" + data + "'/>"
+				$("form").append(html);
+				$("#tr_browse_x").remove();
+				$("#button_search_x").prop("disabled", "true");
+				$("#text_search_x").prop("disabled", "true");
+				$("#button_correlated").removeAttr("disabled");
+			})
+			.fail(function(data) {
+				console.log("Error");
+			});
+	});
+	
+	// Prior to this button being clicked, the autocomplete should have
+	// populated the corresponding text input field with a string formatted as such:
+	// "VARIABLE_LABEL (VARIABLE_NAME) [DATASET]"
+	$("#button_search_y").click(function() {
+		
+		// Extract variable name and dataset
+		const varName = $("#text_search_y").val();
+		if (varName.trim().length == 0) {
+			return;
+		}
+		const namePatt = new RegExp("\\(.*\\)");
+		const nameField = namePatt.exec(varName);
+		const datasetPatt = new RegExp("\\[.*\\]");
+		const datasetField = datasetPatt.exec(varName);
+		if (nameField == null || datasetField == null) {
+			$("#message_error").html("Unknown variable");
+			$("#dialog_error").dialog("open");
+			return;
+		}
+		const name = nameField[0].substring(1, nameField[0].length - 1);
+		const dataset = datasetField[0].substring(1, datasetField[0].length - 1);
+		
+		// Fetch variable instance ID
+		const url = "/rest/admin/study/fetch_variable_instance_id?"
+			+ "study_id=" + studyId
+			+ "&variable_name=" + name
+			+ "&dataset_name=" + dataset;
+		$.get(url)
+			.done(function(data) {
+				let html = "<input type='hidden' name='variable_instance_y' value='" + data + "'/>"
+				$("form").append(html);
+				$("#tr_browse_y").remove();
+				$("#tr_correlated").remove();
+				$("#button_search_y").prop("disabled", "true");
+				$("#text_search_y").prop("disabled", "true");
+			})
+			.fail(function(data) {
+				console.log("Error");
+			});
+	});
+	
+	$("#button_correlated").click(function() {
+		const url = "/rest/admin/study/find_correlated_fields?field_instance_id="
+			+ $("#variable_instance_x").val();
+		$("#dialog_progress").dialog("open");
+		$.get(url)
+			.done(function(data) {
+				console.log(data);
+				$("#tr_browse_y").remove();
+				$("#tr_search_y").remove();
+				let html = "<select multiple size='6'>";
+				for (let i = 0; i < data.length; i++) {
+					field = data[i];
+					html += "<option value='";
+					html += field.fieldInstanceId;
+					html += "'>";
+					html += field.displayValue;
+					html += "</option>";
+				}
+				html += "</select>";
+				$("#td_correlated_label").html("Correlated<br/>Variables");
+				$("#td_correlated").html(html);
+			})
+			.fail(function() {
+				console.log("Error");
+			})
+			.always(function() {
+				$("#dialog_progress").dialog("close");
+			});
+	});
+	
+	$("#dialog_error").dialog({
+		autoOpen: false,
+		modal: true,
+		title: "Error",
+		buttons: [
+			{
+				text: "OK",
+				click: function() {
+					$(this).dialog("close");
+				}
+			}
+		]
+	});
+	
+	$("#dialog_progress").dialog({
+		autoOpen: false,
+		modal: true,
+		resizable: false,
+		title: "Finding Correlated Variables"
+	});
+	
 	function xAxisFieldsComplete() {
 		return $("#variable_x").val() != 0;
 	}
