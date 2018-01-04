@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rho.rhover.common.study.Field;
+import com.rho.rhover.common.study.FieldInstance;
 
 public class FieldDtoGroup implements Comparable<FieldDtoGroup> {
 	
@@ -58,16 +59,17 @@ public class FieldDtoGroup implements Comparable<FieldDtoGroup> {
 		return thisOrdinal.compareTo(otherOrdinal);
 	}
 	
-	public static List<FieldDtoGroup> toDtoGroups(Iterable<Field> fields) {
+	public static List<FieldDtoGroup> toDtoGroups(Iterable<FieldInstance> fieldInstances) {
 		Map<String, FieldDtoGroup> groupMap = new HashMap<>();
-		for (Field field : fields) {
+		for (FieldInstance fieldInstance : fieldInstances) {
+			Field field = fieldInstance.getField();
 			FieldDtoGroup group = groupMap.get(field.getDisplayDataType());
 			if (group == null) {
 				group = new FieldDtoGroup();
 				group.setDataType(field.getDisplayDataType());
 				groupMap.put(field.getDisplayDataType(), group);
 			}
-			group.addFieldDto(new FieldDto(field));
+			group.addFieldDto(new FieldDto(fieldInstance));
 		}
 		List<FieldDtoGroup> groups = new ArrayList<>();
 		for (String dataType : groupMap.keySet()) {

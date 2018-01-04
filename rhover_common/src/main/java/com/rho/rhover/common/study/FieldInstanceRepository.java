@@ -9,6 +9,8 @@ public interface FieldInstanceRepository extends CrudRepository<FieldInstance, L
 
 	FieldInstance findByFieldAndDataset(Field field, Dataset dataset);
 	
+	List<FieldInstance> findByDataset(Dataset dataset);
+	
 	@Query("select fi from FieldInstance fi where fi.field.study = ?1 and fi.field.dataType = ?2")
 	List<FieldInstance> findByStudyAndDataType(Study study, String dataType);
 }

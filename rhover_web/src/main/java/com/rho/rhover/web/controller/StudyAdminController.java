@@ -364,9 +364,10 @@ public class StudyAdminController {
 		return "/admin/study/new_bivariate";
 	}
 	
+	@RequestMapping("/save_bivariate")
 	public String saveBivariate() {
 		
-		return "/admin/study/new_bivariate";
+		return "/admin/study/all_bivariates";
 	}
 	
 	private static final class DataTypeComparator implements Comparator<Field> {

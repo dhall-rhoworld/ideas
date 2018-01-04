@@ -31,19 +31,19 @@
         <a th:href="@{/admin/study/correlations(study_id=${study_id})}">Explore Correlations</a> |
     	<strong>Bivariate Checks</strong>
     
-    	<form action="/admin/study/new_bivariate">
+    	<form action="/admin/study/save_bivariate">
     		<h3>Step 1: Select First Variable</h3>
    			<table class="invisible">
    				<tr id="tr_browse_x">
    					<td>Browse</td>
    					<td align="left">
-    					<select id="dataset_x">
+    					<select id="select_dataset_x">
 			    			<option value="0">---Select Dataset---</option>
 			    			<option th:each="dataset : ${datasets}" th:value="${dataset.datasetId}"
 			    				th:text="${dataset.datasetName}"/>
 			    		</select>
 			    		
-			    		<select id="variable_x">
+			    		<select id="select_variable_x" name="variable_x">
 			    			<option value="0">---Select Variable---</option>
 			    		</select>
    					</td>
@@ -63,7 +63,7 @@
     				<tr id="tr_browse_y">
     					<td valign="top" align="right">Browse All</td>
     					<td valign="top" align="left">
-	    					<select id="dataset_y">
+	    					<select id="select_dataset_y">
 				    			<option value="0">---Select Dataset---</option>
 				    			<option th:each="dataset : ${datasets}" th:value="${dataset.datasetId}"
 				    				th:text="${dataset.datasetName}"/>
@@ -125,8 +125,6 @@
     	<div id="message_error"/>
     </div>
     
-    <div id="dialog_progress">
-    	<img src="/images/progress_wheel.gif"/>
-    </div>
+    <div id="dialog_progress"/>
 </body>
 </html>

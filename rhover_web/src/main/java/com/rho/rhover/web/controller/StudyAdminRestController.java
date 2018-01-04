@@ -184,8 +184,8 @@ public class StudyAdminRestController {
 	@RequestMapping("/fields")
 	public List<FieldDtoGroup> getFields(@RequestParam("dataset_id") Long datasetId) {
 		Dataset dataset = datasetRepository.findOne(datasetId);
-		DatasetVersion datasetVersion = datasetVersionRepository.findByDatasetAndIsCurrent(dataset, Boolean.TRUE);
-		return FieldDtoGroup.toDtoGroups(datasetVersion.getFields());
+		List<FieldInstance> fieldInstances = fieldInstanceRepository.findByDataset(dataset);
+		return FieldDtoGroup.toDtoGroups(fieldInstances);
 	}
 	
 	@RequestMapping("/check_study")

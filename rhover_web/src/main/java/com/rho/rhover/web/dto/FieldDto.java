@@ -1,12 +1,13 @@
 package com.rho.rhover.web.dto;
 
 import com.rho.rhover.common.study.Field;
+import com.rho.rhover.common.study.FieldInstance;
 
 public class FieldDto implements Comparable<FieldDto> {
 	
 	private static final int MAX_LABEL_LENGTH = 40;
 
-	private Long fieldId;
+	private Long fieldInstanceId;
 	
 	private String fieldName;
 	
@@ -16,25 +17,30 @@ public class FieldDto implements Comparable<FieldDto> {
 	
 	private Boolean isIdentifying;
 
-	public FieldDto(Long fieldId, String fieldName, String fieldLabel, String dataType, Boolean isIdentifying) {
+	public FieldDto(Long fieldInstanceId, String fieldName, String fieldLabel, String dataType, Boolean isIdentifying) {
 		super();
-		this.fieldId = fieldId;
+		this.fieldInstanceId = fieldInstanceId;
 		this.fieldName = fieldName;
 		this.fieldLabel = fieldLabel;
 		this.dataType = dataType;
 		this.isIdentifying = isIdentifying;
 	}
 
-	public FieldDto(Field field) {
-		this(field.getFieldId(), field.getFieldName(), field.getTruncatedDisplayName(MAX_LABEL_LENGTH), field.getDisplayDataType(), field.getIsIdentifying());
+	public FieldDto(FieldInstance fieldInstance) {
+		this.fieldInstanceId = fieldInstance.getFieldInstanceId();
+		Field field = fieldInstance.getField();
+		this.fieldName = field.getFieldName();
+		this.fieldLabel = field.getTruncatedDisplayName(MAX_LABEL_LENGTH);
+		this.dataType = field.getDisplayDataType();
+		this.isIdentifying = field.getIsIdentifying();
 	}
 
-	public Long getFieldId() {
-		return fieldId;
+	public Long getFieldInstanceId() {
+		return fieldInstanceId;
 	}
 
-	public void setFieldId(Long fieldId) {
-		this.fieldId = fieldId;
+	public void setFieldInstanceId(Long fieldInstanceId) {
+		this.fieldInstanceId = fieldInstanceId;
 	}
 
 	public String getFieldName() {
