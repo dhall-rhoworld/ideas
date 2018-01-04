@@ -61,7 +61,7 @@ public class CorrelationFinderImpl implements CorrelationFinder {
 		List<Dataset> datasets = datasetRepository.findByStudy(study);
 		List<Correlation> correlations = new ArrayList<Correlation>();
 		for (Dataset dataset : datasets) {
-			logger.debug("Processing dataset: " + dataset.getDatasetName());
+			//logger.debug("Processing dataset: " + dataset.getDatasetName());
 			
 			// Extract subject data
 			CsvData subjects2Data = csvDataRepository.findByFieldAndDataset(subjectField, dataset);
@@ -79,14 +79,14 @@ public class CorrelationFinderImpl implements CorrelationFinder {
 					continue;
 				}
 				if (field.getDataType().equals("Double") || field.getDataType().equals("Integer")) {
-					logger.debug("Processing field: " + field.getDisplayName());
+					//logger.debug("Processing field: " + field.getDisplayName());
 					List<Double> data2 = csvDataRepository.findByFieldAndDataset(field, dataset).extractDataAsDouble();
 					double coeff = computeCorrelation(subjects1, data1, subjects2, data2);
 					if (Math.abs(coeff) >= minCorrelationCoeff) {
 						FieldInstance fieldInstance2 = fieldInstanceRepository.findByFieldAndDataset(field, dataset);
 						correlations.add(new Correlation(study, fieldInstance, fieldInstance2, coeff));
-						logger.debug(fieldInstance.getField().getFieldName() + " and " + field.getFieldName()
-							+ " [" + dataset.getDatasetName() + "] are correlated");
+//						logger.debug(fieldInstance.getField().getFieldName() + " and " + field.getFieldName()
+//							+ " [" + dataset.getDatasetName() + "] are correlated");
 					}
 				}
 			}

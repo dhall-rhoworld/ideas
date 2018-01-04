@@ -31,7 +31,7 @@
         <a th:href="@{/admin/study/correlations(study_id=${study_id})}">Explore Correlations</a> |
     	<strong>Bivariate Checks</strong>
     
-    	<form action="/admin/study/save_bivariate">
+    	<form action="/admin/study/save_bivariate" method="post">
     		<h3>Step 1: Select First Variable</h3>
    			<table class="invisible">
    				<tr id="tr_browse_x">
@@ -63,7 +63,7 @@
     				<tr id="tr_browse_y">
     					<td valign="top" align="right">Browse All</td>
     					<td valign="top" align="left">
-	    					<select id="select_dataset_y">
+	    					<select id="select_dataset_y" name="dataset_y">
 				    			<option value="0">---Select Dataset---</option>
 				    			<option th:each="dataset : ${datasets}" th:value="${dataset.datasetId}"
 				    				th:text="${dataset.datasetName}"/>

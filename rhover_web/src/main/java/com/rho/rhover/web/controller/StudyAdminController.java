@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.rho.rhover.common.check.BivariateCheck;
+import com.rho.rhover.common.check.BivariateCheckRepository;
 import com.rho.rhover.common.check.Check;
 import com.rho.rhover.common.check.CheckParam;
 import com.rho.rhover.common.check.CheckParamRepository;
@@ -32,6 +34,8 @@ import com.rho.rhover.common.study.DatasetRepository;
 import com.rho.rhover.common.study.DatasetVersion;
 import com.rho.rhover.common.study.DatasetVersionRepository;
 import com.rho.rhover.common.study.Field;
+import com.rho.rhover.common.study.FieldInstance;
+import com.rho.rhover.common.study.FieldInstanceRepository;
 import com.rho.rhover.common.study.FieldRepository;
 import com.rho.rhover.common.study.FieldService;
 import com.rho.rhover.common.study.Study;
@@ -75,6 +79,12 @@ public class StudyAdminController {
 	
 	@Autowired
 	private CheckConfigurationService checkConfigurationService;
+	
+	@Autowired
+	private FieldInstanceRepository fieldInstanceRepository;
+	
+	@Autowired
+	private BivariateCheckRepository bivariateCheckRepository;
 
 	@RequestMapping("/all")
 	public String viewAll(Model model) {
@@ -364,10 +374,74 @@ public class StudyAdminController {
 		return "/admin/study/new_bivariate";
 	}
 	
-	@RequestMapping("/save_bivariate")
-	public String saveBivariate() {
+	@RequestMapping(value="/save_bivariate", method=RequestMethod.POST)
+	public String saveBivariate(
+		@RequestParam(name="variable_x") Long fieldInstanceIdX,
+		@RequestParam(name="dataset_y", required=false, defaultValue="") Long datasetYId,
+		@RequestParam(name="variable_y", required=false, defaultValue="") String fieldInstanceIdsYStr,
+		@RequestParam(name="y_type", required=false, defaultValue="none") String yType,
+		@RequestParam(name="use_study_defaults", required=false, defaultValue="off") String useDefaultParams,
+		@RequestParam(name="param_sd-residual", required=false, defaultValue="") String sdResidual,
+		@RequestParam(name="param_sd-density", required=false, defaultValue="") String sdDensity
+	) {
+//		logger.debug("fieldInstanceIdX: " + fieldInstanceIdX);
+//		logger.debug("datasetYId: " + datasetYId);
+//		logger.debug("fieldInstanceIdsY: " + fieldInstanceIdsYStr);
+//		logger.debug("yType: " + yType);
+//		logger.debug("useDefaultParams: " + useDefaultParams);
+//		logger.debug("sdResidual: " + sdResidual);
+//		logger.debug("sdDensity: " + sdDensity);
+		
+		// Fetch X field instance
+		FieldInstance fieldInstanceX = fieldInstanceRepository.findOne(fieldInstanceIdX);
+		
+		// Fetch Y field instance(s)
+		List<FieldInstance> fieldInstancesY = new ArrayList<>();
+		
+		// ----- Case: User searched for variable for selected from multi-select
+		if (fieldInstanceIdsYStr.length() > 0) {
+			String[] ids = fieldInstanceIdsYStr.split(",");
+			for (int i = 0; i < ids.length; i++) {
+				Long id = new Long(ids[i]);
+				fieldInstancesY.add(fieldInstanceRepository.findOne(id));
+			}
+		}
+		
+		// ----- Case: User selected all continuous or all numeric variables from dataset
+		else {
+			Dataset dataset = datasetRepository.findOne(datasetYId);
+			fieldInstancesY.addAll(fieldInstanceRepository.findByDatasetAndDataType(dataset, "Double"));
+			if (yType.equals("numeric")) {
+				fieldInstancesY.addAll(fieldInstanceRepository.findByDatasetAndDataType(dataset, "Integer"));
+			}
+		}
+		
+		// Save checks
+		Study study = fieldInstanceX.getField().getStudy();
+		Check check = checkRepository.findByCheckName("BIVARIATE_OUTLIER");
+		for (FieldInstance instanceY : fieldInstancesY) {
+			BivariateCheck bivariateCheck = new BivariateCheck(fieldInstanceX, instanceY, check, study);
+			bivariateCheckRepository.save(bivariateCheck);
+			
+			// Save parameters
+			if (useDefaultParams.equals("off")) {
+				
+				// sd-residual
+				CheckParam param = new CheckParam("sd-residual", "BIVARIATE", check);
+				param.setBivariateCheck(bivariateCheck);
+				param.setParamValue(sdResidual);
+				checkParamRepository.save(param);
+				
+				// sd-density
+				param = new CheckParam("sd-density", "BIVARIATE", check);
+				param.setBivariateCheck(bivariateCheck);
+				param.setParamValue(sdDensity);
+				checkParamRepository.save(param);
+			}
+		}
 		
 		return "/admin/study/all_bivariates";
+		//return "forward:/admin/study/add_bivariate?study_id=1";
 	}
 	
 	private static final class DataTypeComparator implements Comparator<Field> {
