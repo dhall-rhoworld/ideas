@@ -26,6 +26,7 @@ import com.rho.rhover.common.check.CheckParam;
 public class Field {
 	
 	private static final int DISPLAY_LENGTH = 50;
+	private static final int DISPLAY_LENGTH_SHORT = 40;
 	
 	private static final Map<String, String> DISPLAY_VALUES = new HashMap<>();
 	
@@ -187,6 +188,14 @@ public class Field {
 			name = getTruncatedFieldLabel(length);
 		}
 		return name;
+	}
+	
+	public String getVeryTruncatedDisplayName() {
+		return getTruncatedDisplayName(DISPLAY_LENGTH_SHORT);	
+	}
+	
+	public String getTruncatedDisplayName() {
+		return getTruncatedDisplayName(DISPLAY_LENGTH);
 	}
 
 	public String getTruncatedFieldLabel() {

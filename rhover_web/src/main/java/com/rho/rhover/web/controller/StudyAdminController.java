@@ -360,6 +360,10 @@ public class StudyAdminController {
 			@RequestParam(name="study_id") Long studyId,
 			Model model) {
 		model.addAttribute("study_id", studyId);
+		Study study = studyRepository.findOne(studyId);
+		List<BivariateCheck> checks = bivariateCheckRepository.findByStudy(study);
+		logger.debug("Found " + checks.size() + " bivariate checks");
+		model.addAttribute("checks", checks);
 		return "/admin/study/all_bivariates";
 	}
 	
@@ -382,7 +386,8 @@ public class StudyAdminController {
 		@RequestParam(name="y_type", required=false, defaultValue="none") String yType,
 		@RequestParam(name="use_study_defaults", required=false, defaultValue="off") String useDefaultParams,
 		@RequestParam(name="param_sd-residual", required=false, defaultValue="") String sdResidual,
-		@RequestParam(name="param_sd-density", required=false, defaultValue="") String sdDensity
+		@RequestParam(name="param_sd-density", required=false, defaultValue="") String sdDensity,
+		Model model
 	) {
 //		logger.debug("fieldInstanceIdX: " + fieldInstanceIdX);
 //		logger.debug("datasetYId: " + datasetYId);
@@ -419,8 +424,20 @@ public class StudyAdminController {
 		// Save checks
 		Study study = fieldInstanceX.getField().getStudy();
 		Check check = checkRepository.findByCheckName("BIVARIATE_OUTLIER");
+		List<BivariateCheck> duplicates = new ArrayList<>();
 		for (FieldInstance instanceY : fieldInstancesY) {
-			BivariateCheck bivariateCheck = new BivariateCheck(fieldInstanceX, instanceY, check, study);
+			
+			// Case: Check already exists
+			BivariateCheck bivariateCheck = bivariateCheckRepository.findByXFieldInstanceAndYFieldInstance(fieldInstanceX, instanceY);
+			if (bivariateCheck != null) {
+				duplicates.add(bivariateCheck);
+				logger.info("Duplicate check: "
+						+ fieldInstanceX.getField().getDisplayName() + " and "
+						+ instanceY.getField().getDisplayName());
+				continue;
+			}
+			
+			bivariateCheck = new BivariateCheck(fieldInstanceX, instanceY, check, study);
 			bivariateCheckRepository.save(bivariateCheck);
 			
 			// Save parameters
@@ -431,16 +448,32 @@ public class StudyAdminController {
 				param.setBivariateCheck(bivariateCheck);
 				param.setParamValue(sdResidual);
 				checkParamRepository.save(param);
+				bivariateCheck.getCheckParams().add(param);
 				
 				// sd-density
 				param = new CheckParam("sd-density", "BIVARIATE", check);
 				param.setBivariateCheck(bivariateCheck);
 				param.setParamValue(sdDensity);
 				checkParamRepository.save(param);
+				bivariateCheck.getCheckParams().add(param);
+				
+				bivariateCheckRepository.save(bivariateCheck);
 			}
 		}
 		
-		return "/admin/study/all_bivariates";
+		// Report any existing checks back to user
+		if (duplicates.size() > 0) {
+			List<String> duplicateNames = new ArrayList<>();
+			for (BivariateCheck biCheck : duplicates) {
+				duplicateNames.add(
+					biCheck.getxFieldInstance().getField().getTruncatedDisplayName()
+					+ " and "
+					+ biCheck.getyFieldInstance().getField().getTruncatedDisplayName());
+			}
+			model.addAttribute("duplicates", duplicateNames);
+		}
+		
+		return "forward:/admin/study/bivariates?study_id=" + study.getStudyId();
 		//return "forward:/admin/study/add_bivariate?study_id=1";
 	}
 	

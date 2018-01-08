@@ -276,4 +276,13 @@ public class StudyAdminRestController {
 		}
 		return dtos;
 	}
+	
+	@RequestMapping(value="/delete_bivariate_checks", method=RequestMethod.POST)
+	public Integer deleteBivariateChecks(@RequestParam("check_ids") String bivariateCheckIds) {
+		String[] checkIdArray = bivariateCheckIds.split(",");
+		for (String id : checkIdArray) {
+			bivariateCheckRepository.delete(new Long(id));
+		}
+		return checkIdArray.length;
+	}
 }

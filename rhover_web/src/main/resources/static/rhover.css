@@ -240,3 +240,7 @@ a.action-link:visited {
 a.action-link:hover {
 	text-decoration: underline;
 }
+
+.edited {
+	border-color: yellow;
+}

@@ -12,4 +12,5 @@ public interface BivariateCheckRepository extends CrudRepository<BivariateCheck,
 	BivariateCheck findByXFieldInstanceAndYFieldInstance(FieldInstance xFieldInstance, FieldInstance yFieldInstance);
 	
 	List<BivariateCheck> findByStudy(Study study);
+	
 }

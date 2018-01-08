@@ -8,6 +8,7 @@
     <script src="/jquery-3.2.1.min.js"></script>
     <script src="/jquery-ui.js"></script>
     <script src="/d3.v4.min.js"></script>
+    <script src="/all_bivariates.js"></script>
     <link rel="stylesheet" href="/radial.css" />
     <link rel="icon" type="image/png" href="/images/rover-favicon.png" />
 </head>
@@ -27,7 +28,37 @@
         <a th:href="@{/admin/study/correlations(study_id=${study_id})}">Explore Correlations</a> |
     	<strong>Bivariate Checks</strong>
     	
+    	<div th:if="${duplicates}" class="message_box">
+    		The following duplicate checks were not saved:
+    		<ul>
+    			<li th:each="duplicate : ${duplicates}" th:text="${duplicate}"/>
+    		</ul>
+    	</div>
+    	
     	<p>
+	    	<table class="wide">
+	    		<tr>
+	    			<th/>
+	    			<th>First Variable</th>
+	    			<th>Second Variable</th>
+	    			<th>Parameters</th>
+	    		</tr>
+	    		<tr th:each="check : ${checks}">
+	    			<td>
+	    				<input type="checkbox" class="cb_select" th:attr="data-bivariate_check_id=${check.bivariateCheckId}"/>
+	    			</td>
+	    			<td align="left" th:text="${check.xFieldInstance.field.veryTruncatedDisplayName}"/>
+	    			<td align="left" th:text="${check.yFieldInstance.field.veryTruncatedDisplayName}"/>
+	    			<td align="left" style="line-height: 150%" th:id="'td_' + ${check.bivariateCheckId}" class="edited">
+    					<input type="checkbox" th:attr="data-bivariate_check_id=${check.bivariateCheckId}"
+    						th:checked="${#lists.isEmpty(check.checkParams)}" class="cb_defaults"/>
+    					Use defaults
+	    			</td>
+	    		</tr>
+	    	</table>
+    	</p>
+    	<p>
+    		<button type="button" id="button_delete" disabled="true">Delete Selected</button>
     		<button type="button" id="button_add">Add Checks</button>
     	</p>
     	
