@@ -448,14 +448,14 @@ public class StudyAdminController {
 				param.setBivariateCheck(bivariateCheck);
 				param.setParamValue(sdResidual);
 				checkParamRepository.save(param);
-				bivariateCheck.getCheckParams().add(param);
+				bivariateCheck.getCheckParams().put("sd-residual", param);
 				
 				// sd-density
 				param = new CheckParam("sd-density", "BIVARIATE", check);
 				param.setBivariateCheck(bivariateCheck);
 				param.setParamValue(sdDensity);
 				checkParamRepository.save(param);
-				bivariateCheck.getCheckParams().add(param);
+				bivariateCheck.getCheckParams().put("sd-density", param);
 				
 				bivariateCheckRepository.save(bivariateCheck);
 			}

@@ -2,8 +2,11 @@ package com.rho.rhover.web.controller;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +16,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -37,6 +41,7 @@ import com.rho.rhover.common.study.FieldInstanceRepository;
 import com.rho.rhover.common.study.FieldRepository;
 import com.rho.rhover.common.study.Study;
 import com.rho.rhover.common.study.StudyRepository;
+import com.rho.rhover.web.dto.BivariateCheckParamsDto;
 import com.rho.rhover.web.dto.CheckParamDto;
 import com.rho.rhover.web.dto.CorrDatasetDto;
 import com.rho.rhover.web.dto.FieldDto;
@@ -91,6 +96,7 @@ public class StudyAdminRestController {
 	private String checkerUrl;
 
 	// TODO: Move this business logic to a service bean
+	// TODO: Not sure if this is used any more.  Consider deleting.
 	@RequestMapping("/check_params")
 	public List<CheckParamDto> getCheckParams(
 			@RequestParam("study_id") Long studyId,
@@ -284,5 +290,62 @@ public class StudyAdminRestController {
 			bivariateCheckRepository.delete(new Long(id));
 		}
 		return checkIdArray.length;
+	}
+	
+	@RequestMapping(value="save_bivariate_check_edits", method=RequestMethod.POST)
+	public Integer saveBivariateCheckEdits(@RequestBody List<BivariateCheckParamsDto> dtos) {
+		for (BivariateCheckParamsDto dto : dtos) {
+			BivariateCheck biCheck = bivariateCheckRepository.findOne(dto.getBivariateCheckId());
+			
+			// Case: Use default params
+			if (dto.getUseDefaults().equals(Boolean.TRUE)) {
+				logger.debug("Removing any existing params for bivariate check " + dto.getBivariateCheckId());
+				Iterator<String> keyIterator = biCheck.getCheckParams().keySet().iterator();
+				while (keyIterator.hasNext()) {
+					String key = keyIterator.next();
+					logger.debug("Removing param " + key);
+					CheckParam param = biCheck.getCheckParams().get(key);
+					checkParamRepository.delete(param);
+					keyIterator.remove();
+				}
+			}
+			
+			// Case: Use custom params
+			else {
+				logger.debug("Saving custom params for bivariate check " + dto.getBivariateCheckId());
+				Check check = checkRepository.findByCheckName("BIVARIATE_OUTLIER");
+				
+				// Save 'sd-residual' parameter
+				CheckParam sdResidual = biCheck.getCheckParams().get("sd-residual");
+				if (sdResidual == null) {
+					logger.debug("Creating new 'sd-residual' parameter");
+					sdResidual = new CheckParam("sd-residual", "BIVARIATE", check);
+					sdResidual.setBivariateCheck(biCheck);
+					biCheck.getCheckParams().put("sd-residual", sdResidual);
+				}
+				else {
+					logger.debug("Updating 'sd-residual' parameter");
+				}
+				sdResidual.setParamValue(dto.getSdResidual().toString());
+				checkParamRepository.save(sdResidual);
+				
+				// Save 'sd-density' parameter
+				CheckParam sdDensity = biCheck.getCheckParams().get("sd-density");
+				if (sdDensity == null) {
+					logger.debug("Creating new 'sd-density' parameter");
+					sdDensity = new CheckParam("sd-density", "BIVARIATE", check);
+					sdDensity.setBivariateCheck(biCheck);
+					biCheck.getCheckParams().put("sd-density", sdDensity);
+				}
+				else {
+					logger.debug("Updating 'sd-density' parameter");
+				}
+				sdDensity.setParamValue(dto.getSdDensity().toString());
+				checkParamRepository.save(sdDensity);
+			}
+			
+			bivariateCheckRepository.save(biCheck);
+		}
+		return 0;
 	}
 }

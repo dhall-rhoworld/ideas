@@ -1,7 +1,7 @@
 package com.rho.rhover.common.check;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -12,6 +12,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.MapKey;
 import javax.persistence.OneToMany;
 
 import com.rho.rhover.common.study.FieldInstance;
@@ -41,8 +42,9 @@ public class BivariateCheck {
 	@JoinColumn(name="study_id")
 	private Study study;
 	
-	@OneToMany(mappedBy="bivariateCheck", cascade=CascadeType.ALL, fetch=FetchType.EAGER)
-	private Set<CheckParam> checkParams = new HashSet<>();
+	@OneToMany(mappedBy="bivariateCheck", fetch=FetchType.EAGER)
+	@MapKey(name="paramName")
+	private Map<String, CheckParam> checkParams = new HashMap<>();
 
 	public BivariateCheck() {
 		
@@ -95,11 +97,11 @@ public class BivariateCheck {
 	public void setStudy(Study study) {
 		this.study = study;
 	}
-	public Set<CheckParam> getCheckParams() {
+	public Map<String, CheckParam> getCheckParams() {
 		return checkParams;
 	}
 
-	public void setCheckParams(Set<CheckParam> checkParams) {
+	public void setCheckParams(Map<String, CheckParam> checkParams) {
 		this.checkParams = checkParams;
 	}
 }

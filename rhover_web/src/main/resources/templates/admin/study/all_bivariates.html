@@ -26,7 +26,7 @@
     <div id="content">
     
         <a th:href="@{/admin/study/correlations(study_id=${study_id})}">Explore Correlations</a> |
-    	<strong>Bivariate Checks</strong>
+    	<strong><a th:href="@{/admin/study/bivariates(study_id=${study_id})}">Bivariate Checks</a></strong>
     	
     	<div th:if="${duplicates}" class="message_box">
     		The following duplicate checks were not saved:
@@ -43,22 +43,36 @@
 	    			<th>Second Variable</th>
 	    			<th>Parameters</th>
 	    		</tr>
-	    		<tr th:each="check : ${checks}">
+	    		<tr th:each="check : ${checks}" th:id="'tr_' + ${check.bivariateCheckId}"
+	    			th:attr="data-bivariate_check_id=${check.bivariateCheckId}">
 	    			<td>
 	    				<input type="checkbox" class="cb_select" th:attr="data-bivariate_check_id=${check.bivariateCheckId}"/>
 	    			</td>
 	    			<td align="left" th:text="${check.xFieldInstance.field.veryTruncatedDisplayName}"/>
 	    			<td align="left" th:text="${check.yFieldInstance.field.veryTruncatedDisplayName}"/>
-	    			<td align="left" style="line-height: 150%" th:id="'td_' + ${check.bivariateCheckId}" class="edited">
+	    			<td align="left" style="line-height: 150%" th:id="'td_' + ${check.bivariateCheckId}">
+	    			
+	    				<!--  "Use defaults" checkbox -->
     					<input type="checkbox" th:attr="data-bivariate_check_id=${check.bivariateCheckId}"
-    						th:checked="${#lists.isEmpty(check.checkParams)}" class="cb_defaults"/>
+    						th:checked="${check.checkParams.empty}" class="cb_defaults"/>
     					Use defaults
+    					
+    					<!-- Param value text inputs -->
+    					<div th:if="${not check.checkParams.empty}" th:id="'div_' + ${check.bivariateCheckId}">
+    						<input type='text' size='3' title='Standard deviations from the regression line'
+    							th:value="${check.checkParams.get('sd-residual').paramValue}"
+    							class="sd-residual"/> STDEV from reg. line<br/>
+    						<input type='text' size='3' title='Standard deviations from mean distance to neighbors'
+    							th:value="${check.checkParams.get('sd-density').paramValue}"
+    							class="sd-density"/> STDEV below mean density
+    					</div>
 	    			</td>
 	    		</tr>
 	    	</table>
     	</p>
     	<p>
     		<button type="button" id="button_delete" disabled="true">Delete Selected</button>
+    		<button type="button" id="button_save" disabled="true">Save Changes</button>
     		<button type="button" id="button_add">Add Checks</button>
     	</p>
     	
