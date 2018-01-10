@@ -173,6 +173,20 @@ create table field_instance (
 	CONSTRAINT u_field_instance UNIQUE (field_id, dataset_id)
 );
 
+create table merge_field (
+	merge_field_id BIGINT AUTO_INCREMENT NOT NULL,
+	field_instance_id_1 BIGINT NOT NULL,
+	field_instance_id_2 BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	modified_by VARCHAR(25) NOT NULL DEFAULT 'system',
+	CONSTRAINT pk_merge_field PRIMARY KEY (merge_field_id),
+	CONSTRAINT fk_merge_field_2_field_instance_1 FOREIGN KEY (field_instance_id_1)
+		REFERENCES field_instance(field_instance_id),
+	CONSTRAINT fk_merge_field_2_field_instance_2 FOREIGN KEY (field_instance_id_2)
+		REFERENCES field_instance(field_instance_id),
+	CONSTRAINT u_merge_field UNIQUE (field_instance_id_1, field_instance_id_2)
+);
+
 create table correlation (
 	correlation_id BIGINT AUTO_INCREMENT NOT NULL,
 	field_instance_id_1 BIGINT NOT NULL,

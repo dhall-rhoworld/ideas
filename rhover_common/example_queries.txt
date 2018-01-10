@@ -409,6 +409,11 @@ where f.study_id = 1
 and (lower(f.field_name) like lower('%et_q%')
 or lower(f.field_label) like lower('%et_q%'));
 
-
+select distinct(fi1.field_id)
+from field_instance fi1
+join field_instance fi2 on fi1.field_id = fi2.field_id
+where fi1.dataset_id = 80
+and fi2.dataset_id = 90
+;
 
 

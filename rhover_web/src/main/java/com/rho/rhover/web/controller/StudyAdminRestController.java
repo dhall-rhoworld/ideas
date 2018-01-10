@@ -2,9 +2,11 @@ package com.rho.rhover.web.controller;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.transaction.Transactional;
 
@@ -31,6 +33,7 @@ import com.rho.rhover.common.check.CheckParamRepository;
 import com.rho.rhover.common.check.CheckRepository;
 import com.rho.rhover.common.check.Correlation;
 import com.rho.rhover.common.check.CorrelationFinder;
+import com.rho.rhover.common.check.MergeService;
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.DatasetRepository;
 import com.rho.rhover.common.study.DatasetVersion;
@@ -39,6 +42,9 @@ import com.rho.rhover.common.study.Field;
 import com.rho.rhover.common.study.FieldInstance;
 import com.rho.rhover.common.study.FieldInstanceRepository;
 import com.rho.rhover.common.study.FieldRepository;
+import com.rho.rhover.common.study.FieldService;
+import com.rho.rhover.common.study.MergeField;
+import com.rho.rhover.common.study.MergeFieldRepository;
 import com.rho.rhover.common.study.Study;
 import com.rho.rhover.common.study.StudyRepository;
 import com.rho.rhover.web.dto.BivariateCheckParamsDto;
@@ -48,6 +54,8 @@ import com.rho.rhover.web.dto.FieldDto;
 import com.rho.rhover.web.dto.FieldDtoGroup;
 import com.rho.rhover.web.dto.FieldInstanceDto;
 import com.rho.rhover.web.dto.JqueryUiAutocompleteDto;
+import com.rho.rhover.web.dto.MergeFieldSetupInfo;
+import com.rho.rhover.web.dto.MergeTestResults;
 import com.rho.rhover.web.service.AutocompleteHelperService;
 import com.rho.rhover.web.service.CorrDatasetDtoService;
 
@@ -91,6 +99,15 @@ public class StudyAdminRestController {
 	
 	@Autowired
 	private CorrelationFinder correlationFinder;
+	
+	@Autowired
+	private MergeFieldRepository mergeFieldRepository;
+	
+	@Autowired
+	private FieldService fieldService;
+	
+	@Autowired
+	private MergeService mergeService;
 	
 	@Value("${checker.url}")
 	private String checkerUrl;
@@ -347,5 +364,95 @@ public class StudyAdminRestController {
 			bivariateCheckRepository.save(biCheck);
 		}
 		return 0;
+	}
+	
+	@RequestMapping("/get_merge_field_info")
+	public List<MergeFieldSetupInfo> getMergeFieldInfo(
+			@RequestParam("variable_x") Long fieldIdX,
+			@RequestParam("variable_y") String fieldIdsY) {
+		
+		// Get X dataset
+		FieldInstance fieldInstanceX = fieldInstanceRepository.findOne(fieldIdX);
+		Dataset xDataset = fieldInstanceX.getDataset();
+		
+		// Assemble set of Y datasets
+		Set<Dataset> yDatasets = new HashSet<>();
+		String[] tokens = fieldIdsY.split(",");
+		for (String token : tokens) {
+			Long fieldIdY = new Long(token);
+			FieldInstance fieldInstanceY = fieldInstanceRepository.findOne(fieldIdY);
+			yDatasets.add(fieldInstanceY.getDataset());
+		}
+		
+		// Iterate over each pair of datasets
+		List<MergeFieldSetupInfo> dtos = new ArrayList<>();
+		for (Dataset yDataset : yDatasets) {
+			if (xDataset.equals(yDataset)) {
+				continue;
+			}
+			if (mergeFieldRepository.findByDataset1AndDataset2(xDataset, yDataset).size() == 0) {
+				
+				// Get common fields
+				List<Field> fields = fieldService.findPotentialMergeFields(xDataset, yDataset);
+				
+				// Build a new DTO
+				MergeFieldSetupInfo mergeInfo = new MergeFieldSetupInfo();
+				mergeInfo.setDatasetName1(xDataset.getDatasetName());
+				mergeInfo.setDatasetName2(yDataset.getDatasetName());
+				for (Field field : fields) {
+					FieldDto fieldDto = new FieldDto();
+					fieldDto.setFieldLabel(field.getFieldLabel());
+					fieldDto.setFieldName(field.getFieldName());
+					fieldDto.setFieldId(field.getFieldId());
+					mergeInfo.getFields().add(fieldDto);
+				}
+				
+				dtos.add(mergeInfo);
+			}
+		}
+		
+		return dtos;
+	}
+	
+	@RequestMapping("/test_merge")
+	public MergeTestResults testMerge(
+			@RequestParam("field_ids") String fieldIdStr,
+			@RequestParam("dataset_name_1") String datasetName1,
+			@RequestParam("dataset_name_2") String datasetName2,
+			@RequestParam("study_id") Long studyId,
+			@RequestParam("variable_x") Long xFieldInstanceId,
+			@RequestParam("variable_y") String yFieldInstanceIds
+			) {
+		Study study = studyRepository.findOne(studyId);
+		Dataset dataset1 = datasetRepository.findByStudyAndDatasetName(study, datasetName1);
+		Dataset dataset2 = datasetRepository.findByStudyAndDatasetName(study, datasetName2);
+		List<MergeField> mergeFields = new ArrayList<>();
+		String[] tokens = fieldIdStr.split(",");
+		for (String token : tokens) {
+			Long fieldId = new Long(token);
+			Field field = fieldRepository.findOne(fieldId);
+			FieldInstance fi1 = fieldInstanceRepository.findByFieldAndDataset(field, dataset1);
+			FieldInstance fi2 = fieldInstanceRepository.findByFieldAndDataset(field, dataset2);
+			MergeField mergeField = new MergeField();
+			mergeField.setFieldInstance1(fi1);
+			mergeField.setFieldInstance2(fi2);
+			mergeFields.add(mergeField);
+		}
+		List<FieldInstance> dataFields = new ArrayList<>();
+		dataFields.add(fieldInstanceRepository.findOne(xFieldInstanceId));
+		tokens = yFieldInstanceIds.split(",");
+		for (String token : tokens) {
+			Long fieldInstanceId = new Long(token);
+			FieldInstance fieldInstance = fieldInstanceRepository.findOne(fieldInstanceId);
+			dataFields.add(fieldInstance);
+		}
+		String csvString = mergeService.mergeToCsv(mergeFields, dataFields);
+		MergeTestResults results = new MergeTestResults();
+		results.setDatasetName1(datasetName1);
+		results.setDatasetName2(datasetName2);
+		results.setNumRecords1(fieldService.getNumRecords(mergeFields.get(0).getFieldInstance1()));
+		results.setNumRecords2(fieldService.getNumRecords(mergeFields.get(0).getFieldInstance2()));
+		results.setNumMergedRecords((int)csvString.chars().filter(ch -> ch == '\n').count());
+		return results;
 	}
 }

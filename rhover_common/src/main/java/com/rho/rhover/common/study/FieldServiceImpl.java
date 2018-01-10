@@ -23,6 +23,9 @@ public class FieldServiceImpl implements FieldService {
 	
 	@Autowired
 	private DataSource dataSource;
+	
+	@Autowired
+	private CsvDataRepository csvDataRepository;
 
 	@Override
 	public List<Field> findPotentiallyIdentiableFields(Study study) {
@@ -81,9 +84,33 @@ public class FieldServiceImpl implements FieldService {
 			fieldRepository.save(field);
 		}
 	}
+	
+	@Override
+	public List<Field> findPotentialMergeFields(Dataset dataset1, Dataset dataset2) {
+		JdbcTemplate template = new JdbcTemplate(dataSource);
+		String sql = 
+				"select distinct(fi1.field_id)\r\n" + 
+				"from field_instance fi1\r\n" + 
+				"join field_instance fi2 on fi1.field_id = fi2.field_id\r\n" + 
+				"where fi1.dataset_id = " + dataset1.getDatasetId() + "\r\n" + 
+				"and fi2.dataset_id = " + dataset2.getDatasetId();
+		List<Long> fieldIds = template.queryForList(sql, Long.class);
+		return fieldRepository.findAll(fieldIds);
+	}
 
 	private static final class DatasetCountTuple {
 		private Long fieldId;
 		private int numDatasets;
 	}
+
+	// TODO: Consider saving number of records in a database column
+	// instead of having to extract data.
+	@Override
+	public int getNumRecords(FieldInstance fieldInstance) {
+		CsvData data = csvDataRepository.findByFieldAndDataset(
+				fieldInstance.getField(), fieldInstance.getDataset());
+		return data.extractData().size();
+	}
+
+
 }

@@ -16,6 +16,12 @@ public class FieldDto implements Comparable<FieldDto> {
 	private String dataType;
 	
 	private Boolean isIdentifying;
+	
+	private Long fieldId;
+	
+	public FieldDto() {
+		
+	}
 
 	public FieldDto(Long fieldInstanceId, String fieldName, String fieldLabel, String dataType, Boolean isIdentifying) {
 		super();
@@ -74,6 +80,14 @@ public class FieldDto implements Comparable<FieldDto> {
 	public void setIsIdentifying(Boolean isIdentifying) {
 		this.isIdentifying = isIdentifying;
 	}
+	
+	public Long getFieldId() {
+		return fieldId;
+	}
+
+	public void setFieldId(Long fieldId) {
+		this.fieldId = fieldId;
+	}
 
 	@Override
 	public int compareTo(FieldDto other) {
@@ -89,4 +103,13 @@ public class FieldDto implements Comparable<FieldDto> {
 		}
 		return val;
 	}
+
+	public String getDisplayName() {
+		String name = fieldLabel;
+		if (name == null || name.length() == 0) {
+			name = fieldName;
+		}
+		return name;
+	}
+	
 }

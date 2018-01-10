@@ -119,29 +119,34 @@ public class CheckServiceImpl implements CheckService {
 	@Override
 	@Transactional
 	public void runUnivariateCheck(Check check, Dataset dataset) {
-		String dataTypesToCheck = checkParamService.getCheckParam(check, "data_types", dataset).getParamValue();
+		logger.debug("Running check " + check.getCheckName() + " on dataset " + dataset.getDatasetName());
+		
+		// Get working directory
 		File workingDir = new File(workingDirPath);
 		if (!workingDir.isDirectory()) {
 			throw new ConfigurationException("Working directory " + workingDirPath + " is not a valid directory.");
 		}
+		
+		// Get reference to R executable
 		File rExecutable = new File(rExecutablePath);
 		if (!rExecutable.isFile()) {
 			throw new ConfigurationException("Invalid R executable: " + rExecutablePath);
 		}
+		
+		// Get reference to univariate check R script
 		File rScriptDir = new File(univariateOutlierScriptPath);
 		if (!rScriptDir.isFile()) {
 			throw new ConfigurationException("Univariate outlier script " + univariateOutlierScriptPath + " is not a valid file.");
 		}
 		
-		
-		logger.debug("Running check " + check.getCheckName() + " on dataset " + dataset.getDatasetName());
-		
-		// Get identifying field data
+		// Get identifying fields (i.e. set of fields that uniquely identifies a clinical data record) specified by study admin
 		List<Field> idFields = fieldRepository.findByStudyAndIsIdentifying(dataset.getStudy(), Boolean.TRUE);
 		List<CsvData> idData = new ArrayList<>();
 		if (idFields.size() == 0) {
 			throw new ConfigurationException("No identifying fields defined");
 		}
+		
+		// If not included by study admin, add the subject and site fields to set of identifying fields
 		boolean subjectIdIncluded = false;
 		boolean siteIdIncluded = false;
 		Study study = dataset.getStudy();
@@ -160,10 +165,18 @@ public class CheckServiceImpl implements CheckService {
 		if (!siteIdIncluded) {
 			idData.add(csvDataRepository.findByFieldAndDataset(fieldRepository.findByStudyAndFieldName(study, study.getSiteFieldName()), dataset));
 		}
-					
+		
+		// Determine which data types should be checked as specified by the study admin.  Possible values include
+		// 'numeric', 'continuous', and 'custom'.  If the latter, the study admin will have selected individual fields.
+		String dataTypesToCheck = checkParamService.getCheckParam(check, "data_types", dataset).getParamValue();
+		
+		// Iterate over fields and perform data checks
 		DatasetVersion datasetVersion = datasetVersionRepository.findByDatasetAndIsCurrent(dataset, Boolean.TRUE);
 		Iterable<Field> fields = datasetVersion.getFields();
+		
 		for (Field field : fields) {
+			
+			// Determine if check should be run on the field
 			if (!shouldCheckField(field, dataTypesToCheck, check, datasetVersion)) {
 				continue;
 			}
@@ -171,15 +184,15 @@ public class CheckServiceImpl implements CheckService {
 			
 			// Construct an input dataset for R script
 			CsvData data = csvDataRepository.findByFieldAndDataset(field, dataset);
-			String outputData = generateOutputData(idData, data, dataset);
+			String rScriptInput = generateRScriptInput(idData, data, dataset);
 			
-			// Write input dataset to file
+			// Write R script input dataset to file
 			FileWriter fileWriter = null;
 			File dataFile = null;
 			try {
 				dataFile = File.createTempFile("univariate-" + field.getFieldName() + "-", "-in.csv", workingDir);
 				fileWriter = new FileWriter(dataFile);
-				fileWriter.write(outputData);
+				fileWriter.write(rScriptInput);
 			}
 			catch (IOException e) {
 				throw new RuntimeException(e);
@@ -194,7 +207,9 @@ public class CheckServiceImpl implements CheckService {
 				}
 			}
 			
-			// Run R script
+			// Run R script.  The script will produce 2 output files:  (1) A copy of the input file with an additional
+			// boolean column indicating if the records is an outlier, and (2) A file containing properties of the dataset
+			// computed by the R script, e.g. standard deviation.
 			String fileNameRoot = workingDirPath + "/" + dataFile.getName().substring(0, dataFile.getName().length() - 7);
 			String infilePath = workingDirPath + "/" + dataFile.getName();
 			String outfilePath = fileNameRoot + "-out.csv";
@@ -209,7 +224,6 @@ public class CheckServiceImpl implements CheckService {
 					+ " " + propfilePath
 					+ " " + (dataColNum + 1)
 					+ " " + sd;
-			//logger.debug(command);
 			try {
 				Process process = Runtime.getRuntime().exec(command);
 				process.waitFor();
@@ -217,7 +231,7 @@ public class CheckServiceImpl implements CheckService {
 				throw new RuntimeException(e);
 			}
 			
-			// Record params used
+			// Save parameter values used in the check
 			CheckRun checkRun = checkRunRepository.findByCheckAndDatasetVersionAndFieldAndIsLatest(check, datasetVersion, field, Boolean.TRUE);
 			if (checkRun != null) {
 				checkRun.setIsLatest(Boolean.FALSE);
@@ -257,14 +271,12 @@ public class CheckServiceImpl implements CheckService {
 			dataFile.delete();
 			new File(outfilePath).delete();
 			new File(propfilePath).delete();
-			
-			// TODO: Remove this
-//			if (true) {
-//				break;
-//			}
 		}
 	}
 	
+	//
+	// Should given univariate check be run on given field?
+	//
 	private boolean shouldCheckField(Field field, String dataTypesToCheck, Check check, DatasetVersion datasetVersion) {
 		boolean checkable = !(field.getIsSkipped()
 			|| field.getIsIdentifying()
@@ -287,6 +299,9 @@ public class CheckServiceImpl implements CheckService {
 		return checkable;
 	}
 
+	//
+	// Save data properties computed by the R script, e.g. standard deviation
+	//
 	private void processDataProperties(BufferedReader reader, CheckRun checkRun) throws IOException {
 		String line = reader.readLine();
 		String[] propNames = line.split(",");
@@ -297,6 +312,9 @@ public class CheckServiceImpl implements CheckService {
 		}
 	}
 
+	//
+	// Save outliers identified by R script as new anomalies
+	//
 	private void processOutliers(BufferedReader reader, int dataColNum, DatasetVersion datasetVersion,
 			Field field, CheckRun checkRun) throws IOException {
 		
@@ -310,7 +328,7 @@ public class CheckServiceImpl implements CheckService {
 		for (int i = 0; i < dataColNum; i++) {
 			String value = values[i];
 			
-			// generateOutputData appends field IDs to the end of field names
+			// Note: generateOutputData() appends field IDs to the end of field names
 			// in the file header separated by '.'
 			int p = value.lastIndexOf(".");
 			String fieldName = value.substring(0, p);
@@ -328,18 +346,25 @@ public class CheckServiceImpl implements CheckService {
 		
 		// TODO: Throw exception if subjectColNum == -1
 		
-		// Process outlier results
+		// Process R script output file
 		line = reader.readLine();
 		int outlierColNum = dataColNum + 1;
 		while (line != null) {
 			values = line.split(",");
+			
+			// Case: Record is an outlier
 			if (values[outlierColNum].equals("TRUE")) {
-				//logger.debug(line);
+				
+				// Extract ID field values
 				Collection<IdFieldValue> idFieldValues = new ArrayList<>();
 				for (int i = 0; i < dataColNum; i++) {
 					idFieldValues.add(new IdFieldValue(values[i], colNumToFieldId.get(i)));
 				}
+				
+				// Hash ID field values, which is needed to fetch an observation instance from the database
 				String idFieldValueHash = Observation.generateIdFieldValueHash(idFieldValues);
+				
+				// Fetch or create new observation
 				Observation observation = observationRepository.findByDatasetAndIdFieldValueHash(dataset, idFieldValueHash);
 				if (observation == null) {
 					observation = new Observation(dataset, idFieldValueHash);
@@ -349,14 +374,15 @@ public class CheckServiceImpl implements CheckService {
 						idFieldValueRepository.save(idFieldValue);
 					}
 				}
+				
+				// Fetch or save new datum
 				Datum datum = datumRepository.findByObservationAndField(observation, field);
 				if (datum == null) {
 					datum = new Datum(field, observation);
 					datumRepository.save(datum);
 				}
-//				else {
-//					logger.debug("Datum seen before: " + line);
-//				}
+				
+				// Fetch or save new datum version
 				DatumVersion datumVersion = datumVersionRepository.findByDatumAndIsCurrent(datum, Boolean.TRUE);
 				String anomalousValue = values[dataColNum];
 				if (datumVersion == null) {
@@ -364,7 +390,10 @@ public class CheckServiceImpl implements CheckService {
 					datumVersionRepository.save(datumVersion);
 				}
 				
+				// If there is an existing datum version, update if warrented
 				else {
+					
+					// Check if the record is a duplicate
 					if (datumVersion.getDatasetVersions().contains(datasetVersion) && !datumVersion.getValue().equals(anomalousValue)) {
 						throw new DataIntegrityException("Multiple records.  Last one is: " + line);
 					}
@@ -380,6 +409,8 @@ public class CheckServiceImpl implements CheckService {
 					datumVersion.getDatasetVersions().add(datasetVersion);
 				}
 				datumVersionRepository.save(datumVersion);
+				
+				// Update or save new anomaly
 				Check check = checkRun.getCheck();
 				Anomaly anomaly = anomalyRepository.findOne(check, datumVersion);
 				if (anomaly == null) {
@@ -395,17 +426,18 @@ public class CheckServiceImpl implements CheckService {
 					anomaly.setSubject(subject);
 					anomaly.setField(field);
 				}
-//				else {
-//					logger.debug("Anomaly found");
-//				}
 				anomaly.getCheckRuns().add(checkRun);
 				anomalyRepository.save(anomaly);
 			}
+			
 			line = reader.readLine();
 		}
 	}
 
-	private String generateOutputData(List<CsvData> idData, CsvData data, Dataset dataset) {
+	//
+	// Generate input data file for R script
+	//
+	private String generateRScriptInput(List<CsvData> idData, CsvData data, Dataset dataset) {
 		StringBuilder builder = new StringBuilder();
 		
 		// Create tokenizers
@@ -453,5 +485,11 @@ public class CheckServiceImpl implements CheckService {
 		}
 		
 		return builder.toString();
+	}
+
+	@Override
+	public void runBivariateChecks(Check check, Study study) {
+		// TODO Auto-generated method stub
+		
 	}
 }

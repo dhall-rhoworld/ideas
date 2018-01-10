@@ -6,5 +6,9 @@ public interface FieldService {
 
 	List<Field> findPotentiallyIdentiableFields(Study study);
 	
+	List<Field> findPotentialMergeFields(Dataset dataset1, Dataset dataset2);
+	
+	int getNumRecords(FieldInstance fieldInstance);
+	
 	void setIdentifiableFields(Study study, Iterable<Long> fieldIds);
 }

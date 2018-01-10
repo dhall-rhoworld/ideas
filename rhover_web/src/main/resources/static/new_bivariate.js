@@ -425,6 +425,7 @@ $(function() {
 	// form fields
 	//
 	function setSubmitButtonState() {
+		initializeMergeForm();
 		const disabled = !(xIsSelected && yIsSelected && parametersComplete());
 		if (disabled) {
 			$("#button_submit").prop("disabled", true);
@@ -432,6 +433,89 @@ $(function() {
 		else {
 			$("#button_submit").removeAttr("disabled");
 		}
+	}
+	
+	// -----------------------
+	// --- MERGE VARIABLES ---
+	// -----------------------
+	
+	function initializeMergeForm() {
+		if (!xIsSelected || !yIsSelected) {
+			$("#h_merge").addClass("deactivated");
+			return;
+		}
+		
+		// Get data needed to query user for merge fields, if any are missing
+		const url = "/rest/admin/study/get_merge_field_info?variable_x=" + $("input[name='variable_x'").val()
+			+ "&variable_y=" + $("input[name='variable_y'").val();
+		$.get(url)
+			.done(function(data) {
+				if (data.length > 0) {
+					addMergeForm(data);
+				}
+			})
+			.fail(function() {
+				console.log("Error");
+			});
+	}
+	
+	function addMergeForm(data) {
+		$("#div_merge").empty();
+		$("#h_merge").removeClass("deactivated");
+		for (let i = 0; i < data.length; i++) {
+			let datum = data[i];
+			let html = "<table class='half-wide table-merge'><tr><th/><th>" + datum.datasetName1
+				+ "<span style='color: red;'> &lt;--AND--&gt; </span>" + datum.datasetName2 + "</th></tr>";
+			let fields = datum.fields;
+			for (let j = 0; j < fields.length; j++) {
+				let field = fields[j];
+				html += "<tr><td><input type='checkbox' class='cb_merge' data-dataset_1='" + datum.datasetName1
+					+ "' data-dataset_2='" + datum.datasetName2 + "' data-field_id='" + field.fieldId + "'/></td><td>";
+				html += field.displayName;
+				html += "</td>";
+			}
+			html += "<tr><td/><td><button type='button' class='merge-test' data-dataset_1='";
+			html += datum.datasetName1;
+			html += "' data-dataset_2='";
+			html += datum.datasetName2;
+			html += "'>Check if Merge Works</button></td></tr>";
+			html += "</table>";
+			$("#div_merge").append(html);
+		}
+		
+		$(".merge-test").click(function() {
+			const dataset1 = this.dataset.dataset_1;
+			const dataset2 = this.dataset.dataset_2;
+			let fieldIds = "";
+			let count = 0;
+			$("input[type='checkbox'][data-dataset_2='" + dataset2 + "']:checked").each(function() {
+				count++;
+				if (count > 1) {
+					fieldIds += ",";
+				}
+				fieldIds += $(this).data("field_id");
+			});
+			const url = "/rest/admin/study/test_merge?field_ids=" + fieldIds
+				+ "&dataset_name_1=" + dataset1 + "&dataset_name_2=" + dataset2
+				+ "&study_id=" + studyId + "&variable_x="
+				+ $("input[name='variable_x").val() + "&variable_y=" + $("input[name='variable_y").val();
+			console.log(url);
+			$.get(url)
+				.done(function(result) {
+					console.log(result);
+					const html =
+						"Num records dataset " + result.datasetName1 + ": <strong>" + result.numRecords1
+						+ "</strong><br/>Num records dataset " + result.datasetName2 + ": <strong>" + result.numRecords2
+						+ "</strong><br/>Num records after merge: <strong>" + result.numMergedRecords
+						+ "</strong>";
+					console.log(html);
+					$("#dialog_merge").append(html);
+					$("#dialog_merge").dialog("open");
+				})
+				.fail(function() {
+					console.log("Error");
+				});
+		})
 	}
 		
 	// ---------------------------------
@@ -463,6 +547,22 @@ $(function() {
 		modal: true,
 		resizable: false,
 		title: "Finding Correlated Variables"
+	});
+	
+	$("#dialog_merge").dialog({
+		autoOpen: false,
+		modal: true,
+		resizable: false,
+		title: "Merge Test Results",
+		minWidth: 500,
+		buttons: [
+			{
+				text: "OK",
+				click: function() {
+					$(this).dialog("close");
+				}
+			}
+		]
 	});
 	
 });
