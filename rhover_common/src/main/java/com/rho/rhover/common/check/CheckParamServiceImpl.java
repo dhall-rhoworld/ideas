@@ -2,6 +2,7 @@ package com.rho.rhover.common.check;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +72,19 @@ public class CheckParamServiceImpl implements CheckParamService {
 		Set<CheckParam> params = new HashSet<>();
 		for (CheckParam globalParam : globalParams) {
 			params.add(getCheckParam(check, globalParam.getParamName(), dataset, field));
+		}
+		return params;
+	}
+
+	@Override
+	public Set<CheckParam> getAllCheckParams(Check check, BivariateCheck biCheck) {
+		Map<String, CheckParam> paramMap = biCheck.getCheckParams();
+		Set<CheckParam> params = new HashSet<>();
+		if (paramMap.size() > 0) {
+			params.addAll(paramMap.values());
+		}
+		else {
+			params = getAllCheckParams(check, biCheck.getStudy());
 		}
 		return params;
 	}

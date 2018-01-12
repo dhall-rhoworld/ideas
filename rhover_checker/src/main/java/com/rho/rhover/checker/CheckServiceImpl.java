@@ -38,6 +38,8 @@ import com.rho.rhover.common.anomaly.IdFieldValue;
 import com.rho.rhover.common.anomaly.IdFieldValueRepository;
 import com.rho.rhover.common.anomaly.Observation;
 import com.rho.rhover.common.anomaly.ObservationRepository;
+import com.rho.rhover.common.check.BivariateCheck;
+import com.rho.rhover.common.check.BivariateCheckRepository;
 import com.rho.rhover.common.check.Check;
 import com.rho.rhover.common.check.CheckParam;
 import com.rho.rhover.common.check.CheckParamRepository;
@@ -105,6 +107,9 @@ public class CheckServiceImpl implements CheckService {
 	
 	@Autowired
 	private DataPropertyRepository dataPropertyRepository;
+	
+	@Autowired
+	private BivariateCheckRepository bivariateCheckRepository;
 	
 	@Value("${working.dir}")
 	private String workingDirPath;
@@ -489,7 +494,31 @@ public class CheckServiceImpl implements CheckService {
 
 	@Override
 	public void runBivariateChecks(Check check, Study study) {
-		// TODO Auto-generated method stub
 		
+		// Get working directory
+		File workingDir = new File(workingDirPath);
+		if (!workingDir.isDirectory()) {
+			throw new ConfigurationException("Working directory " + workingDirPath + " is not a valid directory.");
+		}
+		
+		List<BivariateCheck> biChecks = bivariateCheckRepository.findByStudy(study);
+		for (BivariateCheck biCheck : biChecks) {
+			
+			// Retrieve parameters
+			logger.debug("Checking " + biCheck.getxFieldInstance().getField().getDisplayName()
+					+ " and " + biCheck.getyFieldInstance().getField().getDisplayName());
+			Set<CheckParam> params = checkParamService.getAllCheckParams(check, biCheck);
+			for (CheckParam param : params) {
+				logger.debug("Param " + param.getParamName() + ": " + param.getParamValue()
+						+ " [" + param.getParamScope() + "]");
+			}
+			
+			String rInputData = generateRInputData(biCheck);
+		}
+	}
+
+	private String generateRInputData(BivariateCheck biCheck) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

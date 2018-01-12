@@ -416,4 +416,8 @@ where fi1.dataset_id = 80
 and fi2.dataset_id = 90
 ;
 
+select f.field_label, fi.field_instance_id
+from field f
+join field_instance fi on fi.field_id = f.field_id
+where f.field_label like '%Height%';
 

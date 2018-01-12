@@ -14,11 +14,12 @@ import org.springframework.stereotype.Service;
 import com.rho.rhover.common.study.CsvData;
 import com.rho.rhover.common.study.CsvDataRepository;
 import com.rho.rhover.common.study.Dataset;
+import com.rho.rhover.common.study.Field;
 import com.rho.rhover.common.study.FieldInstance;
 import com.rho.rhover.common.study.MergeField;
 
 @Service
-public class MergeServiceImpl implements MergeService {
+public class CsvServiceImpl implements CsvDataService {
 	
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 	
@@ -26,7 +27,8 @@ public class MergeServiceImpl implements MergeService {
 	private CsvDataRepository csvDataRepository;
 
 	@Override
-	public String mergeToCsv(List<MergeField> mergeFields, List<FieldInstance> analysisFields) {
+	public String mergeToCsv(List<MergeField> mergeFields, List<FieldInstance> analysisFields, Boolean includeMergeFields,
+			Boolean removeRecordsWithMissingValues) {
 		logger.debug("Merging data to CSV");
 		logger.debug("Found " + mergeFields.size() + " merge fields");
 		logger.debug("Found " + analysisFields.size() + " anlaysis fields");
@@ -85,8 +87,8 @@ public class MergeServiceImpl implements MergeService {
 		
 		// Create map to help construct merged CSV strings of merged data.
 		// Keys are serialized tuples of merge data values as comma-separated strings.
-		// Values are serilized tuples of analysis data values as comma-separated strings.
-		Map<String, String> mergeTuplesToAnalysisTuples = new HashMap<>();
+		// Values are lists serialized tuples of analysis data values as comma-separated strings.
+		Map<String, List<String>> mergeTuplesToAnalysisTuples = new HashMap<>();
 		
 		// Arbitrarily select a data frame
 		Iterator<DataFrame> dataFrameIt = dataFrames.values().iterator();
@@ -95,21 +97,46 @@ public class MergeServiceImpl implements MergeService {
 		// Get iterator that will return tuples of merge data and
 		// analysis data as comma-separated strings
 		RowIterator mergeTupleIterator = dataFrame.mergeTupleIterator();
-		RowIterator analysisTupleIterator = dataFrame.analysisTupleIterator();
+		RowIterator analysisTupleIterator = dataFrame.analysisTupleIterator(removeRecordsWithMissingValues);
 		
 		// Populate map
 		while (mergeTupleIterator.hasNext()) {
-			mergeTuplesToAnalysisTuples.put(mergeTupleIterator.next(), analysisTupleIterator.next());
+			String key = mergeTupleIterator.next();
+			List<String> analysisTuples = mergeTuplesToAnalysisTuples.get(key);
+			if (analysisTuples == null) {
+				analysisTuples = new ArrayList<>();
+				mergeTuplesToAnalysisTuples.put(key, analysisTuples);
+			}
+			String tuple = analysisTupleIterator.next();
+			if (tuple != null) {
+				analysisTuples.add(tuple);
+			}
 		}
 		logger.debug("Found " + mergeTuplesToAnalysisTuples.size()
 			+ " records in dataset " + dataFrame.dataSetName);
 		
+		// Add header to output
+		StringBuilder builder = new StringBuilder();
+		if (includeMergeFields) {
+			int count = 0;
+			for (MergeField mergeField : mergeFields) {
+				count++;
+				if (count > 1) {
+					builder.append(",");
+				}
+				builder.append(mergeField.getFieldInstance1().getField().getDisplayName());
+			}
+		} 
+		for (FieldInstance fieldInstance : analysisFields) {
+			builder.append(fieldInstance.getField().getDisplayName());
+		}
+		builder.append("\n");
+		
 		// Fetch second data frame and build output.  Output will only contain records
 		// where a given merge data tuple is found in both datasets.
-		StringBuilder builder = new StringBuilder();
 		dataFrame = dataFrameIt.next();
 		mergeTupleIterator = dataFrame.mergeTupleIterator();
-		analysisTupleIterator = dataFrame.analysisTupleIterator();
+		analysisTupleIterator = dataFrame.analysisTupleIterator(removeRecordsWithMissingValues);
 		int numRecs = 0;
 		int numMergedRecs = 0;
 		while (mergeTupleIterator.hasNext()) {
@@ -119,11 +146,18 @@ public class MergeServiceImpl implements MergeService {
 			// If merge data tuple from second dataset is also in first dataset,
 			// create merged record
 			if (mergeTuplesToAnalysisTuples.containsKey(mergeTuple)) {
-				numMergedRecs++;
-				String dataTuple = analysisTupleIterator.next();
-				builder.append(mergeTuple);
-				builder.append("," + mergeTuplesToAnalysisTuples.get(mergeTuple));
-				builder.append("," + dataTuple + "\n");
+				String analysisTuple1 = analysisTupleIterator.next();
+				if (analysisTuple1 != null) {
+					List<String> analysisTuples2 = mergeTuplesToAnalysisTuples.get(mergeTuple);
+					for (String analysisTuple2 : analysisTuples2) {
+						numMergedRecs++;
+						if (includeMergeFields.equals(Boolean.TRUE)) {
+							builder.append(mergeTuple + ",");
+						}
+						builder.append(analysisTuple2);
+						builder.append("," + analysisTuple1 + "\n");
+					}
+				}
 			}
 		}
 		logger.debug("Found " + numRecs + " records in dataset " + dataFrame.dataSetName);
@@ -131,6 +165,7 @@ public class MergeServiceImpl implements MergeService {
 		
 		return builder.toString();
 	}
+	
 
 	private static final class DataFrame {
 		private List<CsvData> mergeCols = new ArrayList<>();
@@ -157,14 +192,17 @@ public class MergeServiceImpl implements MergeService {
 			return new RowIterator(extractMergeData());
 		}
 		
-		private RowIterator analysisTupleIterator() {
-			return new RowIterator(extractAnalysisData());
+		private RowIterator analysisTupleIterator(boolean returnNullIfDataMissing) {
+			RowIterator it = new RowIterator(extractAnalysisData());
+			it.returnNullIfDataMissing = returnNullIfDataMissing;
+			return it;
 		}
 	}
 	
 	private static final class RowIterator implements Iterator<String> {
 		
 		private List<Iterator<String>> iterators = new ArrayList<>();
+		private boolean returnNullIfDataMissing = false;
 		
 		private RowIterator(List<List<String>> data) {
 			for (List<String> dataCol : data) {
@@ -190,10 +228,80 @@ public class MergeServiceImpl implements MergeService {
 				if (count > 1) {
 					builder.append(",");
 				}
-				builder.append(iterator.next());
+				String value = iterator.next();
+				if (isMissingData(value) && returnNullIfDataMissing) {
+					return null;
+				}
+				builder.append(value);
 			}
 			return builder.toString();
 		}
+	}
+
+	@Override
+	public String getAsCsv(Dataset dataset, Boolean removeRecordsWithMissingValues, Field... fields) {
 		
+		// Fetch data from database
+		List<List<String>> columns = new ArrayList<>();
+		for (Field field : fields) {
+			CsvData csvData = csvDataRepository.findByFieldAndDataset(field, dataset);
+			columns.add(csvData.extractData());
+		}
+		
+		// Add column headings to output
+		StringBuilder builder = new StringBuilder();
+		int count = 0;
+		for (Field field : fields) {
+			count++;
+			if (count > 1) {
+				builder.append(",");
+			}
+			builder.append(field.getDisplayName());
+		}
+		builder.append("\n");
+		
+		// Add data to output
+		List<Iterator<String>> iterators = new ArrayList<>();
+		for (List<String> column : columns) {
+			iterators.add(column.iterator());
+		}
+		boolean haveData = true;
+		while (haveData) {
+			count = 0;
+			StringBuilder record = new StringBuilder();
+			boolean missingData = false;
+			for (Iterator<String> iterator : iterators) {
+				count++;
+				if (count > 1) {
+					record.append(",");
+				}
+				if (iterator.hasNext()) {
+					String value = iterator.next();
+					if (isMissingData(value)) {
+						missingData = true;
+					}
+					record.append(value);
+				}
+				else {
+					haveData = false;
+					break;
+				}
+			}
+			if (missingData && removeRecordsWithMissingValues) {
+				continue;
+			}
+			if (haveData) {
+				builder.append(record.toString() + "\n");
+			}
+		}
+		//logger.debug(builder.toString().substring(builder.length() - 100));
+		return builder.toString();
+	}
+
+	private static boolean isMissingData(String value) {
+		return
+			value == null
+			|| value.trim().length() == 0
+			|| value.equalsIgnoreCase("null");
 	}
 }

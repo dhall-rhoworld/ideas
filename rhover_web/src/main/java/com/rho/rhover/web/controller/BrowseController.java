@@ -148,4 +148,14 @@ public class BrowseController {
 		}
 		return "browse/data_fields";
     }
+    
+    @RequestMapping("/bivariate")
+    public String showBivariate(
+    		@RequestParam("field_instance_id_1") Long fieldInstanceId1,
+    		@RequestParam("field_instance_id_2") Long fieldInstanceId2,
+    		Model model) {
+    	model.addAttribute("field_instance_id_1", fieldInstanceId1);
+    	model.addAttribute("field_instance_id_2", fieldInstanceId2);
+    	return "/browse/bivariate";
+    }
 }

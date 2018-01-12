@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>RhoVer Bivariate Plot</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="/rhover.css"/>
+    <link rel="stylesheet" href="/jquery-ui.css"/>
+    <link rel="icon" type="image/png" href="/images/rover-favicon.png" />
+    <script src="/d3.min.js"></script>
+    <script src="/jquery-3.2.1.min.js"></script>
+    <script src="/jquery-ui.js"></script>
+    <script src="/bivariate.js"></script>
+    
+    <script th:inline="javascript">
+    	fieldInstanceId1 = [[${field_instance_id_1}]];
+    	fieldInstanceId2 = [[${field_instance_id_2}]];
+    </script>
+</head>
+<body>
+		
+    <div id="content">
+    	<div id="chart"/>
+    </div>
+
+</body>
+</html>

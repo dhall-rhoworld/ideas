@@ -33,7 +33,7 @@ import com.rho.rhover.common.check.CheckParamRepository;
 import com.rho.rhover.common.check.CheckRepository;
 import com.rho.rhover.common.check.Correlation;
 import com.rho.rhover.common.check.CorrelationFinder;
-import com.rho.rhover.common.check.MergeService;
+import com.rho.rhover.common.check.CsvDataService;
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.DatasetRepository;
 import com.rho.rhover.common.study.DatasetVersion;
@@ -107,7 +107,7 @@ public class StudyAdminRestController {
 	private FieldService fieldService;
 	
 	@Autowired
-	private MergeService mergeService;
+	private CsvDataService csvDataService;
 	
 	@Value("${checker.url}")
 	private String checkerUrl;
@@ -446,13 +446,13 @@ public class StudyAdminRestController {
 			FieldInstance fieldInstance = fieldInstanceRepository.findOne(fieldInstanceId);
 			dataFields.add(fieldInstance);
 		}
-		String csvString = mergeService.mergeToCsv(mergeFields, dataFields);
+		String csvString = csvDataService.mergeToCsv(mergeFields, dataFields, Boolean.FALSE, Boolean.FALSE);
 		MergeTestResults results = new MergeTestResults();
 		results.setDatasetName1(datasetName1);
 		results.setDatasetName2(datasetName2);
 		results.setNumRecords1(fieldService.getNumRecords(mergeFields.get(0).getFieldInstance1()));
 		results.setNumRecords2(fieldService.getNumRecords(mergeFields.get(0).getFieldInstance2()));
-		results.setNumMergedRecords((int)csvString.chars().filter(ch -> ch == '\n').count());
+		results.setNumMergedRecords((int)csvString.chars().filter(ch -> ch == '\n').count() - 1);
 		return results;
 	}
 }
