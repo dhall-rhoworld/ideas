@@ -35,11 +35,7 @@ public class DataRestController {
 			@RequestParam("field_instance_id_2") Long fieldInstanceId2) {
 		FieldInstance fi1 = fieldInstanceRepository.findOne(fieldInstanceId1);
 		FieldInstance fi2 = fieldInstanceRepository.findOne(fieldInstanceId2);
-		String csv =
-			"Height,Weight\n" +
-			"68,150\n" +
-			"70,175\n" +
-			"59,200\n";
+		String csv = "";
 		if (fi1.getDataset().equals(fi2.getDataset())) {
 			csv = csvDataService.getAsCsv(fi1.getDataset(), Boolean.TRUE, fi1.getField(), fi2.getField());
 		}

@@ -23,7 +23,7 @@ $(function() {
 			let html = "<option value='0'>---Select Variable---</option>";
 			$("#select_variable_x").html(html);
 			xIsSelected = false;
-			setSubmitButtonState();
+			onVariableSelectionChange();
 			return;
 		}
 		
@@ -80,7 +80,7 @@ $(function() {
 			xIsSelected = true;
 			$("#button_correlated").removeAttr("disabled");
 		}
-		setSubmitButtonState();
+		onVariableSelectionChange();
 	});
 	
 	// --- SEARCH X VARIABLE ---
@@ -150,7 +150,7 @@ $(function() {
 				$("#text_search_x").prop("disabled", "true");
 				$("#button_correlated").removeAttr("disabled");
 				xIsSelected = true;
-				setSubmitButtonState();
+				onVariableSelectionChange();
 			})
 			
 			// REST call failed
@@ -175,7 +175,7 @@ $(function() {
 		if (datasetId == 0) {
 			$("#td_variable_y").empty();
 			yIsSelected = false;
-			setSubmitButtonState();
+			onVariableSelectionChange();
 			return;
 		}
 		
@@ -188,7 +188,7 @@ $(function() {
 				
 				// Update state of submit button
 				yIsSelected = true;
-				setSubmitButtonState();
+				onVariableSelectionChange();
 				
 				// Add new radio buttons and select field
 				let html =
@@ -220,17 +220,17 @@ $(function() {
 				$("#y_type_continuous").click(function() {
 					yIsSelected = true;
 					$("#select_variable_y").prop("disabled", "true");
-					setSubmitButtonState();
+					onVariableSelectionChange();
 				});
 				$("#y_type_numeric").click(function() {
 					yIsSelected = true;
 					$("#select_variable_y").prop("disabled", "true");
-					setSubmitButtonState();
+					onVariableSelectionChange();
 				});
 				$("#y_type_custom").click(function() {
 					yIsSelected = false;
 					$("#select_variable_y").removeAttr("disabled");
-					setSubmitButtonState();
+					onVariableSelectionChange();
 				});
 				$("#select_variable_y").change(function() {
 					if ($("#select_variable_y").val().length > 0) {
@@ -239,7 +239,7 @@ $(function() {
 					else {
 						yIsSelected = false;
 					}
-					setSubmitButtonState();
+					onVariableSelectionChange();
 				});
 				
 				// Remove UI controls for browsing correlated variables and searching
@@ -297,7 +297,7 @@ $(function() {
 					else {
 						yIsSelected = false;
 					}
-					setSubmitButtonState();
+					onVariableSelectionChange();
 				});
 			})
 			
@@ -373,7 +373,7 @@ $(function() {
 				$("#button_search_y").prop("disabled", "true");
 				$("#text_search_y").prop("disabled", "true");
 				yIsSelected = true;
-				setSubmitButtonState();
+				onVariableSelectionChange();
 			})
 			.fail(function(data) {
 				console.log("Error");
@@ -382,8 +382,10 @@ $(function() {
 	
 	$("#button_plot").click(function() {
 		const variableX = $("input[name='variable_x']").val();
-		const variableY = $("input[name='variable_y'").val();
-		console.log(variableY);
+		const variableY = $("[name='variable_y'").val();
+		console.log("variableY: " + variableY + ", length: " + variableY.length);
+		const url = "/browse/bivariate?field_instance_id_1=" + variableX + "&field_instance_id_2=" + variableY;
+		window.open(url, "_blank");
 	});
 	
 	// -----------------------------
@@ -403,7 +405,7 @@ $(function() {
 			$(".dataset-params").removeClass("deactivated");
 			$(".input-params").removeAttr("disabled");
 		}
-		setSubmitButtonState();
+		onVariableSelectionChange();
 	});
 	
 	//
@@ -412,7 +414,7 @@ $(function() {
 	$(".input-params").on("keypress keyup blur", function(event) {
 		let numericOnly = $(this).val().replace(/[^0-9.]/g,"");
 		$(this).val(numericOnly);
-		setSubmitButtonState();
+		onVariableSelectionChange();
 	});
 	
 	//
@@ -430,14 +432,25 @@ $(function() {
 	// Activates/de-activates submit button depending on the completeness of
 	// form fields
 	//
-	function setSubmitButtonState() {
+	function onVariableSelectionChange() {
 		initializeMergeForm();
-		const disabled = !(xIsSelected && yIsSelected && parametersComplete());
+		
+		// Submit button
+		let disabled = !(xIsSelected && yIsSelected && parametersComplete());
 		if (disabled) {
 			$("#button_submit").prop("disabled", true);
 		}
 		else {
 			$("#button_submit").removeAttr("disabled");
+		}
+		
+		// Plot selected variables button
+		disabled = !(xIsSelected && yIsSelected);
+		if (disabled) {
+			$("#button_plot").prop("disabled", true);
+		}
+		else {
+			$("#button_plot").removeAttr("disabled");
 		}
 	}
 	
@@ -496,6 +509,7 @@ $(function() {
 			$("#div_merge").append(html);
 		}
 		
+		// Enable/disable logic for merge test button
 		$(".cb_merge").click(function() {
 			const dataset2 = this.dataset.dataset_2;
 			if ($("input[type='checkbox'][data-dataset_2='" + dataset2 + "']:checked").length == 0) {
@@ -506,6 +520,7 @@ $(function() {
 			}
 		});
 		
+		// Event handler for merge test button
 		$(".merge-test").click(function() {
 			const dataset1 = this.dataset.dataset_1;
 			const dataset2 = this.dataset.dataset_2;

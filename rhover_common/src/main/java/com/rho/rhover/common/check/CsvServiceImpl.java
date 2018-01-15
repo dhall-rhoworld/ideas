@@ -168,7 +168,7 @@ public class CsvServiceImpl implements CsvDataService {
 		}
 		logger.debug("Found " + numRecs + " records in dataset " + dataFrame.dataSetName);
 		logger.debug("Merged dataset contains " + numMergedRecs + " records");
-		logger.debug("\n" + builder.toString().substring(0, 100));
+		//logger.debug("\n" + builder.toString().substring(0, 100));
 		
 		return builder.toString();
 	}

@@ -129,10 +129,6 @@ public class BrowseController {
     			Model model) {
     	Dataset dataset = datasetRepository.findOne(datasetId);
     	model.addAttribute("dataset", dataset);
-//    	List<BivariateCheck> checks = new ArrayList<BivariateCheck>();
-//    	checks.addAll(bivariateCheckRepository.findByDataset1(dataset));
-//    	checks.addAll(bivariateCheckRepository.findByDataset2(dataset));
-//		model.addAttribute("bivariate_checks", checks);
 		if (siteId == -1 && subjectId == -1) {
 			model.addAttribute("summaries", anomalySummaryBuilder.getDataFieldSummaries(datasetId));
 		}
@@ -152,10 +148,20 @@ public class BrowseController {
     @RequestMapping("/bivariate")
     public String showBivariate(
     		@RequestParam("field_instance_id_1") Long fieldInstanceId1,
-    		@RequestParam("field_instance_id_2") Long fieldInstanceId2,
+    		@RequestParam("field_instance_id_2") String fieldInstanceIdString,
+    		@RequestParam(name="page", required=false, defaultValue="0") Integer page,
     		Model model) {
     	model.addAttribute("field_instance_id_1", fieldInstanceId1);
-    	model.addAttribute("field_instance_id_2", fieldInstanceId2);
+    	String[] fieldInstanceIds = fieldInstanceIdString.split(",");
+    	model.addAttribute("field_instance_id_2", fieldInstanceIds[page]);
+    	model.addAttribute("page", page);
+    	model.addAttribute("num_pages", fieldInstanceIds.length);
+    	List<Integer> pages = new ArrayList<>();
+    	for (int i = 0; i < fieldInstanceIds.length; i++) {
+    		pages.add(i);
+    	}
+    	model.addAttribute("pages", pages);
+    	model.addAttribute("field_instance_id_string", fieldInstanceIdString);
     	return "/browse/bivariate";
     }
 }

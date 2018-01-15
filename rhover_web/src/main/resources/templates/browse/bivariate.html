@@ -20,7 +20,19 @@
 		
     <div id="content">
     	<div id="chart"/>
-    </div>
+    
 
+		<div th:if="${num_pages} > 1">
+			<a th:href="@{/browse/bivariate(field_instance_id_1=${field_instance_id_1}, field_instance_id_2=${field_instance_id_string}, page=${page} - 1)}"
+				th:if="${page} &gt; 0">&lt;</a>
+			<span th:each="pageNo : ${pages}">
+				<a th:if="${pageNo != page}" th:text="${pageNo} + 1" th:href="@{/browse/bivariate(field_instance_id_1=${field_instance_id_1}, field_instance_id_2=${field_instance_id_string}, page=${pageNo})}"/>
+				<span th:if="${pageNo == page}" th:text="${pageNo} + 1"/>
+			</span>
+			<a th:href="@{/browse/bivariate(field_instance_id_1=${field_instance_id_1}, field_instance_id_2=${field_instance_id_string}, page=${page} + 1)}"
+				th:if="${page &lt; num_pages - 1}">&gt;</a>
+		</div>
+	
+	</div>
 </body>
 </html>
