@@ -368,20 +368,27 @@ public class StudyAdminRestController {
 	
 	@RequestMapping("/get_merge_field_info")
 	public List<MergeFieldSetupInfo> getMergeFieldInfo(
-			@RequestParam("variable_x") Long fieldIdX,
-			@RequestParam("variable_y") String fieldIdsY) {
+			@RequestParam("variable_x") Long fieldInstanceIdX,
+			@RequestParam(name="variable_y", required=false, defaultValue="") String fieldInstanceIdsY,
+			@RequestParam(name="dataset_y", required=false, defaultValue="") Long datasetYId
+	) {
 		
 		// Get X dataset
-		FieldInstance fieldInstanceX = fieldInstanceRepository.findOne(fieldIdX);
+		FieldInstance fieldInstanceX = fieldInstanceRepository.findOne(fieldInstanceIdX);
 		Dataset xDataset = fieldInstanceX.getDataset();
 		
 		// Assemble set of Y datasets
 		Set<Dataset> yDatasets = new HashSet<>();
-		String[] tokens = fieldIdsY.split(",");
-		for (String token : tokens) {
-			Long fieldIdY = new Long(token);
-			FieldInstance fieldInstanceY = fieldInstanceRepository.findOne(fieldIdY);
-			yDatasets.add(fieldInstanceY.getDataset());
+		if (fieldInstanceIdsY.length() > 0) {
+			String[] tokens = fieldInstanceIdsY.split(",");
+			for (String token : tokens) {
+				Long fieldIdY = new Long(token);
+				FieldInstance fieldInstanceY = fieldInstanceRepository.findOne(fieldIdY);
+				yDatasets.add(fieldInstanceY.getDataset());
+			}
+		}
+		else {
+			yDatasets.add(datasetRepository.findOne(datasetYId));
 		}
 		
 		// Iterate over each pair of datasets
@@ -421,8 +428,8 @@ public class StudyAdminRestController {
 			@RequestParam("dataset_name_2") String datasetName2,
 			@RequestParam("study_id") Long studyId,
 			@RequestParam("variable_x") Long xFieldInstanceId,
-			@RequestParam("variable_y") String yFieldInstanceIds
-			) {
+			@RequestParam(name="variable_y", required=false, defaultValue="") String yFieldInstanceIds
+	) {
 		Study study = studyRepository.findOne(studyId);
 		Dataset dataset1 = datasetRepository.findByStudyAndDatasetName(study, datasetName1);
 		Dataset dataset2 = datasetRepository.findByStudyAndDatasetName(study, datasetName2);
@@ -440,11 +447,13 @@ public class StudyAdminRestController {
 		}
 		List<FieldInstance> dataFields = new ArrayList<>();
 		dataFields.add(fieldInstanceRepository.findOne(xFieldInstanceId));
-		tokens = yFieldInstanceIds.split(",");
-		for (String token : tokens) {
-			Long fieldInstanceId = new Long(token);
-			FieldInstance fieldInstance = fieldInstanceRepository.findOne(fieldInstanceId);
-			dataFields.add(fieldInstance);
+		if (yFieldInstanceIds.length() > 0) {
+			tokens = yFieldInstanceIds.split(",");
+			for (String token : tokens) {
+				Long fieldInstanceId = new Long(token);
+				FieldInstance fieldInstance = fieldInstanceRepository.findOne(fieldInstanceId);
+				dataFields.add(fieldInstance);
+			}
 		}
 		String csvString = csvDataService.mergeToCsv(mergeFields, dataFields, Boolean.FALSE, Boolean.FALSE);
 		MergeTestResults results = new MergeTestResults();
