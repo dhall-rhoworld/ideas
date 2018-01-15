@@ -4,11 +4,26 @@
     <title>RhoVer Edit Study</title> 
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" href="/rhover.css"/>
+    <script src="/jquery-3.2.1.min.js"></script>
     
     <script>
     	function onDone() {
     		document.location.href = "/admin/study/all";
     	}
+    	
+    	// Submit button clicked
+    	$(function() {
+    		$("#button_submit").click(function() {
+    			
+    			// Convert all back-slashes for forward-slashes in folder path field
+    			const oldValue = $("#text_folder_path").val();
+    			const newValue = oldValue.replace(/\\/g, "/");
+    			$("#text_folder_path").val(newValue);
+    			
+    			// Submit form
+    			$("form").submit();
+    		});
+    	});
     </script>
 </head>
 <body>
@@ -44,10 +59,10 @@
 	   	<form action="/admin/study/add_data_folder" method="post">
 	   		<p>
 	   		<input type="hidden" name="study_id" th:value="${study.studyId}"/>
-	   		Folder Path: <input type="text" name="folder_path" size="60"/>
+	   		Folder Path: <input type="text" name="folder_path" id="text_folder_path" size="60"/>
 	   		</p>
 	   		<p>
-	 			<button type="submit">Add Data Folder</button>
+	 			<button type="button" id="button_submit">Add Data Folder</button>
 	 			&nbsp; &nbsp;
 	 			<button type="button" onclick="onDone()">Done</button>
 	 		</p>

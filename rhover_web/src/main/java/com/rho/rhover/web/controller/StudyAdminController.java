@@ -38,6 +38,8 @@ import com.rho.rhover.common.study.FieldInstance;
 import com.rho.rhover.common.study.FieldInstanceRepository;
 import com.rho.rhover.common.study.FieldRepository;
 import com.rho.rhover.common.study.FieldService;
+import com.rho.rhover.common.study.MergeField;
+import com.rho.rhover.common.study.MergeFieldRepository;
 import com.rho.rhover.common.study.Study;
 import com.rho.rhover.common.study.StudyDbVersion;
 import com.rho.rhover.common.study.StudyDbVersionRepository;
@@ -85,6 +87,9 @@ public class StudyAdminController {
 	
 	@Autowired
 	private BivariateCheckRepository bivariateCheckRepository;
+	
+	@Autowired
+	private MergeFieldRepository mergeFieldRepository;
 
 	@RequestMapping("/all")
 	public String viewAll(Model model) {
@@ -387,18 +392,50 @@ public class StudyAdminController {
 		@RequestParam(name="use_study_defaults", required=false, defaultValue="off") String useDefaultParams,
 		@RequestParam(name="param_sd-residual", required=false, defaultValue="") String sdResidual,
 		@RequestParam(name="param_sd-density", required=false, defaultValue="") String sdDensity,
+		@RequestParam MultiValueMap<String, String> params,
 		Model model
 	) {
-//		logger.debug("fieldInstanceIdX: " + fieldInstanceIdX);
-//		logger.debug("datasetYId: " + datasetYId);
-//		logger.debug("fieldInstanceIdsY: " + fieldInstanceIdsYStr);
-//		logger.debug("yType: " + yType);
-//		logger.debug("useDefaultParams: " + useDefaultParams);
-//		logger.debug("sdResidual: " + sdResidual);
-//		logger.debug("sdDensity: " + sdDensity);
 		
 		// Fetch X field instance
 		FieldInstance fieldInstanceX = fieldInstanceRepository.findOne(fieldInstanceIdX);
+		
+		// Build map to help create any new merge field mappings.
+		// Keys are dataset name and values are field IDs select by user
+		Map<String, List<Long>> mergeFieldIds = new HashMap<>();
+		for (String key : params.keySet()) {
+			if (key.startsWith("cb_merge")) {
+				logger.debug("Found merge field parameter: " + key);
+				String[] tokens = key.split("_");
+				String datasetName = tokens[2];
+				logger.debug("Dataset name: " + datasetName);
+				List<Long> ids = mergeFieldIds.get(datasetName);
+				if (ids == null) {
+					ids = new ArrayList<>();
+					mergeFieldIds.put(datasetName, ids);
+				}
+				ids.add(new Long(tokens[3]));
+			}
+		}
+		
+		// Save any new merge field mappings
+		Study study = fieldInstanceX.getField().getStudy();
+		for (String datasetName : mergeFieldIds.keySet()) {
+			Dataset dataset = datasetRepository.findByStudyAndDatasetName(study, datasetName);
+			List<Long> fieldIds = mergeFieldIds.get(datasetName);
+			for (Long fieldId : fieldIds) {
+				Field field = fieldRepository.findOne(fieldId);
+				FieldInstance fieldInstance1 = fieldInstanceRepository.findByFieldAndDataset(field, fieldInstanceX.getDataset());
+				FieldInstance fieldInstance2 = fieldInstanceRepository.findByFieldAndDataset(field, dataset);
+				logger.debug("Saving merge field for " + fieldInstance1.getDataset().getDatasetName()
+						+ " (" + fieldInstance1.getField().getDisplayName() + ") to " + fieldInstance2.getDataset().getDatasetName()
+						+ " (" + fieldInstance2.getField().getDisplayName() + ")");
+				
+				MergeField mergeField = new MergeField();
+				mergeField.setFieldInstance1(fieldInstance1);
+				mergeField.setFieldInstance2(fieldInstance2);
+				mergeFieldRepository.save(mergeField);
+			}
+		}
 		
 		// Fetch Y field instance(s)
 		List<FieldInstance> fieldInstancesY = new ArrayList<>();
@@ -422,7 +459,6 @@ public class StudyAdminController {
 		}
 		
 		// Save checks
-		Study study = fieldInstanceX.getField().getStudy();
 		Check check = checkRepository.findByCheckName("BIVARIATE_OUTLIER");
 		List<BivariateCheck> duplicates = new ArrayList<>();
 		for (FieldInstance instanceY : fieldInstancesY) {
