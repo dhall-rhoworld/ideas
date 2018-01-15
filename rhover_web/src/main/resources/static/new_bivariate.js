@@ -23,7 +23,7 @@ $(function() {
 			let html = "<option value='0'>---Select Variable---</option>";
 			$("#select_variable_x").html(html);
 			xIsSelected = false;
-			onVariableSelectionChange();
+			onVariableSelectionChange(true);
 			return;
 		}
 		
@@ -80,7 +80,7 @@ $(function() {
 			xIsSelected = true;
 			$("#button_correlated").removeAttr("disabled");
 		}
-		onVariableSelectionChange();
+		onVariableSelectionChange(true);
 	});
 	
 	// --- SEARCH X VARIABLE ---
@@ -150,7 +150,7 @@ $(function() {
 				$("#text_search_x").prop("disabled", "true");
 				$("#button_correlated").removeAttr("disabled");
 				xIsSelected = true;
-				onVariableSelectionChange();
+				onVariableSelectionChange(true);
 			})
 			
 			// REST call failed
@@ -175,7 +175,7 @@ $(function() {
 		if (datasetId == 0) {
 			$("#td_variable_y").empty();
 			yIsSelected = false;
-			onVariableSelectionChange();
+			onVariableSelectionChange(true);
 			return;
 		}
 		
@@ -188,7 +188,7 @@ $(function() {
 				
 				// Update state of submit button
 				yIsSelected = true;
-				onVariableSelectionChange();
+				onVariableSelectionChange(true);
 				
 				// Add new radio buttons and select field
 				let html =
@@ -220,17 +220,17 @@ $(function() {
 				$("#y_type_continuous").click(function() {
 					yIsSelected = true;
 					$("#select_variable_y").prop("disabled", "true");
-					onVariableSelectionChange();
+					onVariableSelectionChange(true);
 				});
 				$("#y_type_numeric").click(function() {
 					yIsSelected = true;
 					$("#select_variable_y").prop("disabled", "true");
-					onVariableSelectionChange();
+					onVariableSelectionChange(true);
 				});
 				$("#y_type_custom").click(function() {
 					yIsSelected = false;
 					$("#select_variable_y").removeAttr("disabled");
-					onVariableSelectionChange();
+					onVariableSelectionChange(true);
 				});
 				$("#select_variable_y").change(function() {
 					if ($("#select_variable_y").val().length > 0) {
@@ -239,7 +239,7 @@ $(function() {
 					else {
 						yIsSelected = false;
 					}
-					onVariableSelectionChange();
+					onVariableSelectionChange(true);
 				});
 				
 				// Remove UI controls for browsing correlated variables and searching
@@ -297,7 +297,7 @@ $(function() {
 					else {
 						yIsSelected = false;
 					}
-					onVariableSelectionChange();
+					onVariableSelectionChange(true);
 				});
 			})
 			
@@ -373,7 +373,7 @@ $(function() {
 				$("#button_search_y").prop("disabled", "true");
 				$("#text_search_y").prop("disabled", "true");
 				yIsSelected = true;
-				onVariableSelectionChange();
+				onVariableSelectionChange(true);
 			})
 			.fail(function(data) {
 				console.log("Error");
@@ -383,7 +383,6 @@ $(function() {
 	$("#button_plot").click(function() {
 		const variableX = $("input[name='variable_x']").val();
 		const variableY = $("[name='variable_y'").val();
-		console.log("variableY: " + variableY + ", length: " + variableY.length);
 		const url = "/browse/bivariate?field_instance_id_1=" + variableX + "&field_instance_id_2=" + variableY;
 		window.open(url, "_blank");
 	});
@@ -405,7 +404,7 @@ $(function() {
 			$(".dataset-params").removeClass("deactivated");
 			$(".input-params").removeAttr("disabled");
 		}
-		onVariableSelectionChange();
+		onVariableSelectionChange(true);
 	});
 	
 	//
@@ -414,7 +413,7 @@ $(function() {
 	$(".input-params").on("keypress keyup blur", function(event) {
 		let numericOnly = $(this).val().replace(/[^0-9.]/g,"");
 		$(this).val(numericOnly);
-		onVariableSelectionChange();
+		onVariableSelectionChange(true);
 	});
 	
 	//
@@ -429,14 +428,29 @@ $(function() {
 	}
 	
 	//
+	// Tests whether merge variables selections have all been made
+	//
+	function mergeSelectionsComplete() {
+		let complete = true;
+		$(".table-merge").each(function() {
+			let dataset2 = this.dataset.dataset_2;
+			complete = complete && $(".cb_merge[data-dataset_2='" + dataset2 + "']:checked").length > 0;
+		});
+		return complete;
+	}
+	
+	//
 	// Activates/de-activates submit button depending on the completeness of
 	// form fields
 	//
-	function onVariableSelectionChange() {
-		initializeMergeForm();
+	function onVariableSelectionChange(populateMergeForm) {
+		
+		if (populateMergeForm) {
+			initializeMergeForm();
+		}
 		
 		// Submit button
-		let disabled = !(xIsSelected && yIsSelected && parametersComplete());
+		let disabled = !(xIsSelected && yIsSelected && parametersComplete() && mergeSelectionsComplete());
 		if (disabled) {
 			$("#button_submit").prop("disabled", true);
 		}
@@ -461,14 +475,11 @@ $(function() {
 	function initializeMergeForm() {
 		if (!xIsSelected || !yIsSelected) {
 			$("#h_merge").addClass("deactivated");
+			$("#div_merge").empty();
 			return;
 		}
 		
-		// Get data needed to query user for merge fields, if any are missing
-		/*const url = "/rest/admin/study/get_merge_field_info?variable_x=" + $("input[name='variable_x'").val()
-			+ "&variable_y=" + $("input[name='variable_y'").val();*/
 		const args = $("form").serialize();
-		console.log(args);
 		const url = "/rest/admin/study/get_merge_field_info?" + args;
 		
 		$.get(url)
@@ -490,13 +501,18 @@ $(function() {
 		$("#h_merge").removeClass("deactivated");
 		for (let i = 0; i < data.length; i++) {
 			let datum = data[i];
-			let html = "<p><table class='half-wide table-merge'><tr><th/><th>" + datum.datasetName1
+			let html = "<p><table class='half-wide table-merge' data-dataset_2='" + datum.datasetName2
+				+ "'><tr><th/><th>" + datum.datasetName1
 				+ "<span style='color: red;'> &lt;--AND--&gt; </span>" + datum.datasetName2 + "</th></tr>";
 			let fields = datum.fields;
 			for (let j = 0; j < fields.length; j++) {
 				let field = fields[j];
-				html += "<tr><td><input type='checkbox' class='cb_merge' data-dataset_1='" + datum.datasetName1
-					+ "' data-dataset_2='" + datum.datasetName2 + "' data-field_id='" + field.fieldId + "'/></td><td>";
+				html += "<tr><td><input type='checkbox' class='cb_merge' ";
+				html += "data-dataset_1='" + datum.datasetName1 + "' ";
+				html += "data-dataset_2='" + datum.datasetName2 + "' ";
+				html += "data-field_id='" + field.fieldId + "' ";
+				html += "name='cb_merge_" + datum.datasetName2 + "_" + field.fieldId + "'";
+				html += "/></td><td>";
 				html += field.displayName;
 				html += "</td>";
 			}
@@ -509,8 +525,10 @@ $(function() {
 			$("#div_merge").append(html);
 		}
 		
-		// Enable/disable logic for merge test button
+		// Event handler for checkboxes
 		$(".cb_merge").click(function() {
+			
+			// Enable/disable logic for merge test button
 			const dataset2 = this.dataset.dataset_2;
 			if ($("input[type='checkbox'][data-dataset_2='" + dataset2 + "']:checked").length == 0) {
 				$("button[data-dataset_2='" + dataset2 + "']").prop("disabled", "true");
@@ -518,6 +536,9 @@ $(function() {
 			else {
 				$("button[data-dataset_2='" + dataset2 + "']").removeAttr("disabled");
 			}
+			
+			// Enable/disable submit button
+			onVariableSelectionChange(false);
 		});
 		
 		// Event handler for merge test button
@@ -554,7 +575,9 @@ $(function() {
 				.fail(function() {
 					console.log("Error");
 				});
-		})
+		});
+		
+		onVariableSelectionChange(false);
 	}
 		
 	// ---------------------------------
@@ -588,6 +611,10 @@ $(function() {
 		title: "Finding Correlated Variables"
 	});
 	
+	
+	//
+	// Initialize jqueryui merge dialog
+	//
 	$("#dialog_merge").dialog({
 		autoOpen: false,
 		modal: true,
@@ -603,5 +630,4 @@ $(function() {
 			}
 		]
 	});
-	
 });
