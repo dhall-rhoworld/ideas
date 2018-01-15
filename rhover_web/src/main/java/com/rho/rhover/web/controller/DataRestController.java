@@ -9,9 +9,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.rho.rhover.common.check.CsvDataService;
+import com.rho.rhover.common.study.Field;
 import com.rho.rhover.common.study.FieldInstance;
 import com.rho.rhover.common.study.FieldInstanceRepository;
+import com.rho.rhover.common.study.FieldRepository;
 import com.rho.rhover.common.study.MergeField;
+import com.rho.rhover.common.study.Study;
 
 @RestController
 @RequestMapping("/rest/data")
@@ -19,6 +22,9 @@ public class DataRestController {
 	
 	@Autowired
 	private FieldInstanceRepository fieldInstanceRepository;
+	
+	@Autowired
+	private FieldRepository fieldRepository;
 	
 	@Autowired
 	private CsvDataService csvDataService;
@@ -38,10 +44,17 @@ public class DataRestController {
 			csv = csvDataService.getAsCsv(fi1.getDataset(), Boolean.TRUE, fi1.getField(), fi2.getField());
 		}
 		else {
+			Study study = fi1.getField().getStudy();
+			Field subjectField = fieldRepository.findByStudyAndFieldName(study, study.getSubjectFieldName());
 			List<MergeField> mergeFields = new ArrayList<>();
-			MergeField field = new MergeField();
+			MergeField mergeField = new MergeField();
+			mergeField.setFieldInstance1(fieldInstanceRepository.findByFieldAndDataset(subjectField, fi1.getDataset()));
+			mergeField.setFieldInstance2(fieldInstanceRepository.findByFieldAndDataset(subjectField, fi2.getDataset()));
+			mergeFields.add(mergeField);
 			List<FieldInstance> dataFields = new ArrayList<>();
-			csvDataService.mergeToCsv(mergeFields, dataFields, Boolean.FALSE, Boolean.TRUE);
+			dataFields.add(fi1);
+			dataFields.add(fi2);
+			csv = csvDataService.mergeToCsv(mergeFields, dataFields, Boolean.FALSE, Boolean.TRUE);
 		}
 		return csv;
 	}

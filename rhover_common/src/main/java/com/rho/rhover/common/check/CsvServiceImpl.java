@@ -126,8 +126,14 @@ public class CsvServiceImpl implements CsvDataService {
 				}
 				builder.append(mergeField.getFieldInstance1().getField().getDisplayName());
 			}
-		} 
+			builder.append(",");
+		}
+		int count = 0;
 		for (FieldInstance fieldInstance : analysisFields) {
+			count++;
+			if (count > 1) {
+				builder.append(",");
+			}
 			builder.append(fieldInstance.getField().getDisplayName());
 		}
 		builder.append("\n");
@@ -162,6 +168,7 @@ public class CsvServiceImpl implements CsvDataService {
 		}
 		logger.debug("Found " + numRecs + " records in dataset " + dataFrame.dataSetName);
 		logger.debug("Merged dataset contains " + numMergedRecs + " records");
+		logger.debug("\n" + builder.toString().substring(0, 100));
 		
 		return builder.toString();
 	}
