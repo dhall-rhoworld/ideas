@@ -491,10 +491,20 @@ $(function() {
 			html += datum.datasetName1;
 			html += "' data-dataset_2='";
 			html += datum.datasetName2;
-			html += "'>Check if Merge Works</button></td></tr>";
+			html += "' disabled='true'>Check if Merge Works</button></td></tr>";
 			html += "</table></p>";
 			$("#div_merge").append(html);
 		}
+		
+		$(".cb_merge").click(function() {
+			const dataset2 = this.dataset.dataset_2;
+			if ($("input[type='checkbox'][data-dataset_2='" + dataset2 + "']:checked").length == 0) {
+				$("button[data-dataset_2='" + dataset2 + "']").prop("disabled", "true");
+			}
+			else {
+				$("button[data-dataset_2='" + dataset2 + "']").removeAttr("disabled");
+			}
+		});
 		
 		$(".merge-test").click(function() {
 			const dataset1 = this.dataset.dataset_1;
@@ -516,7 +526,6 @@ $(function() {
 			if (variableY !== undefined) {
 				url += "&variable_y=" + variableY;
 			}
-			console.log(url);
 			$.get(url)
 				.done(function(result) {
 					const html =
