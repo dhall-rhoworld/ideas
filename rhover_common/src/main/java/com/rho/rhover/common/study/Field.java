@@ -221,10 +221,10 @@ public class Field {
 		return fieldLabel.substring(0, p) + " ... " + fieldLabel.substring(q);
 	}
 	
-	public DatasetVersion getCurrentDatasetVersion() {
+	public DatasetVersion getCurrentDatasetVersion(Dataset dataset) {
 		DatasetVersion current = null;
 		for (DatasetVersion datasetVersion : datasetVersions) {
-			if (datasetVersion.getIsCurrent()) {
+			if (datasetVersion.getIsCurrent() && datasetVersion.getDataset().equals(dataset)) {
 				current = datasetVersion;
 				break;
 			}

@@ -80,13 +80,18 @@ public class CorrelationFinderImpl implements CorrelationFinder {
 				}
 				if (field.getDataType().equals("Double") || field.getDataType().equals("Integer")) {
 					//logger.debug("Processing field: " + field.getDisplayName());
-					List<Double> data2 = csvDataRepository.findByFieldAndDataset(field, dataset).extractDataAsDouble();
-					double coeff = computeCorrelation(subjects1, data1, subjects2, data2);
-					if (Math.abs(coeff) >= minCorrelationCoeff) {
-						FieldInstance fieldInstance2 = fieldInstanceRepository.findByFieldAndDataset(field, dataset);
-						correlations.add(new Correlation(study, fieldInstance, fieldInstance2, coeff));
-//						logger.debug(fieldInstance.getField().getFieldName() + " and " + field.getFieldName()
-//							+ " [" + dataset.getDatasetName() + "] are correlated");
+					try {
+						List<Double> data2 = csvDataRepository.findByFieldAndDataset(field, dataset).extractDataAsDouble();
+						double coeff = computeCorrelation(subjects1, data1, subjects2, data2);
+						if (Math.abs(coeff) >= minCorrelationCoeff) {
+							FieldInstance fieldInstance2 = fieldInstanceRepository.findByFieldAndDataset(field, dataset);
+							correlations.add(new Correlation(study, fieldInstance, fieldInstance2, coeff));
+//							logger.debug(fieldInstance.getField().getFieldName() + " and " + field.getFieldName()
+//								+ " [" + dataset.getDatasetName() + "] are correlated");
+						}
+					}
+					catch (NumberFormatException e) {
+						logger.warn("Error converting data to numeric for dataset " + dataset.getDatasetName() + " field " + field.getDisplayName());
 					}
 				}
 			}

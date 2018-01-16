@@ -1,46 +1,64 @@
+// Drawing constants
 const CIRCUMFERENCE = 3;
 const AXIS_HEIGHT = 25;
 const PADDING = 20;
 const BORDER = 25;
 const SVG_WIDTH = 800;
 		
+// Helper variables for laying out data points in beeswarm configuration
 let laneIndex = new Array(500);
 let laneMax = new Array(500);
 let numLanes = 1;
 laneIndex[0] = 0;
 
+// State variables used during user interaction
 let isDragging = false;
 let mouseDownX = 0;
 let mouseDownY = 0;
 let mouseUpX = 0;
 let mouseUpY = 0;
 let selectRect = null;
+let dataAreSelected = false;
+let line1 = null;
+let line2 = null;
+let selectedData = null;
 
+// Variables computed during initial plotting and re-used when
+// the user changes something
 let minX = 0;
 let maxX = 0;
 let minY = 0;
 let maxY = 0;
-
-let dataAreSelected = false;
-
 let dataArea = null;
-let line1 = null;
-let line2 = null;
-
 let xScale = null;
 
+// Statistical properties
 let dataMean = 0;
 let dataSd = 0;
-let eventHandler = null;
 
+// Parameters set by the user
+let lowerThresh = -1;
+let upperThresh = -1;
 let siteFilter = -1;
 let subjectFilter = -1;
+
+// Metadata passed in by system
 let siteField = null;
 let subjectField = null;
 
-let lowerThresh = -1;
-let upperThresh = -1;
+// HTML client event handler function, which is invoked
+// upon certain user actions, such as selecting data
+let eventHandler = null;
 
+//
+// FUNCTIONS INVOKED BY CLIENT WEB PAGE
+//
+
+/**
+ * Set data filter
+ * @param entity Subject or site
+ * @param value Subject ID or site ID
+ */
 function setFilter(entity, value) {
 	if (entity == "none") {
 		siteFilter = -1;
@@ -56,6 +74,21 @@ function setFilter(entity, value) {
 	}
 }
 
+/**
+ * Get data selected by user
+ * @returns Array of data records
+ */
+function getSelectedData() {
+	selectedData = new Array();
+	dataArea.selectAll(".data-selected").each(function(d) {
+		selectedData.push(d);
+	});
+	return selectedData;
+}
+
+/**
+ * Redraw plot
+ */
 function reDraw() {
 	dataArea.selectAll("circle")
 		.classed("outlier", function(d) {
@@ -70,6 +103,28 @@ function reDraw() {
 		});
 }
 
+/**
+ * Set x-axis position of vertical threhsold lines
+ * @param numSd Number of SD from mean
+ */
+function setThresholdLines(numSd) {
+	lowerThresh = dataMean - numSd * dataSd;
+	lowerX = xScale(lowerThresh) + BORDER;
+	line1.attr("x1", lowerX).attr("x2", lowerX);
+	upperThresh = dataMean + numSd * dataSd;
+	upperX = xScale(upperThresh) + BORDER;
+	line2.attr("x1", upperX).attr("x2", upperX);
+}
+
+//
+// HELPER FUNCTIONS FOR LAYING OUT CHART
+//
+
+/**
+ * Get y-coordinate for a data point in the beeswarm
+ * @param X coordinate in pixels
+ * @returns Y coordinate in pixels
+ */
 function getY(x) {
 	let lane = 0;
 	while (lane < numLanes && (laneMax[lane] + 2 * CIRCUMFERENCE) > x) {
@@ -92,6 +147,12 @@ function getY(x) {
 	return y;
 }
 
+/**
+ * Compute height of beeswarm
+ * @param data Dataset to plot
+ * @param fieldName Name of field to plot
+ * @param xScale Conversion from domain values to pixels
+ */
 function computeHeight(data, fieldName, xScale) {
 	let minY = 0;
 	let maxY = 0;
@@ -119,16 +180,22 @@ function computeHeight(data, fieldName, xScale) {
 	return maxY - minY;
 }
 
-function setThresholdLines(numSd) {
-	lowerThresh = dataMean - numSd * dataSd;
-	lowerX = xScale(lowerThresh) + BORDER;
-	line1.attr("x1", lowerX).attr("x2", lowerX);
-	upperThresh = dataMean + numSd * dataSd;
-	upperX = xScale(upperThresh) + BORDER;
-	line2.attr("x1", upperX).attr("x2", upperX);
-}
 
+/**
+ * Render the beeswarm
+ * @param dataUrl URL to retrieve data
+ * @param fieldName Name of field to plot
+ * @param mean Statistical mean of field values
+ * @param sd Statistical SD of field values
+ * @param numSd Threshold value in SD units
+ * @param siteFieldName Name of field providing site name
+ * @param subjectFieldName Name of field providing subject name
+ * @param handler Client event handler invoked later on when use performs certain actions,
+ * such as selecting data
+ */
 function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteFieldName, subjectFieldName, handler) {
+	console.log("siteFilter: " + siteFilter + ", subjectFilter: " + subjectFilter);
+	console.log("siteFieldName: " + siteFieldName);
 	dataMean = mean;
 	dataSd = sd;
 	eventHandler = handler;
@@ -287,109 +354,6 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteFieldName, subj
 	});
 }
 
-let selectedData = null;
 
-function getSelectedData() {
-	selectedData = new Array();
-	dataArea.selectAll(".data-selected").each(function(d) {
-		selectedData.push(d);
-	});
-	return selectedData;
-}
 
-let hmtl = "";
 
-function onExport() {
-	html = "<table class='wide'><tr><th>Site</th><th>RecruitID</th><th>Event</th><th>"
-		+ dataFieldName + "</th></tr>";
-	dataArea.selectAll(".data-selected").each(function(d) {
-		let row =
-			"<tr>" +
-			"<td>" + d.Site + "</td>" +
-			"<td>" + d.RecruitID + "</td>" +
-			"<td>" + d.event + "</td>" +
-			"<td>" + d.value + "</td>" +
-			"</tr>";
-		html += row;
-	});
-	hmtl += "</table>"
-	$("#dialog_data").html(html);
-	$("#dialog_data").dialog("open");
-}
-
-function onChange() {
-	let option = document.getElementById("select_label").value;
-	if (option == "issue") {
-		let recruitIds = "";
-		let events = "";
-		let count = 0;
-		dataArea.selectAll(".inlier-selected")
-			.each(function(d) {
-				count++;
-				if (count > 1) {
-					recruitIds += ",";
-					events += ",";
-				}
-				recruitIds += d[subjectFieldName];
-				events += d["event"];
-			});
-		let data =
-			"data_field_id=" + dataFieldId + "&" +
-			"recruit_ids=" + recruitIds + "&" +
-			"events=" + events.replace(/&/g, "%26");
-		data = encodeURI(data);
-		//console.log(data);
-		$.post("/rest/anomaly/is_an_issue", data, function() {
-			dataArea.selectAll(".inlier-selected")
-			.classed("inlier", false)
-			.classed("inlier-selected", false)
-			.classed("outlier", true)
-			.classed("outlier-selected", true);
-		})
-	}
-	else if (option == "non-issue") {
-		let data = "anomaly_ids=";
-		let count = 0;
-		dataArea.selectAll(".outlier-selected")
-			.each(function(d) {
-				count++;
-				if (count > 1) {
-					data += ","
-				}
-				data += d["anomaly_id"];
-			});
-		$.post("/rest/anomaly/not_an_issue", data, function() {
-			dataArea.selectAll(".outlier-selected")
-			.classed("outlier", false)
-			.classed("outlier-selected", false)
-			.classed("inlier", true)
-			.classed("inlier-selected", true)
-		});
-	}
-}
-
-function onSave() {
-	document.getElementById("button_save").setAttribute("disabled", "true");
-	let x1 = caret1.attr("points").split(",")[0] - BORDER;
-	let x2 = caret2.attr("points").split(",")[0] - BORDER;
-	lowerThreshold = xScale.invert(x1);
-	upperThreshold = xScale.invert(x2);
-	const data = "data_field_id=" + dataFieldId + "&lower_threshold=" + lowerThreshold
-		+ "&upper_threshold=" + upperThreshold;
-	$.post("/rest/anomaly/set_univariate_thresholds", data, function() {
-		dataArea.selectAll("circle").each(function(d) {
-			let v = parseFloat(d["value"]);
-			//console.log(v);
-			if (v < lowerThreshold || v > upperThreshold) {
-				d3.select(this)
-				.classed("inlier", false)
-				.classed("outlier", true);
-			}
-			else {
-				d3.select(this)
-				.classed("outlier", false)
-				.classed("inlier", true);
-			}
-		});
-	});
-}

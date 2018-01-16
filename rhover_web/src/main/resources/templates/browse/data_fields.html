@@ -23,7 +23,8 @@
 		
 		<!-- Showing all anomalies from study -->
 		<span th:if="${site == null and subject == null}">
-			<a th:href="@{/browse/datasets(study_id=${dataset.study.studyId})}" th:text="${dataset.study.studyName}"/>
+			<a th:href="@{/browse/datasets(study_id=${dataset.study.studyId})}"
+				th:text="${dataset.study.studyName}"/>
 		</span>
 		
 		<!-- Showing anomalies from one site -->
@@ -64,13 +65,13 @@
    					</span>
    				</td>
    				<td>
-   					<a th:if="${site == null and subject == null}" th:href="@{/anomaly/table(field_id=${summary.entityId})}">Table</a>
-   					<a th:if="${site}" th:href="@{/anomaly/table(field_id=${summary.entityId}, site_id=${site.siteId})}">Table</a>
-   					<a th:if="${subject}" th:href="@{/anomaly/table(field_id=${summary.entityId}, subject_id=${subject.subjectId})}">Table</a>
+   					<a th:if="${site == null and subject == null}" th:href="@{/anomaly/table(field_id=${summary.entityId}, dataset_id=${dataset.datasetId})}">Table</a>
+   					<a th:if="${site}" th:href="@{/anomaly/table(field_id=${summary.entityId}, site_id=${site.siteId}, dataset_id=${dataset.datasetId})}">Table</a>
+   					<a th:if="${subject}" th:href="@{/anomaly/table(field_id=${summary.entityId}, subject_id=${subject.subjectId}, dataset_id=${dataset.datasetId})}">Table</a>
    					|
-   					<a th:if="${site == null and subject == null}" th:href="@{/anomaly/beeswarm(field_id=${summary.entityId})}">Chart</a>
-   					<a th:if="${site}" th:href="@{/anomaly/beeswarm(field_id=${summary.entityId}, site_id=${site.siteId})}">Chart</a>
-   					<a th:if="${subject}" th:href="@{/anomaly/beeswarm(field_id=${summary.entityId}, subject_id=${subject.subjectId})}">Chart</a>
+   					<a th:if="${site == null and subject == null}" th:href="@{/anomaly/beeswarm(field_id=${summary.entityId}, dataset_id=${dataset.datasetId})}">Chart</a>
+   					<a th:if="${site}" th:href="@{/anomaly/beeswarm(field_id=${summary.entityId}, site_id=${site.siteId}, dataset_id=${dataset.datasetId})}">Chart</a>
+   					<a th:if="${subject}" th:href="@{/anomaly/beeswarm(field_id=${summary.entityId}, subject_id=${subject.subjectId}, dataset_id=${dataset.datasetId})}">Chart</a>
    				</td>
    			</tr>
    		</table>

@@ -214,7 +214,11 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		catch (SourceDataException e) {
 			StringWriter stringWriter = new StringWriter();
 			PrintWriter printWriter = new PrintWriter(stringWriter);
-			e.getCause().printStackTrace(printWriter);
+			e.printStackTrace(printWriter);
+			if (e.getCause() != null) {
+				printWriter.append("\n\nCaused by:");
+				e.getCause().printStackTrace(printWriter);
+			}
 			String stackTrace = stringWriter.toString();
 			logger.error(stackTrace);
 			LoaderIssue issue = new LoaderIssue(e.getMessage(), stackTrace, IssueLevel.DATASET_VERSION);

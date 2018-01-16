@@ -11,6 +11,7 @@ drop table observation;
 drop table param_used;
 drop table check_run;
 drop table check_param;
+drop table bivariate_check;
 drop table checks;
 drop table correlation;
 drop table merge_field;

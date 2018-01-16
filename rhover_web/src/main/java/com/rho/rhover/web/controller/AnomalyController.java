@@ -2,6 +2,8 @@ package com.rho.rhover.web.controller;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,6 +23,8 @@ import com.rho.rhover.common.check.ParamUsedRepository;
 import com.rho.rhover.common.study.Field;
 import com.rho.rhover.common.study.FieldRepository;
 import com.rho.rhover.common.study.DataFieldRepository;
+import com.rho.rhover.common.study.Dataset;
+import com.rho.rhover.common.study.DatasetRepository;
 import com.rho.rhover.common.study.DatasetVersion;
 import com.rho.rhover.common.study.Site;
 import com.rho.rhover.common.study.SiteRepository;
@@ -33,6 +37,8 @@ import com.rho.rhover.web.dto.UniAnomalyDtoRepository;
 @Controller
 @RequestMapping("/anomaly")
 public class AnomalyController {
+	
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	@Autowired
 	private FieldRepository fieldRepository;
@@ -72,17 +78,22 @@ public class AnomalyController {
 	
 	@Autowired
 	private SubjectRepository subjectRepository;
+	
+	@Autowired
+	private DatasetRepository datasetRepository;
     
     @RequestMapping("/table")
     public String anomalyTable(
     			@RequestParam("field_id") Long fieldId,
     			@RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
     			@RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
+    			@RequestParam("dataset_id") Long datasetId,
     			Model model) {
     	Field field = fieldRepository.findOne(fieldId);
+    	Dataset dataset = datasetRepository.findOne(datasetId);
     	model.addAttribute("field", field);
     	model.addAttribute("id_fields", fieldRepository.findByStudyAndIsIdentifying(field.getStudy(), Boolean.TRUE));
-    	DatasetVersion datasetVersion = field.getCurrentDatasetVersion();
+    	DatasetVersion datasetVersion = field.getCurrentDatasetVersion(dataset);
     	model.addAttribute("dataset", datasetVersion.getDataset());
     	Check check = checkRepository.findByCheckName("UNIVARIATE_OUTLIER");
     	CheckRun checkRun = checkRunRepository.findByCheckAndDatasetVersionAndFieldAndIsLatest(check, datasetVersion, field, Boolean.TRUE);
@@ -105,21 +116,32 @@ public class AnomalyController {
 		    @RequestParam("field_id") Long fieldId,
 		    @RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
 		    @RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
+		    @RequestParam("dataset_id") Long datasetId,
 			Model model) {
+    	logger.debug("siteID: " + siteId);
+    	logger.debug("subjectId: " + subjectId);
+    	logger.debug("fieldId: " + fieldId);
     	Field field = dataFieldRepository.findOne(fieldId);
+    	Dataset dataset = datasetRepository.findOne(datasetId);
     	model.addAttribute("field", field);
-    	DatasetVersion datasetVersion = field.getCurrentDatasetVersion();
+    	DatasetVersion datasetVersion = field.getCurrentDatasetVersion(dataset);
     	model.addAttribute("dataset", datasetVersion.getDataset());
+    	logger.debug("datasetVersionId: " + datasetVersion.getDatasetVersionId());
+    	logger.debug("dataset: " + datasetVersion.getDataset().getDatasetName());
     	Check check = checkRepository.findByCheckName("UNIVARIATE_OUTLIER");
+    	logger.debug("check ID: " + check.getCheckId());
     	CheckRun checkRun = checkRunRepository.findByCheckAndDatasetVersionAndFieldAndIsLatest(check, datasetVersion, field, Boolean.TRUE);
+    	if (checkRun == null) {
+    		logger.debug("checkRun is null");
+    	}
     	model.addAttribute("check_run_id", checkRun.getCheckRunId());
     	model.addAttribute("mean", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "mean").getDataPropertyValue());
     	model.addAttribute("sd", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "sd").getDataPropertyValue());
     	model.addAttribute("num_sd", paramUsedRepository.findByCheckRunAndParamName(checkRun, "sd").getParamValue());
     	model.addAttribute("field_name", field.getDisplayName());
     	Study study = datasetVersion.getDataset().getStudy();
-    	model.addAttribute("subject_field_name", study.getSubjectFieldName());
-    	model.addAttribute("site_field_name", study.getSiteFieldName());
+    	model.addAttribute("subject_field_name", fieldRepository.findByStudyAndFieldName(study, study.getSubjectFieldName()).getDisplayName());
+    	model.addAttribute("site_field_name", fieldRepository.findByStudyAndFieldName(study, study.getSiteFieldName()).getDisplayName());
     	if (siteId == -1 && subjectId == -1) {
     		model.addAttribute("site_name", "-1");
     		model.addAttribute("subject_name", "-1");
