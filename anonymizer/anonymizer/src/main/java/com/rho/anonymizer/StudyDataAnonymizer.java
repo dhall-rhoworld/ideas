@@ -105,7 +105,10 @@ public class StudyDataAnonymizer {
 						if (count > 1) {
 							writer.write(",");
 						}
-						if (data[i] != null) {
+						if (data[i] == null) {
+							writer.write(".");
+						}
+						else {
 							String datum = data[i].toString();
 							if (anonymizationHelper.fieldMustBeGenerated(colName)) {
 								Map<String, String> subMap = generatedIdMap.get(colName);
@@ -134,8 +137,8 @@ public class StudyDataAnonymizer {
 			throw new RuntimeException(e);
 		}
 		finally {
-			Utils.close(inStream);
-			Utils.close(writer);
+			IOUtils.close(inStream);
+			IOUtils.close(writer);
 		}
 	}
 }

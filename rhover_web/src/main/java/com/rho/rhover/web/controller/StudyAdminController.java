@@ -275,6 +275,8 @@ public class StudyAdminController {
 			@RequestParam("form_field_name") String formFieldName,
 			@RequestParam("site_field_name") String siteFieldName,
 			@RequestParam("subject_field_name") String subjectFieldName,
+			@RequestParam("phase_field_name") String phaseFieldName,
+			@RequestParam("record_id_field_name") String recordIdFieldName,
 			@RequestParam(name="query_file_path", required=false, defaultValue="") String queryFilePath,
 			Model model) {
 		Study study = null;
@@ -296,6 +298,8 @@ public class StudyAdminController {
 		study.setFormFieldName(formFieldName);
 		study.setSiteFieldName(siteFieldName);
 		study.setSubjectFieldName(subjectFieldName);
+		study.setPhaseFieldName(phaseFieldName);
+		study.setRecordIdFieldName(recordIdFieldName);
 		if (queryFilePath.length() > 0) {
 			study.setQueryFilePath(queryFilePath);
 		}
@@ -308,6 +312,8 @@ public class StudyAdminController {
 	public String saveDataFolder(
 			@RequestParam("study_id") Long studyId,
 			@RequestParam("folder_path") String folderPath,
+			@RequestParam(name="include_sas", required=false, defaultValue="off") String includeSasFiles,
+			@RequestParam(name="include_csv", required=false, defaultValue="off") String includeCsvFiles,
 			Model model) {
 		logger.debug("studyId: " + studyId);
 		logger.debug("folderPath: " + folderPath);
@@ -315,6 +321,18 @@ public class StudyAdminController {
 		DataLocation location = new DataLocation();
 		location.setFolderPath(folderPath);
 		location.setStudy(study);
+		if (includeSasFiles.equals("on")) {
+			location.setIncludeSasFiles(Boolean.TRUE);
+		}
+		else {
+			location.setIncludeSasFiles(Boolean.FALSE);
+		}
+		if (includeCsvFiles.equals("on")) {
+			location.setIncludeCsvFiles(Boolean.TRUE);
+		}
+		else {
+			location.setIncludeCsvFiles(Boolean.FALSE);
+		}
 		study.getDataLocations().add(location);
 		studyRepository.save(study);
 		model.addAttribute("study", study);

@@ -8,6 +8,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import org.hibernate.annotations.Type;
+
 @Entity
 public class DataLocation {
 
@@ -18,6 +20,14 @@ public class DataLocation {
 	
 	@Column(name="folder_path")
 	private String folderPath;
+	
+	@Column(name="include_sas")
+	@Type(type="org.hibernate.type.NumericBooleanType")
+	private Boolean includeSasFiles = Boolean.TRUE;
+	
+	@Column(name="include_csv")
+	@Type(type="org.hibernate.type.NumericBooleanType")
+	private Boolean includeCsvFiles = Boolean.TRUE;
 	
 	@ManyToOne
 	@JoinColumn(name="study_id")
@@ -49,6 +59,22 @@ public class DataLocation {
 
 	public void setStudy(Study study) {
 		this.study = study;
+	}
+
+	public Boolean getIncludeSasFiles() {
+		return includeSasFiles;
+	}
+
+	public void setIncludeSasFiles(Boolean includeSasFiles) {
+		this.includeSasFiles = includeSasFiles;
+	}
+
+	public Boolean getIncludeCsvFiles() {
+		return includeCsvFiles;
+	}
+
+	public void setIncludeCsvFiles(Boolean includeCsvFiles) {
+		this.includeCsvFiles = includeCsvFiles;
 	}
 	
 }

@@ -199,7 +199,16 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		DatasetVersion datasetVersion = createAndSaveNewDatasetVersion(file, dataset, studyDbVersion);
 		
 		try {
-			DataFrame df = DataFrame.extractSasData(file);
+			DataFrame df = null;
+			if (file.getName().endsWith(".sas7bdat")) {
+				df = DataFrame.extractSasData(file);
+			}
+			else if (file.getName().endsWith(".csv")) {
+				df = DataFrame.extractCsvData(file);
+			}
+			else {
+				throw new RuntimeException("Unsupported file type: " + file.getName());
+			}
 			datasetVersion.setNumRecords(df.numRecords());
 			datasetVersionRepository.save(datasetVersion);
 			
@@ -285,6 +294,26 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 				logger.info("Saving field " + fieldName);
 				field = new Field(fieldName, fieldLabel, study, colType);
 				fieldRepository.save(field);
+				if (fieldName.equals(study.getFormFieldName())) {
+					study.setFormField(field);
+					studyRepository.save(study);
+				}
+				else if (fieldName.equals(study.getSiteFieldName())) {
+					study.setSiteField(field);
+					studyRepository.save(study);
+				}
+				else if (fieldName.equals(study.getSubjectFieldName())) {
+					study.setSubjectField(field);
+					studyRepository.save(study);
+				}
+				else if (fieldName.equals(study.getPhaseFieldName())) {
+					study.setPhaseField(field);
+					studyRepository.save(study);
+				}
+				else if (fieldName.equals(study.getRecordIdFieldName())) {
+					study.setRecordIdField(field);
+					studyRepository.save(study);
+				}
 			}
 			else {
 				String fieldType = field.getDataType();

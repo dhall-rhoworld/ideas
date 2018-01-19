@@ -53,7 +53,7 @@ public class CorrelationFinderImpl implements CorrelationFinder {
 		
 		// Extract subjects and data values associated with given field instance
 		Study study = fieldInstance.getField().getStudy();
-		Field subjectField = fieldRepository.findByStudyAndFieldName(study, study.getSubjectFieldName());
+		Field subjectField = study.getSubjectField();
 		List<String> subjects1 = csvDataRepository.findByFieldAndDataset(subjectField, fieldInstance.getDataset()).extractData();
 		List<Double> data1 = csvDataRepository.findByFieldAndDataset(fieldInstance.getField(), fieldInstance.getDataset()).extractDataAsDouble();
 		

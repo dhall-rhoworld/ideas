@@ -41,7 +41,7 @@ public class DataRestController {
 		}
 		else {
 			Study study = fi1.getField().getStudy();
-			Field subjectField = fieldRepository.findByStudyAndFieldName(study, study.getSubjectFieldName());
+			Field subjectField = study.getSubjectField();
 			List<MergeField> mergeFields = new ArrayList<>();
 			MergeField mergeField = new MergeField();
 			mergeField.setFieldInstance1(fieldInstanceRepository.findByFieldAndDataset(subjectField, fi1.getDataset()));

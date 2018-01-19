@@ -2,9 +2,19 @@
 create table study (
 	study_id BIGINT AUTO_INCREMENT NOT NULL,
 	study_name VARCHAR(50) NOT NULL,
+	
 	form_field_name VARCHAR(50) NOT NULL,
 	site_field_name VARCHAR(50) NOT NULL,
 	subject_field_name VARCHAR(50) NOT NULL,
+	phase_field_name VARCHAR(50) NOT NULL,
+	record_id_field_name VARCHAR(50) NOT NULL,
+	
+	form_field_id BIGINT,
+	site_field_id BIGINT,
+	subject_field_id BIGINT,
+	phase_field_id BIGINT,
+	record_id_field_id BIGINT,
+	
 	query_file_path VARCHAR(400),
 	is_initialized TINYINT NOT NULL DEFAULT 0,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -16,6 +26,8 @@ create table study (
 create table data_location (
 	data_location_id BIGINT AUTO_INCREMENT NOT NULL,
 	folder_path VARCHAR(400) NOT NULL,
+	include_sas TINYINT NOT NULL DEFAULT 1,
+	include_csv TINYINT NOT NULL DEFAULT 1,
 	study_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	modified_by VARCHAR(50),
@@ -107,6 +119,26 @@ create table field (
 	CONSTRAINT fk_field_2_study FOREIGN KEY (study_id) REFERENCES study (study_id),
 	CONSTRAINT u_field_name_study_id UNIQUE (field_name, study_id)
 );
+
+alter table study
+add CONSTRAINT fk_study_2_field_form
+FOREIGN KEY (form_field_id) REFERENCES field(field_id);
+
+alter table study
+add CONSTRAINT fk_study_2_field_site
+FOREIGN KEY (site_field_id) REFERENCES field(field_id);
+
+alter table study
+add CONSTRAINT fk_study_2_field_subject
+FOREIGN KEY (subject_field_id) REFERENCES field(field_id);
+
+alter table study
+add CONSTRAINT fk_study_2_field_phase
+FOREIGN KEY (phase_field_id) REFERENCES field(field_id);
+
+alter table study
+add CONSTRAINT fk_study_2_field_record
+FOREIGN KEY (record_id_field_id) REFERENCES field(field_id);
 
 create table csv_data (
 	csv_data_id BIGINT AUTO_INCREMENT NOT NULL,

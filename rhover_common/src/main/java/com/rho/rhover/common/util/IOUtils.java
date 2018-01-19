@@ -1,12 +1,13 @@
-package com.rho.anonymizer;
+package com.rho.rhover.common.util;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.io.Writer;
 
-public final class Utils {
+public final class IOUtils {
 
-	private Utils() {
+	private IOUtils() {
 		
 	}
 
@@ -28,6 +29,18 @@ public final class Utils {
 		}
 		try {
 			writer.close();
+		}
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	public static void close(Reader reader) {
+		if (reader == null) {
+			return;
+		}
+		try {
+			reader.close();
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);

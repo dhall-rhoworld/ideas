@@ -48,7 +48,7 @@ public class StudyDbService {
 
 	public File[] getDataFiles(DataLocation dataLocation) {
 		File folder = new File(dataLocation.getFolderPath());
-		return folder.listFiles(new DataFileNameFilter());
+		return folder.listFiles(new DataFileNameFilter(dataLocation));
 	}
 	
 	public Set<File> getDataFiles(Study study) {
@@ -161,10 +161,17 @@ public class StudyDbService {
 	}
 	
 	private static class DataFileNameFilter implements FilenameFilter {
+		
+		private final DataLocation dataLocation;
+		
+		private DataFileNameFilter(DataLocation dataLocation) {
+			this.dataLocation = dataLocation;
+		}
 
 		@Override
 		public boolean accept(File dir, String name) {
-			return name.endsWith(".sas7bdat");
+			return (dataLocation.getIncludeSasFiles() && name.endsWith(".sas7bdat")
+					|| (dataLocation.getIncludeCsvFiles() && name.endsWith(".csv")));
 		}
 		
 	}

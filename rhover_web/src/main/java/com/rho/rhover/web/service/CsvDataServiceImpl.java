@@ -49,8 +49,8 @@ public class CsvDataServiceImpl implements CsvDataService {
 		List<Field> fields = new ArrayList<>();
 		fields.addAll(idFields);
 		Study study = checkRun.getDatasetVersion().getDataset().getStudy();
-		Field subjectField = fieldRepository.findByStudyAndFieldName(study, study.getSubjectFieldName());
-		Field siteField = fieldRepository.findByStudyAndFieldName(study, study.getSiteFieldName());
+		Field subjectField = study.getSubjectField();
+		Field siteField = study.getSiteField();
 		if (!fields.contains(subjectField)) {
 			fields.add(subjectField);
 		}

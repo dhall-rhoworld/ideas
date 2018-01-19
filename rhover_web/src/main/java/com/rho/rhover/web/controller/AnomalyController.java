@@ -140,7 +140,7 @@ public class AnomalyController {
     	model.addAttribute("num_sd", paramUsedRepository.findByCheckRunAndParamName(checkRun, "sd").getParamValue());
     	model.addAttribute("field_name", field.getDisplayName());
     	Study study = datasetVersion.getDataset().getStudy();
-    	model.addAttribute("subject_field_name", fieldRepository.findByStudyAndFieldName(study, study.getSubjectFieldName()).getDisplayName());
+    	model.addAttribute("subject_field_name", study.getSubjectField().getDisplayName());
     	model.addAttribute("site_field_name", fieldRepository.findByStudyAndFieldName(study, study.getSiteFieldName()).getDisplayName());
     	if (siteId == -1 && subjectId == -1) {
     		model.addAttribute("site_name", "-1");

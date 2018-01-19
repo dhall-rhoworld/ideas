@@ -52,17 +52,41 @@
 	   				<th>Data Folders</th>
 	   			</tr>
 	   			<tr th:each="dataLocation : ${study.dataLocations}">
-	   				<td th:text="${dataLocation.folderPath}"/>
+	   				<td>
+	   					<span th:text="${dataLocation.folderPath}"/>
+	   					&nbsp;&nbsp;
+	   					[
+	   					<span th:if="${dataLocation.includeSasFiles}">SAS: YES</span>
+	   					<span th:if="not ${dataLocation.includeSasFiles}">SAS: NO</span>
+	   					|
+	   					<span th:if="${dataLocation.includeCsvFiles}">CSV: YES</span>
+	   					<span th:if="not ${dataLocation.includeCsvFiles}">CSV: NO</span>
+	   					]
+	   				</td>
 	   			</tr>
 	   		</table>
 	   	</div>
+	   	<h3>Add New Data Folder</h3>
 	   	<form action="/admin/study/add_data_folder" method="post">
-	   		<p>
 	   		<input type="hidden" name="study_id" th:value="${study.studyId}"/>
-	   		Folder Path: <input type="text" name="folder_path" id="text_folder_path" size="60"/>
-	   		</p>
+	   		<table class="invisible">
+	   			<tr>
+	   				<td align="right">Folder Path</td>
+	   				<td align="left">
+	   					<input type="text" name="folder_path" id="text_folder_path" size="60"/>
+	   				</td>
+	   			</tr>
+	   			<tr>
+	   				<td align="right">Include SAS files</td>
+	   				<td align="left"><input type="checkbox" name="include_sas" checked="true"/></td>
+	   			</tr>
+	   			<tr>
+	   				<td align="right">Include CSV files</td>
+	   				<td align="left"><input type="checkbox" name="include_csv" checked="true"/></td>
+	   			</tr>
+	   		</table>
 	   		<p>
-	 			<button type="button" id="button_submit">Add Data Folder</button>
+	 			<button type="button" id="button_submit">Add</button>
 	 			&nbsp; &nbsp;
 	 			<button type="button" onclick="onDone()">Done</button>
 	 		</p>
