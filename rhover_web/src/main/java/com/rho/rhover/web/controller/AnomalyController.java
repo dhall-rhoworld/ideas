@@ -141,7 +141,7 @@ public class AnomalyController {
     	model.addAttribute("field_name", field.getDisplayName());
     	Study study = datasetVersion.getDataset().getStudy();
     	model.addAttribute("subject_field_name", study.getSubjectField().getDisplayName());
-    	model.addAttribute("site_field_name", fieldRepository.findByStudyAndFieldName(study, study.getSiteFieldName()).getDisplayName());
+    	model.addAttribute("site_field_name", study.getSiteField().getDisplayName());
     	if (siteId == -1 && subjectId == -1) {
     		model.addAttribute("site_name", "-1");
     		model.addAttribute("subject_name", "-1");

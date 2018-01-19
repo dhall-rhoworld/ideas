@@ -34,6 +34,12 @@ public class DatasetVersion {
 	@Column(name="num_records")
 	private Integer numRecords;
 	
+	@Column(name="missing_an_id_field")
+	private Boolean isMissingAnIdField = Boolean.FALSE;
+	
+	@Column(name="multiple_recs_per_encounter")
+	private Boolean hasMultipleRecsPerEncounter = Boolean.FALSE;
+	
 	@ManyToOne
 	@JoinColumn(name="dataset_id")
 	private Dataset dataset;
@@ -139,6 +145,22 @@ public class DatasetVersion {
 		this.numRecords = numRecords;
 	}
 	
+	public Boolean getIsMissingAnIdField() {
+		return isMissingAnIdField;
+	}
+
+	public void setIsMissingAnIdField(Boolean isMissingAnIdField) {
+		this.isMissingAnIdField = isMissingAnIdField;
+	}
+
+	public Boolean getHasMultipleRecsPerEncounter() {
+		return hasMultipleRecsPerEncounter;
+	}
+
+	public void setHasMultipleRecsPerEncounter(Boolean hasMultipleRecsPerEncounter) {
+		this.hasMultipleRecsPerEncounter = hasMultipleRecsPerEncounter;
+	}
+
 	public String getNumericFieldSummary() {
 		int numNumeric = 0;
 		int numContinuous = 0;

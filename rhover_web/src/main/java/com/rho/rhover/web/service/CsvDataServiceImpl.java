@@ -30,25 +30,19 @@ public class CsvDataServiceImpl implements CsvDataService {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	@Autowired
-	private FieldRepository fieldRepository;
-	
-	@Autowired
 	private CsvDataRepository csvDataRepository;
 	
 	@Autowired
 	private UniAnomalyDtoRepository uniAnomalyDtoRepository;
 	
-	@Autowired
-	private DataSource dataSource;
-
 	@Override
 	public String getCsvData(CheckRun checkRun) {
 		
 		// Assemble fields
-		List<Field> idFields = fieldRepository.findByDatasetVersionAndIsIdentifying(checkRun.getDatasetVersion(), Boolean.TRUE);
+		Study study = checkRun.getDatasetVersion().getDataset().getStudy();
+		Set<Field> idFields = study.getUniqueIdentifierFields();
 		List<Field> fields = new ArrayList<>();
 		fields.addAll(idFields);
-		Study study = checkRun.getDatasetVersion().getDataset().getStudy();
 		Field subjectField = study.getSubjectField();
 		Field siteField = study.getSiteField();
 		if (!fields.contains(subjectField)) {
@@ -117,7 +111,7 @@ public class CsvDataServiceImpl implements CsvDataService {
 		return builder.toString();
 	}
 	
-	private void addAnomalyIds(List<Record> records, CheckRun checkRun, List<Field> idFields) {
+	private void addAnomalyIds(List<Record> records, CheckRun checkRun, Set<Field> idFields) {
 		List<UniAnomalyDto> dtos = uniAnomalyDtoRepository.findByCheckRunId(checkRun.getCheckRunId());
 		Map<String, Long> anomalyIdIndex = new HashMap<>();
 		for (UniAnomalyDto dto : dtos) {
@@ -133,7 +127,7 @@ public class CsvDataServiceImpl implements CsvDataService {
 		}
 	}
 	
-	private String concatenateKeysAndValues(Map<String, String> map, List<Field> idFields) {
+	private String concatenateKeysAndValues(Map<String, String> map, Set<Field> idFields) {
 		StringBuilder builder = new StringBuilder();
 		int count = 0;
 		for (Field field : idFields) {

@@ -8,6 +8,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import org.hibernate.annotations.Type;
+
 @Entity
 public class FieldInstance {
 	
@@ -23,6 +25,14 @@ public class FieldInstance {
 	@ManyToOne
 	@JoinColumn(name="dataset_id")
 	private Dataset dataset;
+	
+	@Column(name="is_potential_splitter")
+	@Type(type="org.hibernate.type.NumericBooleanType")
+	private Boolean isPotentialSplitter = Boolean.FALSE;
+	
+	@Column(name="is_potential_splittee")
+	@Type(type="org.hibernate.type.NumericBooleanType")
+	private Boolean isPotentialSplittee = Boolean.FALSE;
 
 	public FieldInstance() {
 		
@@ -56,6 +66,22 @@ public class FieldInstance {
 
 	public void setDataset(Dataset dataset) {
 		this.dataset = dataset;
+	}
+
+	public Boolean getIsPotentialSplitter() {
+		return isPotentialSplitter;
+	}
+
+	public void setIsPotentialSplitter(Boolean isPotentialSplitter) {
+		this.isPotentialSplitter = isPotentialSplitter;
+	}
+
+	public Boolean getIsPotentialSplittee() {
+		return isPotentialSplittee;
+	}
+
+	public void setIsPotentialSplittee(Boolean isPotentialSplittee) {
+		this.isPotentialSplittee = isPotentialSplittee;
 	}
 
 }

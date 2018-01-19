@@ -421,3 +421,31 @@ from field f
 join field_instance fi on fi.field_id = f.field_id
 where f.field_label like '%Height%';
 
+select ds.dataset_name, f.field_name, field_label
+from field_instance fi
+join field f on f.field_id = fi.field_id
+join dataset ds on ds.dataset_id = fi.dataset_id
+where fi.is_potential_splitter = 1
+and ds.dataset_id in
+(
+	select dataset_id
+	from field_instance
+	where is_potential_splittee = 1
+);
+
+
+select ds.dataset_name, f.field_name, field_label
+from field_instance fi
+join field f on f.field_id = fi.field_id
+join dataset ds on ds.dataset_id = fi.dataset_id
+where fi.is_potential_splittee = 1
+and ds.dataset_id in
+(
+	select dataset_id
+	from field_instance
+	where is_potential_splitter = 1
+);
+
+
+
+

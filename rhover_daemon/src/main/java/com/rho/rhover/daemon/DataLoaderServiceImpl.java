@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,12 +23,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.rho.rhover.common.check.Correlation;
-import com.rho.rhover.common.check.CorrelationRepository;
 import com.rho.rhover.common.check.CorrelationService;
 import com.rho.rhover.common.study.CsvData;
 import com.rho.rhover.common.study.CsvDataRepository;
 import com.rho.rhover.common.study.DataLocation;
-import com.rho.rhover.common.study.DataLocationRepository;
+import com.rho.rhover.common.study.DataLocationService;
 import com.rho.rhover.common.study.DataStream;
 import com.rho.rhover.common.study.DataStreamRepository;
 import com.rho.rhover.common.study.Dataset;
@@ -71,9 +72,6 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 	private StudyDbService studyDbService;
 	
 	@Autowired
-	private DataLocationRepository dataLocationRepository;
-	
-	@Autowired
 	private DatasetVersionRepository datasetVersionRepository;
 	
 	@Autowired
@@ -105,6 +103,9 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 	
 	@Autowired
 	private FieldService fieldService;
+	
+	@Autowired
+	private DataLocationService dataLocationService;
 
 	@Override
 	@Transactional
@@ -129,13 +130,13 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		Map<String, Boolean> fileChecklist = new HashMap<>();
 		Set<File> allFiles = studyDbService.getDataFiles(study);
 		for (File file : allFiles) {
-			fileChecklist.put(file.getAbsolutePath().replace("\\", "/"), Boolean.FALSE);
+			fileChecklist.put(file.getAbsolutePath(), Boolean.FALSE);
 		}
 		
 		// Process new files
 		for (File file : newFiles) {
-			fileChecklist.put(file.getAbsolutePath().replace("\\", "/"), Boolean.TRUE);
-			if (study.getQueryFilePath() != null && file.getAbsolutePath().replace("\\", "/").equals(study.getQueryFilePath())) {
+			fileChecklist.put(file.getAbsolutePath(), Boolean.TRUE);
+			if (study.getQueryFilePath() != null && file.getAbsolutePath().equals(study.getQueryFilePath())) {
 				continue;
 			}
 			Dataset dataset = createAndSaveNewDataset(study, file, studyDbVersion);
@@ -144,11 +145,11 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		
 		// Process modified files
 		for (File file : modifiedFiles) {
-			fileChecklist.put(file.getAbsolutePath().replace("\\", "/"), Boolean.TRUE);
-			if (study.getQueryFilePath() != null && file.getAbsolutePath().replace("\\", "/").equals(study.getQueryFilePath())) {
+			fileChecklist.put(file.getAbsolutePath(), Boolean.TRUE);
+			if (study.getQueryFilePath() != null && file.getAbsolutePath().equals(study.getQueryFilePath())) {
 				continue;
 			}
-			Dataset dataset = datasetRepository.findByFilePath(file.getAbsolutePath().replace("\\", "/"));
+			Dataset dataset = datasetRepository.findByFilePath(file.getAbsolutePath());
 			updateDatasetAndStudy(dataset, study, file, studyDbVersion);
 		}
 		
@@ -184,10 +185,11 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 	}
 
 	private Dataset createAndSaveNewDataset(Study study, File file, StudyDbVersion studyDbVersion) {		
-		DataLocation dataLocation = dataLocationRepository.findByFolderPath(file.getParentFile().getAbsolutePath().replace("\\", "/"));
-		Dataset dataset = new Dataset(file.getName(), study, file.getAbsolutePath().replace("\\", "/"), dataLocation);
+		DataLocation dataLocation = dataLocationService.findByDirectory(file.getParentFile());
+		Dataset dataset = new Dataset(file.getName(), study, file.getAbsolutePath(), dataLocation);
 		logger.info("Saving new dataset " + file.getName());
 		datasetRepository.save(dataset);
+		logger.debug("New dataset saved");
 		return dataset;
 	}
 	
@@ -214,11 +216,20 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 			
 			// Add data streams and fields to dataset version
 			addDataStreams(datasetVersion, df, file);
-			addFields(datasetVersion, df, file);
+			boolean missingAnIdField = addFields(datasetVersion, df, file);
 			
 			// Add new sites and subjects to study
 			addAnyNewSubjectsAndSites(study, df, file);
 			studyRepository.save(study);
+			
+			if (!missingAnIdField) {
+				boolean multipleRecs = hasMultipleRecsPerEncounter(df, study);
+				if (multipleRecs && !datasetVersion.getHasMultipleRecsPerEncounter()) {
+					datasetVersion.setHasMultipleRecsPerEncounter(multipleRecs);
+					datasetVersionRepository.save(datasetVersion);
+					findPotentialSplittersAndSplittees(datasetVersion, df);
+				}
+			}
 		}
 		catch (SourceDataException e) {
 			StringWriter stringWriter = new StringWriter();
@@ -236,6 +247,98 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		}
 	}
 	
+	private void findPotentialSplittersAndSplittees(DatasetVersion datasetVersion, DataFrame df) {
+		logger.debug("Looking for splitters and splittees in " + datasetVersion.getDataset().getDatasetName());
+		
+		// Create clusters of records by subject ID and phase
+		// Keys: SUBJECTID---PHASE
+		// Values: List of record indices in data frame
+		Map<String, List<Integer>> clusters = new HashMap<>();
+		Study study = datasetVersion.getDataset().getStudy();
+		String subjectFieldName = study.getSubjectFieldName();
+		String phaseFieldName = study.getPhaseFieldName();
+		List<String> subjects = df.getField(subjectFieldName);
+		List<String> phases = df.getField(phaseFieldName);
+		Iterator<String> subjectIt = subjects.iterator();
+		Iterator<String> phaseIt = phases.iterator();
+		int rowNum = 0;
+		while (subjectIt.hasNext() && phaseIt.hasNext()) {
+			String key = subjectIt.next() + "---" + phaseIt.next();
+			List<Integer> indices = clusters.get(key);
+			if (indices == null) {
+				indices = new ArrayList<>();
+				clusters.put(key, indices);
+			}
+			indices.add(rowNum);
+			rowNum++;
+		}
+		
+		// Find potential splitters and splitees by identifying columns where different
+		// members of a cluster have different values
+		int colNum = -1;
+		for (String colName : df.getColNames()) {
+			colNum++;
+			logger.debug("Col: " + colName + ", dataType: " + df.getDataTypes().get(colNum));
+			Class dataType = df.getDataTypes().get(colNum);
+			if (study.isFieldIdentifying(colName)
+					|| !(dataType.equals(String.class) || dataType.equals(Double.class))) {
+				continue;
+			}
+			List<String> values = df.getField(colName);
+			int numClustersWithDiffValues = 0;
+			for (String key : clusters.keySet()) {
+				Set<String> clusterValues = new HashSet<>();
+				List<Integer> indices = clusters.get(key);
+				for (Integer index : indices) {
+					clusterValues.add(values.get(index));
+				}
+				if (clusterValues.size() > 1 && indices.size() > 1) {
+					numClustersWithDiffValues++;
+				}
+//				logger.debug("dataset: " + datasetVersion.getDataset().getDatasetName()
+//						+ ", field: " + colName
+//						+ ", cluster: " + key + ", num records: " + indices.size()
+//						+ ", num diff values: " + clusterValues.size());
+			}
+			int threshold = (int)(clusters.size() * 0.25);
+			logger.debug("Num clusters with diff values: " + numClustersWithDiffValues);
+			logger.debug("Num records: " + df.numRecords());
+			logger.debug("Num clusters: " + clusters.size());
+			logger.debug("Threshold: " + threshold);
+			if (numClustersWithDiffValues >= threshold) {
+				Field field = fieldRepository.findByStudyAndFieldName(study, colName);
+				FieldInstance fi = fieldInstanceRepository.findByFieldAndDataset(
+						field, datasetVersion.getDataset());
+				if (dataType.equals(String.class) && df.getUniqueValues(colName).size() <= 20) {
+					logger.debug("Potential splitter");
+					fi.setIsPotentialSplitter(Boolean.TRUE);
+				}
+				else if (dataType.equals(Double.class)) {
+					logger.debug("Potential splittee");
+					fi.setIsPotentialSplittee(Boolean.TRUE);
+				}
+				fieldInstanceRepository.save(fi);
+			}
+		}
+		
+	}
+
+	private Boolean hasMultipleRecsPerEncounter(DataFrame df, Study study) {
+		boolean hasMultiples = false;
+		Set<String> keys = new HashSet<>();
+		Iterator<String> subjectIterator = df.getField(study.getSubjectFieldName()).iterator();
+		Iterator<String> phaseIterator = df.getField(study.getPhaseFieldName()).iterator();
+		while (subjectIterator.hasNext() && phaseIterator.hasNext()) {
+			String key = subjectIterator.next() + "---" + phaseIterator.next();
+			if (keys.contains(key)) {
+				hasMultiples = true;
+				break;
+			}
+			keys.add(key);
+		}
+		return hasMultiples;
+	}
+
 	private DatasetVersion createAndSaveNewDatasetVersion(File file, Dataset dataset, StudyDbVersion studyDbVersion) {
 		String datasetVersionName = studyDbService.generateDatasetVersionName(file);
 		DatasetVersion oldVersion = datasetVersionRepository.findByDatasetAndIsCurrent(dataset, Boolean.TRUE);
@@ -258,8 +361,8 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		List<String> fields = df.getColNames();
 		Study study = datasetVersion.getDataset().getStudy();
 		if (!fields.contains(study.getFormFieldName())) {
-			String message = "File " + file.getName() + " missing data stream field name";
-			throw new SourceDataException(message);
+			logger.warn("File " + file.getName() + " missing data stream field name");
+			return;
 		}
 	
 		// Add new data streams
@@ -280,11 +383,15 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		datasetVersionRepository.save(datasetVersion);
 	}
 	
-	private void addFields(DatasetVersion datasetVersion, DataFrame df, File file) {
+	private boolean addFields(DatasetVersion datasetVersion, DataFrame df, File file) {
 		List<String> fields = df.getColNames();
 		List<String> labels = df.getColLabels();
 		List<Class> dataTypes = df.getDataTypes();
 		Study study = datasetVersion.getDataset().getStudy();
+		boolean hasSubjectField = false;
+		boolean hasPhaseField = false;
+		boolean hasRecordIdField = false;
+		boolean hasSiteField = false;
 		for (int i = 0; i < fields.size(); i++) {
 			String fieldName = fields.get(i);
 			String fieldLabel = labels.get(i);
@@ -340,6 +447,18 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 					}
 				}
 			}
+			if (fieldName.equals(study.getSubjectFieldName())) {
+				hasSubjectField = true;
+			}
+			if (fieldName.equals(study.getPhaseFieldName())) {
+				hasPhaseField = true;
+			}
+			if (fieldName.equals(study.getRecordIdFieldName())) {
+				hasRecordIdField = true;
+			}
+			if (fieldName.equals(study.getSiteFieldName())) {
+				hasSiteField = true;
+			}
 			datasetVersion.addField(field);
 			field.addDatasetVersion(datasetVersion);
 			fieldRepository.save(field);
@@ -359,54 +478,72 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 				fieldInstanceRepository.save(fieldInstance);
 			}
 		}
+		if (hasSubjectField && hasPhaseField && hasRecordIdField && hasSiteField) {
+			datasetVersion.setIsMissingAnIdField(Boolean.FALSE);
+		}
+		else {
+			datasetVersion.setIsMissingAnIdField(Boolean.TRUE);
+		}
 		datasetVersionRepository.save(datasetVersion);
+		return datasetVersion.getIsMissingAnIdField();
 	}
 
 	private void addAnyNewSubjectsAndSites(Study study, DataFrame df, File file) {
 		
-		// Make sure data contains site and subject fields
-		// TODO: Perform these checks early in process
-		if (!df.getColNames().contains(study.getSiteFieldName())) {
-			String message = "File " + file.getName() + " does not contain site field " + study.getSiteFieldName();
-			throw new SourceDataException(message);
-		}
-		if (!df.getColNames().contains(study.getSubjectFieldName())) {
-			String message = "File " + file.getName() + " does not contain subject field " + study.getSubjectFieldName();
-			throw new SourceDataException(message);
-		}
-		
-		// Create a map of site names to sites
+		boolean hasSubjectField = df.getColNames().contains(study.getSubjectFieldName());
+		boolean hasSiteField = df.getColNames().contains(study.getSiteFieldName());
+				
+		// Create a map of site names to sites while saving any new sites
 		Map<String, Site> siteMap = new HashMap<>();
-		Set<String> siteNames = df.getUniqueValues(study.getSiteFieldName());
-		for (Object siteName : siteNames) {
-			Site site = siteRepository.findByStudyAndSiteName(study, siteName.toString());
-			if (site == null) {
-				logger.info("Saving new site: " + siteName.toString());
-				site = new Site(siteName.toString(), study);
-				siteRepository.save(site);
+		if (hasSiteField) {
+			Set<String> siteNames = df.getUniqueValues(study.getSiteFieldName());
+			for (Object siteName : siteNames) {
+				Site site = siteRepository.findByStudyAndSiteName(study, siteName.toString());
+				if (site == null) {
+					logger.info("Saving new site: " + siteName.toString());
+					site = new Site(siteName.toString(), study);
+					siteRepository.save(site);
+				}
+				siteMap.put(siteName.toString(), site);
 			}
-			siteMap.put(siteName.toString(), site);
 		}
 		
-		// Create a map of subject names to site names
-		Set<String> subjectNames = df.getUniqueValues(study.getSubjectFieldName());
-		Map<String, String> siteNameMap = generateSubjectNameToSiteNameMapping(study, df);
+		if (hasSubjectField) {
 		
-		// Process subjects
-		for (Object subjectName : subjectNames) {
-			Subject subject = subjectRepository.findBySubjectName(subjectName.toString());
-			if (subject == null) {
-				//logger.info("Saving new subject: " + subjectName.toString());
-				String siteName = siteNameMap.get(subjectName.toString());
-				if (siteName == null) {
-					logger.warn("Subject " + subjectName + " does not have an associated site in file " + file.getAbsolutePath() + ".  Not saving.");
-					
-					// TODO: Add user notification call
-				}
-				else {
-					Site site = siteMap.get(siteName);
-					subject = new Subject(subjectName.toString(), site);
+			// Create a map of subject names to site names
+			Set<String> subjectNames = df.getUniqueValues(study.getSubjectFieldName());
+			Map<String, String> subjectNameToSiteName = new HashMap<>();
+			if (hasSiteField) {
+				subjectNameToSiteName = generateSubjectNameToSiteNameMapping(study, df);
+			}
+			
+			// Process subjects
+			for (Object subjectName : subjectNames) {
+				Subject subject = subjectRepository.findBySubjectName(subjectName.toString());
+				
+				// Case: new subject
+				if (subject == null) {
+					//logger.info("Saving new subject: " + subjectName.toString());
+					subject = new Subject();
+					subject.setSubjectName(subjectName.toString());
+					if (hasSiteField) {
+						String siteName = subjectNameToSiteName.get(subjectName.toString());
+						if (siteName != null) {
+							Site site = siteMap.get(siteName);
+							subject.setSite(site);
+						}
+					}
 					subjectRepository.save(subject);
+				}
+				
+				// Case: add site to subject
+				else if (subject.getSite() == null && hasSiteField) {
+					String siteName = subjectNameToSiteName.get(subjectName.toString());
+					if (siteName != null) {
+						Site site = siteMap.get(siteName);
+						subject.setSite(site);
+						subjectRepository.save(subject);
+					}
 				}
 			}
 		}
@@ -477,7 +614,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		Dataset dataset1 = datasetVersion1.getDataset();
 		Dataset dataset2 = datasetVersion2.getDataset();
 		//logger.debug("Calculating correlation for datasets " + dataset1.getDatasetName() + " and " + dataset2.getDatasetName());
-		Field subjectField = fieldRepository.findByStudyAndFieldName(study, study.getSubjectFieldName());
+		Field subjectField = study.getSubjectField();
 		CsvData subjects1 = csvDataRepository.findByFieldAndDataset(subjectField, dataset1);
 		CsvData subjects2 = csvDataRepository.findByFieldAndDataset(subjectField, dataset2);
 		for (Field field1 : datasetVersion1.getFields()) {

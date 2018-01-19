@@ -213,9 +213,18 @@ public class Study {
 				|| field.equals(this.subjectField);
 	}
 	
+	public boolean isFieldIdentifying(String fieldName) {
+		return
+				fieldName.equals(this.formFieldName)
+				|| fieldName.equals(this.phaseFieldName)
+				|| fieldName.equals(this.recordIdFieldName)
+				|| fieldName.equals(this.siteFieldName)
+				|| fieldName.equals(this.subjectFieldName);
+	}
+	
 	public Set<Field> getUniqueIdentifierFields() {
 		Set<Field> fields = new HashSet<>();
-		fields.addAll(Arrays.asList(subjectField, phaseField, recordIdField));
+		fields.addAll(Arrays.asList(subjectField, phaseField, recordIdField, siteField));
 		return fields;
 	}
 }
