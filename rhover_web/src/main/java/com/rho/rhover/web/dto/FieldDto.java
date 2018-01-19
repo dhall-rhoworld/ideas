@@ -38,7 +38,7 @@ public class FieldDto implements Comparable<FieldDto> {
 		this.fieldName = field.getFieldName();
 		this.fieldLabel = field.getTruncatedDisplayName(MAX_LABEL_LENGTH);
 		this.dataType = field.getDisplayDataType();
-		this.isIdentifying = field.getIsIdentifying();
+		this.isIdentifying = field.getStudy().isFieldIdentifying(field);
 	}
 
 	public Long getFieldInstanceId() {

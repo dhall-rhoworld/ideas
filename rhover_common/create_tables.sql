@@ -110,7 +110,6 @@ create table field (
 	field_id BIGINT AUTO_INCREMENT NOT NULL,
 	field_name VARCHAR(200) NOT NULL,
 	field_label VARCHAR(400) NOT NULL,
-	is_identifying TINYINT NOT NULL DEFAULT 0,
 	study_id BIGINT NOT NULL,
 	data_type VARCHAR(50) NOT NULL,
 	is_skipped TINYINT NOT NULL DEFAULT 0,

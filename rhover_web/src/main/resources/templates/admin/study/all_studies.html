@@ -45,7 +45,6 @@
 	    		<div style="position: absolute; left: 85px; top: 15px;">
 	    		<strong><span th:text="${study.studyName}"/></strong><br/>
 	    		<a th:href="@{/admin/study/data_locations(study_id=${study.studyId})}" class="action-link">Data Folders</a> |
-	   			<a th:href="@{/admin/study/identifying_fields(study_id=${study.studyId})}" class="action-link">Identifying Fields</a> |
 	   			<a th:href="@{/admin/study/study_univariate(study_id=${study.studyId})}" class="action-link">Univariate Checks</a> |
 	   			<a th:href="@{/admin/study/correlations(study_id=${study.studyId})}" class="action-link">Bivariate Checks</a>
 	   			</div>	

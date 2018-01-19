@@ -10,5 +10,4 @@ public interface FieldService {
 	
 	int getNumRecords(FieldInstance fieldInstance);
 	
-	void setIdentifiableFields(Study study, Iterable<Long> fieldIds);
 }

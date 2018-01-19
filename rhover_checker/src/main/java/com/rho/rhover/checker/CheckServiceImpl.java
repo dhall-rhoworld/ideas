@@ -144,31 +144,13 @@ public class CheckServiceImpl implements CheckService {
 			throw new ConfigurationException("Univariate outlier script " + univariateOutlierScriptPath + " is not a valid file.");
 		}
 		
-		// Get identifying fields (i.e. set of fields that uniquely identifies a clinical data record) specified by study admin
-		List<Field> idFields = fieldRepository.findByStudyAndIsIdentifying(dataset.getStudy(), Boolean.TRUE);
+		// Get identifying data (i.e. subject, phase, record ID
 		List<CsvData> idData = new ArrayList<>();
-		if (idFields.size() == 0) {
-			throw new ConfigurationException("No identifying fields defined");
-		}
 		
-		// If not included by study admin, add the subject and site fields to set of identifying fields
-		boolean subjectIdIncluded = false;
-		boolean siteIdIncluded = false;
 		Study study = dataset.getStudy();
-		for (Field field : idFields) {
+		for (Field field : study.getUniqueIdentifierFields()) {
 			idData.add(csvDataRepository.findByFieldAndDataset(field, dataset));
-			if (field.getFieldName().equals(study.getSubjectFieldName())) {
-				subjectIdIncluded = true;
-			}
-			else if (field.getFieldName().equals(study.getSiteFieldName())) {
-				siteIdIncluded = true;
-			}
-		}
-		if (!subjectIdIncluded) {
-			idData.add(csvDataRepository.findByFieldAndDataset(fieldRepository.findByStudyAndFieldName(study, study.getSubjectFieldName()), dataset));
-		}
-		if (!siteIdIncluded) {
-			idData.add(csvDataRepository.findByFieldAndDataset(fieldRepository.findByStudyAndFieldName(study, study.getSiteFieldName()), dataset));
+			
 		}
 		
 		// Determine which data types should be checked as specified by the study admin.  Possible values include
@@ -284,7 +266,7 @@ public class CheckServiceImpl implements CheckService {
 	//
 	private boolean shouldCheckField(Field field, String dataTypesToCheck, Check check, DatasetVersion datasetVersion) {
 		boolean checkable = !(field.getIsSkipped()
-			|| field.getIsIdentifying()
+			|| field.getStudy().isFieldIdentifying(field)
 			|| (dataTypesToCheck.equals("continuous") && !field.getDataType().equals("Double"))
 			|| (dataTypesToCheck.equals("numeric") && !(field.getDataType().equals("Double") || field.getDataType().equals("Integer"))));
 		if (checkable) {

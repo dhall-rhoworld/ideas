@@ -71,21 +71,6 @@ public class FieldServiceImpl implements FieldService {
 	}
 	
 	@Override
-	@Transactional
-	public void setIdentifiableFields(Study study, Iterable<Long> fieldIds) {
-		Iterable<Field> fields = fieldRepository.findByStudy(study);
-		for (Field field : fields) {
-			field.setIsIdentifying(Boolean.FALSE);
-			fieldRepository.save(field);
-		}
-		Iterable<Field> idFields = fieldRepository.findAll(fieldIds);
-		for (Field field : idFields) {
-			field.setIsIdentifying(Boolean.TRUE);
-			fieldRepository.save(field);
-		}
-	}
-	
-	@Override
 	public List<Field> findPotentialMergeFields(Dataset dataset1, Dataset dataset2) {
 		JdbcTemplate template = new JdbcTemplate(dataSource);
 		String sql = 

@@ -92,7 +92,7 @@ public class AnomalyController {
     	Field field = fieldRepository.findOne(fieldId);
     	Dataset dataset = datasetRepository.findOne(datasetId);
     	model.addAttribute("field", field);
-    	model.addAttribute("id_fields", fieldRepository.findByStudyAndIsIdentifying(field.getStudy(), Boolean.TRUE));
+    	model.addAttribute("id_fields", field.getStudy().getUniqueIdentifierFields());
     	DatasetVersion datasetVersion = field.getCurrentDatasetVersion(dataset);
     	model.addAttribute("dataset", datasetVersion.getDataset());
     	Check check = checkRepository.findByCheckName("UNIVARIATE_OUTLIER");

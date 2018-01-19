@@ -1,5 +1,6 @@
 package com.rho.rhover.common.study;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -203,4 +204,18 @@ public class Study {
 		this.phaseField = phaseField;
 	}
 	
+	public boolean isFieldIdentifying(Field field) {
+		return
+				field.equals(this.formField)
+				|| field.equals(this.phaseField)
+				|| field.equals(this.recordIdField)
+				|| field.equals(this.siteField)
+				|| field.equals(this.subjectField);
+	}
+	
+	public Set<Field> getUniqueIdentifierFields() {
+		Set<Field> fields = new HashSet<>();
+		fields.addAll(Arrays.asList(subjectField, phaseField, recordIdField));
+		return fields;
+	}
 }

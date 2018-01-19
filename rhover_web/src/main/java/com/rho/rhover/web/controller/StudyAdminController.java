@@ -342,25 +342,6 @@ public class StudyAdminController {
 		return "admin/study/data_locations";
 	}
 	
-	@RequestMapping(value="/save_identifying_fields", method=RequestMethod.POST)
-	public String saveIdentifyingFields(
-			@RequestParam MultiValueMap<String, String> params,
-			Model model) {
-		Long studyId = Long.parseLong(params.getFirst("study_id"));
-		Study study = studyRepository.findOne(studyId);
-		List<Long> fieldIds = new ArrayList<>();
-		for (String paramName : params.keySet()) {
-			logger.debug("Param: " + paramName);
-			if (paramName.startsWith("field-")) {
-				Long fieldId = Long.parseLong(paramName.substring(6));
-				fieldIds.add(fieldId);
-			}
-		}
-		fieldService.setIdentifiableFields(study, fieldIds);
-		model.addAttribute("studies", studyRepository.findAll());
-		return "/admin/study/all_studies";
-	}
-	
 	@RequestMapping("/anomaly_settings")
 	public String anomalySettings(
 			@RequestParam(name="study_id") Long studyId,

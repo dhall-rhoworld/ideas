@@ -59,10 +59,6 @@ public class Field {
 	@Column(name="data_type")
 	private String dataType;
 	
-	@Column(name="is_identifying")
-	@Type(type="org.hibernate.type.NumericBooleanType")
-	private Boolean isIdentifying = Boolean.FALSE;
-	
 	@ManyToMany(mappedBy = "fields")
 	private Set<DatasetVersion> datasetVersions = new HashSet<>();
 	
@@ -138,14 +134,6 @@ public class Field {
 		this.fieldLabel = fieldLabel;
 	}
 
-	public Boolean getIsIdentifying() {
-		return isIdentifying;
-	}
-
-	public void setIsIdentifying(Boolean isIdentifying) {
-		this.isIdentifying = isIdentifying;
-	}
-	
 	public String getDisplayDataType() {
 		return DISPLAY_VALUES.get(this.dataType);
 	}

@@ -187,8 +187,9 @@ public class DatasetVersion {
 	
 	public int getNumNonIdentifyingNumericFields() {
 		int count = 0;
+		Study study = dataset.getStudy();
 		for (Field field : fields) {
-			if (field.getIsNumeric() && !field.getIsIdentifying()) {
+			if (field.getIsNumeric() && !study.isFieldIdentifying(field)) {
 				count++;
 			}
 		}
@@ -197,8 +198,9 @@ public class DatasetVersion {
 	
 	public int getNumNonIdentifyingContinuousFields() {
 		int count = 0;
+		Study study = dataset.getStudy();
 		for (Field field : fields) {
-			if (field.getDataType().equals("Double") && !field.getIsIdentifying()) {
+			if (field.getDataType().equals("Double") && !study.isFieldIdentifying(field)) {
 				count++;
 			}
 		}
