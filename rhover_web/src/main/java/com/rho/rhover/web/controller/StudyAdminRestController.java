@@ -33,7 +33,7 @@ import com.rho.rhover.common.check.CheckParamRepository;
 import com.rho.rhover.common.check.CheckRepository;
 import com.rho.rhover.common.check.Correlation;
 import com.rho.rhover.common.check.CorrelationFinder;
-import com.rho.rhover.common.check.CsvDataService;
+import com.rho.rhover.common.study.CsvDataService;
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.DatasetRepository;
 import com.rho.rhover.common.study.DatasetVersion;

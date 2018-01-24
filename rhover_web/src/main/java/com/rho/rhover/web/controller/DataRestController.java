@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.rho.rhover.common.check.CsvDataService;
+import com.rho.rhover.common.study.CsvDataService;
 import com.rho.rhover.common.study.Field;
 import com.rho.rhover.common.study.FieldInstance;
 import com.rho.rhover.common.study.FieldInstanceRepository;

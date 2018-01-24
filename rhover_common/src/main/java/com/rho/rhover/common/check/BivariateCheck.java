@@ -104,4 +104,8 @@ public class BivariateCheck {
 	public void setCheckParams(Map<String, CheckParam> checkParams) {
 		this.checkParams = checkParams;
 	}
+	
+	public boolean fieldsInSameDataset() {
+		return xFieldInstance.getDataset().equals(yFieldInstance.getDataset());
+	}
 }

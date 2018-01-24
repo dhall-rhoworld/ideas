@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.rho.rhover.common.anomaly.AnomalyRepositoryOld;
 import com.rho.rhover.common.check.CheckRun;
 import com.rho.rhover.common.check.CheckRunRepository;
+import com.rho.rhover.common.study.CsvDataService;
 import com.rho.rhover.common.study.StudyDataRepository;
-import com.rho.rhover.web.service.CsvDataService;
 
 @RestController
 @RequestMapping("/rest/anomaly")

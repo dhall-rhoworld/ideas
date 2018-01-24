@@ -15,6 +15,7 @@ import com.rho.rhover.common.anomaly.AnomalyRepository;
 import com.rho.rhover.common.anomaly.AnomalyRepositoryOld;
 import com.rho.rhover.common.anomaly.BivariateCheckRepositoryOld;
 import com.rho.rhover.common.anomaly.DataPropertyRepository;
+import com.rho.rhover.common.anomaly.UniAnomalyDtoRepository;
 import com.rho.rhover.common.check.Check;
 import com.rho.rhover.common.check.CheckRepository;
 import com.rho.rhover.common.check.CheckRun;
@@ -32,7 +33,6 @@ import com.rho.rhover.common.study.Study;
 import com.rho.rhover.common.study.StudyDataRepository;
 import com.rho.rhover.common.study.Subject;
 import com.rho.rhover.common.study.SubjectRepository;
-import com.rho.rhover.web.dto.UniAnomalyDtoRepository;
 
 @Controller
 @RequestMapping("/anomaly")
