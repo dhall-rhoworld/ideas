@@ -46,8 +46,8 @@ public class Dataset {
 		super();
 		this.datasetName = datasetName;
 		this.study = study;
-		this.filePath = filePath;
-		this.dataLocation = dataLocation;
+		this.setFilePath(filePath);
+		this.setDataLocation(dataLocation);
 	}
 
 	public Long getDatasetId() {
@@ -75,11 +75,11 @@ public class Dataset {
 	}
 
 	public String getFilePath() {
-		return filePath;
+		return filePath.replaceAll("\\\\", "/");
 	}
 
 	public void setFilePath(String filePath) {
-		this.filePath = filePath;
+		this.filePath = filePath.replaceAll("\\\\", "/");
 	}
 
 	public DataLocation getDataLocation() {

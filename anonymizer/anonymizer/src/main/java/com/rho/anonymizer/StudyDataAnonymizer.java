@@ -7,9 +7,11 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.epam.parso.Column;
 import com.epam.parso.SasFileReader;
@@ -20,14 +22,20 @@ public class StudyDataAnonymizer {
 	
 	private final AnonymizationHelper anonymizationHelper;
 	
+	private int nextRecordId = 1;
+	
 	public StudyDataAnonymizer(AnonymizationHelper anonymizationHelper) {
 		this.anonymizationHelper = anonymizationHelper;
 	}
 
 	public static void main(String[] args) {
-		File inputDir = new File("H:\\Data\\RhoVer\\MUPPITS\\Clinical");
-		File outputDir = new File("S:\\RhoFED\\NIAID\\DAIT\\General\\Bioinformatics\\Projects\\RhoVer\\Data\\AREPA");
-		StudyDataAnonymizer anonymizer = new StudyDataAnonymizer(new MuppitsAnonymizationHelper());
+		//File inputDir = new File("H:\\Data\\RhoVer\\MUPPITS\\Clinical");
+		//File outputDir = new File("S:\\RhoFED\\NIAID\\DAIT\\General\\Bioinformatics\\Projects\\RhoVer\\Data\\AREPA");
+		//StudyDataAnonymizer anonymizer = new StudyDataAnonymizer(new MuppitsAnonymizationHelper());
+		
+		File inputDir = new File("S:\\RhoFED\\ICAC2\\PROSE\\Statistics\\Data\\Complete");
+		File outputDir = new File("S:\\RhoFED\\NIAID\\DAIT\\General\\Bioinformatics\\Projects\\RhoVer\\Data\\SNIFFLES");
+		StudyDataAnonymizer anonymizer = new StudyDataAnonymizer(new ProseAnonymizationHelper());
 		anonymizer.anonymizeFiles(inputDir, outputDir);
 	}
 	
@@ -76,6 +84,9 @@ public class StudyDataAnonymizer {
 					writer.write(colName);
 				}
 			}
+			if (anonymizationHelper.generateRecordId()) {
+				writer.write(",RECORDID");
+			}
 			writer.write("\n");
 			
 			// Write field labels to output
@@ -89,6 +100,9 @@ public class StudyDataAnonymizer {
 					}
 					writer.write(col.getLabel().replaceAll(",", " "));
 				}
+			}
+			if (anonymizationHelper.generateRecordId()) {
+				writer.write(",Internal Record ID");
 			}
 			writer.write("\n");
 			
@@ -129,12 +143,20 @@ public class StudyDataAnonymizer {
 					}
 					i++;
 				}
+				if (anonymizationHelper.generateRecordId()) {
+					writer.write("," + nextRecordId);
+					nextRecordId++;
+				}
 				writer.write("\n");
 				data = reader.readNext();
 			}
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);
+		}
+		catch (Exception e) {
+			System.err.println("Error processing file");
+			e.printStackTrace();
 		}
 		finally {
 			IOUtils.close(inStream);

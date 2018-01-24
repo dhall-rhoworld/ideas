@@ -447,5 +447,34 @@ and ds.dataset_id in
 );
 
 
+update anomaly a
+set a.has_been_viewed = 0
+where a.field_id =
+(select f.field_id from field f where f.field_label = 'FEV1')
+;
+
+update anomaly a
+set a.has_been_viewed = 0
+where a.field_id =
+(select f.field_id from field f where f.field_label = 'Blood Pressure - Systolic')
+;
+
+update anomaly a
+set a.has_been_viewed = 0
+where a.field_id =
+(select f.field_id from field f where f.field_label = 'Pulse Rate')
+;
+
+update anomaly a
+set a.has_been_viewed = 0
+where a.field_id =
+(select f.field_id from field f where f.field_label like '%FEV1%Best to Date')
+;
+
+
+select f.field_name, f.field_label
+from field f
+where f.field_label like '%Fev%';
+
 
 

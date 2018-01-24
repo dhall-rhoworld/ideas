@@ -13,4 +13,7 @@ public interface AnonymizationHelper {
 	boolean dropField(String fieldName);
 	
 	boolean isADate(String value);
+	
+	boolean generateRecordId();
+
 }

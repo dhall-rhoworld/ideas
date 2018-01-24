@@ -41,7 +41,6 @@ public class StudyDbService {
 	
 	private DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
-	
 	public StudyDbService() {
 		
 	}
@@ -71,7 +70,7 @@ public class StudyDbService {
 		}
 		for (int i = 0; i < files.length; i++) {
 			File file = files[i];
-			String path = file.getAbsolutePath().replace("\\", "/");
+			String path = file.getAbsolutePath().replaceAll("\\\\", "/");
 			if (path.equals(dataLocation.getStudy().getQueryFilePath())) {
 				continue;
 			}
@@ -104,7 +103,7 @@ public class StudyDbService {
 		}
 		for (int i = 0; i < files.length; i++) {
 			File file = files[i];
-			String path = file.getAbsolutePath().replace("\\", "/");
+			String path = file.getAbsolutePath().replaceAll("\\\\", "/");
 			if (path.equals(dataLocation.getStudy().getQueryFilePath())) {
 				continue;
 			}

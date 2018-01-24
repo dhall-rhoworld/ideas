@@ -50,7 +50,7 @@ public class DataLocation {
 	}
 
 	public void setFolderPath(String folderPath) {
-		this.folderPath = folderPath;
+		this.folderPath = folderPath.replaceAll("\\\\", "/");
 	}
 
 	public Study getStudy() {

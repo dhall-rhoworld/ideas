@@ -187,9 +187,9 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 	private Dataset createAndSaveNewDataset(Study study, File file, StudyDbVersion studyDbVersion) {		
 		DataLocation dataLocation = dataLocationService.findByDirectory(file.getParentFile());
 		Dataset dataset = new Dataset(file.getName(), study, file.getAbsolutePath(), dataLocation);
-		logger.info("Saving new dataset " + file.getName());
+		logger.info("Saving new dataset " + dataset.getDatasetName() + ": " + dataset.getFilePath());
 		datasetRepository.save(dataset);
-		logger.debug("New dataset saved");
+		logger.debug("New dataset saved: " + dataset.getDatasetName() + " (" + dataset.getFilePath() + ")");
 		return dataset;
 	}
 	
