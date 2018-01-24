@@ -40,7 +40,7 @@
 			>
 			<a th:href="@{/browse/datasets(subject_id=${subject.subjectId})}" th:text="'Subject ' + ${subject.subjectName}"/>
 			>
-			<a th:href="@{/browse/fields(dataset_id=${dataset.datasetId}, subject_id=${subject.subjectId})}" th:text="${dataset.datasetName}"/>
+			<a th:href="@{/browse/data_fields(dataset_id=${dataset.datasetId}, subject_id=${subject.subjectId})}" th:text="${dataset.datasetName}"/>
 		</span>
 		>
 		<strong><span th:text="${field.fieldLabel}"/></strong>
