@@ -4,12 +4,15 @@ const AXIS_HEIGHT = 25;
 const PADDING = 20;
 const BORDER = 25;
 const SVG_WIDTH = 800;
+const MAX_LANES = 100;
 		
 // Helper variables for laying out data points in beeswarm configuration
-let laneIndex = new Array(500);
-let laneMax = new Array(500);
+let laneOrder = new Array(MAX_LANES);
+let laneMaxX = new Array(MAX_LANES);
 let numLanes = 1;
-laneIndex[0] = 0;
+laneOrder[0] = 0;
+const overflows = new Array();
+let currentOverflow = null;
 
 // State variables used during user interaction
 let isDragging = false;
@@ -121,62 +124,79 @@ function setThresholdLines(numSd) {
 //
 
 /**
- * Get y-coordinate for a data point in the beeswarm
- * @param X coordinate in pixels
+ * Get y-coordinate for a data point in the beeswarm.  Function will position
+ * data point in a vertical lane so that it does not overlap 
+ * @param x X-coordinate in pixels
  * @returns Y coordinate in pixels
  */
 function getY(x) {
 	let lane = 0;
-	while (lane < numLanes && (laneMax[lane] + 2 * CIRCUMFERENCE) > x) {
+	while (lane < numLanes && (laneMaxX[lane] + 2 * CIRCUMFERENCE) > x) {
 		lane++;
 	}
-	laneMax[lane] = x;
-	if (lane == numLanes) {
-		numLanes++;
-		if (laneIndex[lane - 1] == 0) {
-			laneIndex[lane] = -1;
+	if (lane >= MAX_LANES) {
+		if (currentOverflow == null) {
+			currentOverflow = new Object();
+			currentOverflow.x = x;
+			currentOverflow.count = 1;
+			overflows.push(currentOverflow);
 		}
-		else if (laneIndex[lane - 1] < 0) {
-			laneIndex[lane] = -laneIndex[lane - 1];
+		else if (x < currentOverflow.x + 2 * CIRCUMFERENCE) {
+			currentOverflow.count++;
 		}
 		else {
-			laneIndex[lane] = -laneIndex[lane - 1] - 1;
+			currentOverflow = new Object();
+			currentOverflow.x = x;
+			currentOverflow.count = 1;
+			overflows.push(currentOverflow);
+		}
+		return NaN;
+	}
+	laneMaxX[lane] = x;
+	if (lane == numLanes) {
+		numLanes++;
+		if (laneOrder[lane - 1] == 0) {
+			laneOrder[lane] = -1;
+		}
+		else if (laneOrder[lane - 1] < 0) {
+			laneOrder[lane] = -laneOrder[lane - 1];
+		}
+		else {
+			laneOrder[lane] = -laneOrder[lane - 1] - 1;
 		}
 	}
-	let y = laneIndex[lane] * 2 * CIRCUMFERENCE;
+	let y = laneOrder[lane] * 2 * CIRCUMFERENCE;
 	return y;
 }
 
 /**
- * Compute height of beeswarm
+ * Compute y coordinate of each data point and return height of plot
  * @param data Dataset to plot
  * @param fieldName Name of field to plot
  * @param xScale Conversion from domain values to pixels
  */
-function computeHeight(data, fieldName, xScale) {
+function setYAndComputHeight(data, fieldName, xScale) {
 	let minY = 0;
 	let maxY = 0;
 	let count = 0;
 	data.forEach(function(d) {
-		count++;
 		let y = getY(xScale(d[fieldName]));
-		if (count == 1) {
-			minY = y;
-			maxY = y;
-		}
-		if (y < minY) {
-			minY = y;
-		}
-		if (y > maxY) {
-			maxY = y;
+		d.__y__ = y;
+		if (!isNaN(y)) {
+			count++;
+			if (count == 1) {
+				minY = y;
+				maxY = y;
+			}
+			if (y < minY) {
+				minY = y;
+			}
+			if (y > maxY) {
+				maxY = y;
+			}
 		}
 	});
 
-	laneIndex = new Array(500);
-	laneMax = new Array(500);
-	numLanes = 1;
-	laneIndex[0] = 0;
-	
 	return maxY - minY;
 }
 
@@ -212,8 +232,8 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteFieldName, subj
 		xScale = d3.scaleLinear()
 			.domain([min, max])
 			.range([0, dataAreaWidth]);
-		let dataHeight = computeHeight(data, fieldName, xScale);
-		laneMax[0] = min - 100;
+		let dataHeight = setYAndComputHeight(data, fieldName, xScale);
+		laneMaxX[0] = min - 100;
 		const svgHeight = dataHeight + 2 * BORDER + PADDING + AXIS_HEIGHT;
 		const svg = d3.select("svg")
 			.attr("width", SVG_WIDTH)
@@ -236,8 +256,11 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteFieldName, subj
 			.data(data)
 			.enter()
 			.append("circle")
+			.filter(function(d) {
+				return !isNaN(d.__y__);
+			})
 			.attr("cx", function(d) {return xScale(d[fieldName]);})
-			.attr("cy", function(d) {return getY(xScale(d[fieldName]));})
+			.attr("cy", function(d) {return d.__y__;})
 			.attr("r", CIRCUMFERENCE)
 			.classed("outlier", function(d) {
 				return d["anomaly_id"] > 0 && (d[fieldName] < lowerThresh || d[fieldName] > upperThresh);
@@ -249,6 +272,40 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteFieldName, subj
 				return (siteFilter != "-1" && d[siteField] != siteFilter) ||
 					(subjectFilter != "-1" && d[subjectField] != subjectFilter)
 			});
+		
+		// Drawn any overflows
+		svg.selectAll(".overflow-mark-top")
+			.data(overflows)
+			.enter()
+			.append("polygon")
+			.attr("points", function(d) {
+				let points = (BORDER + d.x - CIRCUMFERENCE) + "," + (BORDER - 3 * CIRCUMFERENCE) + " " + (BORDER + d.x) + ","
+					+ (BORDER - 3 * CIRCUMFERENCE - 5) + " " + (d.x + CIRCUMFERENCE + BORDER) + "," + (BORDER - 3 * CIRCUMFERENCE);
+				return points;
+			})
+			.attr("x1", function(d) {return d.x + BORDER;})
+			.attr("y1", BORDER - 20)
+			.attr("x2", function(d) {return d.x + BORDER;})
+			.attr("class", "overflow-mark-top")
+			.attr("y2", BORDER - CIRCUMFERENCE * 2)
+			.style("fill", "green");
+		svg.selectAll(".overflow-mark-bottom")
+			.data(overflows)
+			.enter()
+			.append("polygon")
+			.attr("points", function(d) {
+				let points = (
+						BORDER + d.x - CIRCUMFERENCE) + "," + (BORDER + dataHeight + CIRCUMFERENCE) + " " + 
+						(BORDER + d.x) + "," + (BORDER + dataHeight + CIRCUMFERENCE + 5) + " " + 
+						(d.x + CIRCUMFERENCE + BORDER) + "," + (BORDER + dataHeight + CIRCUMFERENCE);
+				return points;
+			})
+			.attr("x1", function(d) {return d.x + BORDER;})
+			.attr("y1", BORDER - 20)
+			.attr("x2", function(d) {return d.x + BORDER;})
+			.attr("class", "overflow-mark-bottom")
+			.attr("y2", BORDER - CIRCUMFERENCE * 2)
+			.style("fill", "green");
 		
 		// Draw threshold lines
 		let xLower = xScale(lowerThresh) + BORDER;

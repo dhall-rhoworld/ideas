@@ -47,26 +47,27 @@
     	<div th:if="${message}" class="message_box" th:text="${message}"/>
     
     	<div th:if="${not #lists.isEmpty(study.dataLocations)}">
+    		<h3>Data Locations</h3>
 	   		<table class="wide">
 	   			<tr>
-	   				<th>Data Folders</th>
+	   				<th>File Folder</th>
+	   				<th>SAS Files</th>
+	   				<th>CSV Files</th>
 	   			</tr>
 	   			<tr th:each="dataLocation : ${study.dataLocations}">
+	   				<td th:text="${dataLocation.folderPath}"/>
 	   				<td>
-	   					<span th:text="${dataLocation.folderPath}"/>
-	   					&nbsp;&nbsp;
-	   					[
-	   					<span th:if="${dataLocation.includeSasFiles}">SAS: YES</span>
-	   					<span th:if="not ${dataLocation.includeSasFiles}">SAS: NO</span>
-	   					|
-	   					<span th:if="${dataLocation.includeCsvFiles}">CSV: YES</span>
-	   					<span th:if="not ${dataLocation.includeCsvFiles}">CSV: NO</span>
-	   					]
+	   					<span th:if="${dataLocation.includeSasFiles}">YES</span>
+	   					<span th:if="not ${dataLocation.includeSasFiles}">no</span>
+	   				</td>
+	   				<td>
+	   					<span th:if="${dataLocation.includeCsvFiles}">YES</span>
+	   					<span th:if="not ${dataLocation.includeCsvFiles}">no</span>
 	   				</td>
 	   			</tr>
 	   		</table>
 	   	</div>
-	   	<h3>Add New Data Folder</h3>
+	   	<h4>--- Add new data folder ---</h4>
 	   	<form action="/admin/study/add_data_folder" method="post">
 	   		<input type="hidden" name="study_id" th:value="${study.studyId}"/>
 	   		<table class="invisible">
