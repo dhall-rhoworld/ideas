@@ -54,6 +54,11 @@ public class DatasetVersion {
 			inverseJoinColumns = @JoinColumn(name="field_id"))
 	private Set<Field> fields = new HashSet<>();
 	
+	@ManyToMany
+	@JoinTable(name="dataset_version_phase", joinColumns=@JoinColumn(name="dataset_version_id"),
+			inverseJoinColumns=@JoinColumn(name="phase_id"))
+	private Set<Phase> phases = new HashSet<>();
+	
 	@ManyToMany(mappedBy = "datasetVersions")
 	private Set<StudyDbVersion> studyDbVersions = new HashSet<>();
 	
@@ -159,6 +164,14 @@ public class DatasetVersion {
 
 	public void setHasMultipleRecsPerEncounter(Boolean hasMultipleRecsPerEncounter) {
 		this.hasMultipleRecsPerEncounter = hasMultipleRecsPerEncounter;
+	}
+
+	public Set<Phase> getPhases() {
+		return phases;
+	}
+
+	public void setPhases(Set<Phase> phases) {
+		this.phases = phases;
 	}
 
 	public String getNumericFieldSummary() {

@@ -16,9 +16,10 @@ public interface CsvDataService {
 	 * @param fieldInstances Fields to put in CSV output.
 	 * @param useFieldLabelsAsHeaders If TRUE, headers in the output string will be
 	 * field labels.  Otherwise, field names will be used.
+	 * @param removeNulls If TRUE, records containing any null values will not be included
 	 * @return A comma-separated encoding of data records.
 	 */
-	String getCsvData(List<FieldInstance> fieldInstances, boolean useFieldLabelsAsHeaders);
+	String getCsvData(List<FieldInstance> fieldInstances, boolean useFieldLabelsAsHeaders, boolean removeNulls);
 	
 	String mergeToCsv(List<MergeField> mergeFields, List<FieldInstance> dataFields, Boolean includeMergeFields,
 			Boolean removeRecordsWithMissingValues);

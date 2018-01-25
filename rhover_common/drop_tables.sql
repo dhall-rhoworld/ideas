@@ -27,6 +27,8 @@ alter table study drop foreign key fk_study_2_field_subject;
 alter table study drop foreign key fk_study_2_field_site;
 alter table study drop foreign key fk_study_2_field_form;
 drop table field;
+drop table dataset_version_phase;
+drop table phase;
 drop table subject;
 drop table site;
 drop table dataset_version_stream;

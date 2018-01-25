@@ -36,6 +36,8 @@ import com.rho.rhover.common.study.DatasetVersion;
 import com.rho.rhover.common.study.LoaderIssue;
 import com.rho.rhover.common.study.LoaderIssue.IssueLevel;
 import com.rho.rhover.common.study.LoaderIssueRepository;
+import com.rho.rhover.common.study.Phase;
+import com.rho.rhover.common.study.PhaseRepository;
 import com.rho.rhover.common.study.DatasetVersionRepository;
 import com.rho.rhover.common.study.Field;
 import com.rho.rhover.common.study.FieldInstance;
@@ -100,6 +102,9 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 	
 	@Autowired
 	private CsvDataRepository csvDataRepository;
+	
+	@Autowired
+	private PhaseRepository phaseRepository;
 	
 	@Autowired
 	private FieldService fieldService;
@@ -214,8 +219,11 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 			datasetVersion.setNumRecords(df.numRecords());
 			datasetVersionRepository.save(datasetVersion);
 			
-			// Add data streams and fields to dataset version
+			// Add any new data stream and phases
 			addDataStreams(datasetVersion, df, file);
+			addPhases(df, study, file, datasetVersion);
+			
+			// Add any new fields
 			boolean missingAnIdField = addFields(datasetVersion, df, file);
 			
 			// Add new sites and subjects to study
@@ -380,6 +388,28 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 			dataStreamRepository.save(dataStream);
 		}
 		
+		datasetVersionRepository.save(datasetVersion);
+	}
+	
+	private void addPhases(DataFrame df, Study study, File file, DatasetVersion datasetVersion) {
+		
+		// Make sure file contains a field indicating phase
+		List<String> fields = df.getColNames();
+		if (!fields.contains(study.getPhaseFieldName())) {
+			throw new SourceDataException("File " + file.getName() + " missing data stream field name");
+		}
+		
+		// Extract phase names and save any new phases
+		List<String> phaseData = df.getField(study.getPhaseFieldName());
+		for (String phaseName : phaseData) {
+			Phase phase = phaseRepository.findByPhaseName(phaseName);
+			if (phase == null) {
+				logger.debug("Saving new phase: " + phaseName);
+				phase = new Phase(phaseName, study);
+				phaseRepository.save(phase);
+			}
+			datasetVersion.getPhases().add(phase);
+		}
 		datasetVersionRepository.save(datasetVersion);
 	}
 	

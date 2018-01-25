@@ -1,6 +1,7 @@
 package com.rho.rhover.checker;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -14,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 
 import org.hibernate.exception.ConstraintViolationException;
@@ -50,16 +52,20 @@ import com.rho.rhover.common.check.ParamUsed;
 import com.rho.rhover.common.check.ParamUsedRepository;
 import com.rho.rhover.common.study.CsvData;
 import com.rho.rhover.common.study.CsvDataRepository;
+import com.rho.rhover.common.study.CsvDataService;
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.DatasetVersion;
 import com.rho.rhover.common.study.DatasetVersionRepository;
 import com.rho.rhover.common.study.Field;
+import com.rho.rhover.common.study.FieldInstance;
+import com.rho.rhover.common.study.FieldInstanceRepository;
 import com.rho.rhover.common.study.FieldRepository;
 import com.rho.rhover.common.study.Site;
 import com.rho.rhover.common.study.SiteRepository;
 import com.rho.rhover.common.study.Study;
 import com.rho.rhover.common.study.Subject;
 import com.rho.rhover.common.study.SubjectRepository;
+import com.rho.rhover.common.util.IOUtils;
 
 @Service
 public class CheckServiceImpl implements CheckService {
@@ -111,6 +117,12 @@ public class CheckServiceImpl implements CheckService {
 	@Autowired
 	private BivariateCheckRepository bivariateCheckRepository;
 	
+	@Autowired
+	private FieldInstanceRepository fieldInstanceRepository;
+	
+	@Autowired
+	private CsvDataService csvDataService;
+	
 	@Value("${working.dir}")
 	private String workingDirPath;
 	
@@ -119,6 +131,29 @@ public class CheckServiceImpl implements CheckService {
 	
 	@Value("${univariate.outlier.script.path}")
 	private String univariateOutlierScriptPath;
+	
+	private File workingDir;
+	
+	File rExecutable;
+	
+	File univariateOutlierScript;
+	
+	@PostConstruct
+	public void init() {
+		workingDir = new File(workingDirPath);
+		if (!workingDir.isDirectory()) {
+			throw new ConfigurationException("Working directory " + workingDirPath + " is not a valid directory.");
+		}
+		rExecutable = new File(rExecutablePath);
+		if (!rExecutable.isFile()) {
+			throw new ConfigurationException("Invalid R executable: " + rExecutablePath);
+		}
+		univariateOutlierScript = new File(univariateOutlierScriptPath);
+		if (!univariateOutlierScript.isFile()) {
+			throw new ConfigurationException("Univariate outlier script " + univariateOutlierScriptPath + " is not a valid file.");
+		}
+	}
+	
 
 	// TODO: Only run checks if a minumum number of records are present
 	@Override
@@ -126,31 +161,11 @@ public class CheckServiceImpl implements CheckService {
 	public void runUnivariateCheck(Check check, Dataset dataset) {
 		logger.debug("Running check " + check.getCheckName() + " on dataset " + dataset.getDatasetName());
 		
-		// Get working directory
-		File workingDir = new File(workingDirPath);
-		if (!workingDir.isDirectory()) {
-			throw new ConfigurationException("Working directory " + workingDirPath + " is not a valid directory.");
-		}
-		
-		// Get reference to R executable
-		File rExecutable = new File(rExecutablePath);
-		if (!rExecutable.isFile()) {
-			throw new ConfigurationException("Invalid R executable: " + rExecutablePath);
-		}
-		
-		// Get reference to univariate check R script
-		File rScriptDir = new File(univariateOutlierScriptPath);
-		if (!rScriptDir.isFile()) {
-			throw new ConfigurationException("Univariate outlier script " + univariateOutlierScriptPath + " is not a valid file.");
-		}
-		
-		// Get identifying data (i.e. subject, phase, record ID
+		// Get identifying data (i.e. subject, phase, record ID)
 		List<CsvData> idData = new ArrayList<>();
-		
 		Study study = dataset.getStudy();
 		for (Field field : study.getUniqueIdentifierFields()) {
 			idData.add(csvDataRepository.findByFieldAndDataset(field, dataset));
-			
 		}
 		
 		// Determine which data types should be checked as specified by the study admin.  Possible values include
@@ -495,12 +510,65 @@ public class CheckServiceImpl implements CheckService {
 						+ " [" + param.getParamScope() + "]");
 			}
 			
-			String rInputData = generateRInputData(biCheck);
+			// Generate input and output files
+			BufferedWriter writer = null;
+			try {
+				ScriptIoFiles scriptIoFiles = generateScriptIoFiles("bivariate-" + biCheck.getxFieldInstance().getFieldInstanceId()
+						+ "-" + biCheck.getyFieldInstance().getFieldInstanceId() + "-");
+				String rInputData = generateRInputData(biCheck, study);
+				writer = new BufferedWriter(new FileWriter(scriptIoFiles.inputDataFile));
+				writer.write(rInputData);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			finally {
+				IOUtils.close(writer);
+			}
 		}
 	}
 
-	private String generateRInputData(BivariateCheck biCheck) {
-		// TODO Auto-generated method stub
-		return null;
+	private String generateRInputData(BivariateCheck biCheck, Study study) {
+		String dataStr = null;
+		
+		// Case: fields in same dataset
+		if (biCheck.fieldsInSameDataset()) {
+			List<FieldInstance> fieldInstances = new ArrayList<>();
+			Dataset dataset = biCheck.getxFieldInstance().getDataset();
+			fieldInstances.add(fieldInstanceRepository.findByFieldAndDataset(study.getSubjectField(), dataset));
+			fieldInstances.add(fieldInstanceRepository.findByFieldAndDataset(study.getPhaseField(), dataset));
+			fieldInstances.add(fieldInstanceRepository.findByFieldAndDataset(study.getRecordIdField(), dataset));
+			fieldInstances.add(biCheck.getxFieldInstance());
+			fieldInstances.add(biCheck.getyFieldInstance());
+			dataStr = csvDataService.getCsvData(fieldInstances, false, true);
+		}
+		
+		return dataStr;
+	}
+	
+	private ScriptIoFiles generateScriptIoFiles(String prefix) throws IOException {
+		ScriptIoFiles sif = new ScriptIoFiles();
+		sif.inputDataFile = File.createTempFile(prefix, "-in.csv", workingDir);
+		String root = sif.inputDataFile.getName().substring(0, sif.inputDataFile.getName().length() - 7);
+		sif.outputOutlierFile = new File(workingDir, root + "-out.csv");
+		sif.outputStatsFile = new File(workingDir, root + "-stats.csv");
+		return sif;
+	}
+	
+	private class ScriptIoFiles {
+		private File inputDataFile;
+		private File outputOutlierFile;
+		private File outputStatsFile;
+		
+		private void removeAll() {
+			if (inputDataFile.exists()) {
+				inputDataFile.delete();
+			}
+			if (outputOutlierFile.exists()) {
+				outputOutlierFile.delete();
+			}
+			if (outputStatsFile.exists()) {
+				outputStatsFile.delete();
+			}
+		}
 	}
 }

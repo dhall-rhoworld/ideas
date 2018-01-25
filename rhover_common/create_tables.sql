@@ -108,6 +108,26 @@ create table subject (
 	CONSTRAINT u_subject_name_site_id UNIQUE (subject_name, site_id)
 );
 
+create table phase (
+	phase_id BIGINT AUTO_INCREMENT NOT NULL,
+	phase_name VARCHAR(200) NOT NULL,
+	study_id BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_phase PRIMARY KEY (phase_id),
+	CONSTRAINT fk_phase_study FOREIGN KEY (study_id) REFERENCES study(study_id)
+);
+
+create table dataset_version_phase (
+	dataset_version_id BIGINT NOT NULL,
+	phase_id BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_dataset_version_phase PRIMARY KEY (dataset_version_id, phase_id),
+	CONSTRAINT fk_dataset_version_phase_2_dataset_version FOREIGN KEY (dataset_version_id)
+		REFERENCES dataset_version(dataset_version_id),
+	CONSTRAINT fk_dataset_version_phase_2_phase FOREIGN KEY (phase_id)
+		REFERENCES phase(phase_id)
+);
+
 create table field (
 	field_id BIGINT AUTO_INCREMENT NOT NULL,
 	field_name VARCHAR(200) NOT NULL,

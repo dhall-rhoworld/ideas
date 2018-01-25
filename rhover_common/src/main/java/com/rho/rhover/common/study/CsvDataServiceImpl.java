@@ -34,7 +34,7 @@ public class CsvDataServiceImpl implements CsvDataService {
 	private UniAnomalyDtoRepository uniAnomalyDtoRepository;
 
 	@Override
-	public String getCsvData(List<FieldInstance> fieldInstances, boolean useFieldLabelsAsHeaders) {
+	public String getCsvData(List<FieldInstance> fieldInstances, boolean useFieldLabelsAsHeaders, boolean removeNulls) {
 		List<Iterator<String>> its = new ArrayList<>();
 		for (FieldInstance fi : fieldInstances) {
 			CsvData data = csvDataRepository.findByFieldAndDataset(fi.getField(), fi.getDataset());
@@ -56,12 +56,14 @@ public class CsvDataServiceImpl implements CsvDataService {
 				sb.append(fi.getField().getFieldName().replaceAll(",\\n\\r", " "));
 			}
 		}
+		sb.append("\n");
 		
 		// Add data
 		boolean stillHaveData = true;
 		while (stillHaveData) {
 			StringBuilder line = new StringBuilder();
 			count = 0;
+			boolean dataOk = true;
 			for (Iterator<String> it : its) {
 				if (!it.hasNext()) {
 					stillHaveData = false;
@@ -71,14 +73,22 @@ public class CsvDataServiceImpl implements CsvDataService {
 				if (count > 1) {
 					line.append(",");
 				}
-				line.append(it.next());
+				String value = it.next().replaceAll(",\\n\\r", " ");
+				if (isNull(value) && removeNulls) {
+					dataOk = false;
+				}
+				line.append(value);
 			}
-			if (count == fieldInstances.size()) {
-				sb.append(line.toString());
+			if (count == fieldInstances.size() && dataOk) {
+				sb.append(line.toString() + "\n");
 			}
 		}
 		
 		return sb.toString();
+	}
+	
+	private boolean isNull(String value) {
+		return value == null || value.trim().length() == 0 || value.equalsIgnoreCase("null");
 	}
 	
 	@Override
