@@ -3,8 +3,10 @@ package com.rho.rhover.common.anomaly;
 import org.springframework.data.repository.CrudRepository;
 
 import com.rho.rhover.common.study.Dataset;
+import com.rho.rhover.common.study.Phase;
+import com.rho.rhover.common.study.Subject;
 
 public interface ObservationRepository extends CrudRepository<Observation, Long> {
 
-	Observation findByDatasetAndIdFieldValueHash(Dataset dataset, String idFieldValueHash);
+	Observation findByDatasetAndSubjectAndPhaseAndRecordId(Dataset dataset, Subject subject, Phase phase, String recordId);
 }

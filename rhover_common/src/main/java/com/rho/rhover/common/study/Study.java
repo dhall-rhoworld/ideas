@@ -222,6 +222,7 @@ public class Study {
 				|| fieldName.equals(this.subjectFieldName);
 	}
 	
+	// TODO: Figure out how to get rid of this
 	public Set<Field> getUniqueIdentifierFields() {
 		Set<Field> fields = new HashSet<>();
 		fields.addAll(Arrays.asList(subjectField, phaseField, recordIdField, siteField));

@@ -128,7 +128,6 @@
 	
 	$("#button_show").click(function() {
 		data = getSelectedData();
-		console.log(data);
 		varNames = Object.keys(data[0]);
 		varNames.splice(varNames.indexOf("anomaly_id"), 1);
 		let html = "<tr>";

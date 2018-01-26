@@ -6,7 +6,6 @@ drop table anomaly;
 drop table datum_dataset_version;
 drop table datum_version;
 drop table datum;
-drop table id_field_value;
 drop table observation;
 drop table param_used;
 drop table check_run;

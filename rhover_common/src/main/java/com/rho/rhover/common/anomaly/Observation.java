@@ -1,12 +1,5 @@
 package com.rho.rhover.common.anomaly;
 
-import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -16,6 +9,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 import com.rho.rhover.common.study.Dataset;
+import com.rho.rhover.common.study.Phase;
+import com.rho.rhover.common.study.Subject;
 
 @Entity
 public class Observation {
@@ -29,17 +24,27 @@ public class Observation {
 	@JoinColumn(name="dataset_id")
 	private Dataset dataset;
 	
-	@Column(name="id_field_value_hash")
-	private String idFieldValueHash;
+	@ManyToOne
+	@JoinColumn(name="subject_id")
+	private Subject subject;
+	
+	@ManyToOne
+	@JoinColumn(name="phase_id")
+	private Phase phase;
+	
+	@Column(name="record_id")
+	private String recordId;
 
 	public Observation() {
 		
 	}
 
-	public Observation(Dataset dataset, String idFieldValueHash) {
+	public Observation(Dataset dataset, Subject subject, Phase phase, String recordId) {
 		super();
 		this.dataset = dataset;
-		this.idFieldValueHash = idFieldValueHash;
+		this.subject = subject;
+		this.phase = phase;
+		this.recordId = recordId;
 	}
 
 	public Long getObservationId() {
@@ -58,51 +63,28 @@ public class Observation {
 		this.dataset = dataset;
 	}
 
-	public String getIdFieldValueHash() {
-		return idFieldValueHash;
+	public Subject getSubject() {
+		return subject;
 	}
 
-	public void setIdFieldValueHash(String idFieldValueHash) {
-		this.idFieldValueHash = idFieldValueHash;
+	public void setSubject(Subject subject) {
+		this.subject = subject;
 	}
 
-	public static String generateIdFieldValueHash(Collection<IdFieldValue> idFieldValues) {
-		List<IdFieldValue> list = new ArrayList<>();
-		list.addAll(idFieldValues);
-		Collections.sort(list, new IdFieldValueComparator());
-		StringBuilder builder = new StringBuilder();
-		int count = 0;
-		for (IdFieldValue val : list) {
-			count++;
-			if (count > 1) {
-				builder.append(",");
-			}
-			builder.append(val.getField().getFieldName() + ":" + val.getValue());
-		}
-		String digested = null;
-		try {
-			MessageDigest digest = MessageDigest.getInstance("MD5");
-			digest.update(builder.toString().getBytes());
-			byte[] bytes = digest.digest();
-			builder = new StringBuilder();
-			for (byte b : bytes) {
-				//builder.append(String.format("02x", b & 0xff));
-				builder.append(Integer.toHexString(0xFF & b));
-			}
-			digested = builder.toString();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-		return digested;
+	public Phase getPhase() {
+		return phase;
 	}
-	
-	private static final class IdFieldValueComparator implements Comparator<IdFieldValue> {
 
-		@Override
-		public int compare(IdFieldValue f1, IdFieldValue f2) {
-			return f1.getField().getFieldName().compareTo(f2.getField().getFieldName());
-		}
-		
+	public void setPhase(Phase phase) {
+		this.phase = phase;
 	}
+
+	public String getRecordId() {
+		return recordId;
+	}
+
+	public void setRecordId(String recordId) {
+		this.recordId = recordId;
+	}
+
 }

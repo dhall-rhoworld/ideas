@@ -214,8 +214,6 @@ function setYAndComputHeight(data, fieldName, xScale) {
  * such as selecting data
  */
 function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteFieldName, subjectFieldName, handler) {
-	console.log("siteFilter: " + siteFilter + ", subjectFilter: " + subjectFilter);
-	console.log("siteFieldName: " + siteFieldName);
 	dataMean = mean;
 	dataSd = sd;
 	eventHandler = handler;
@@ -223,7 +221,7 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteFieldName, subj
 	subjectField = subjectFieldName;
 	
 	d3.csv(dataUrl, function(data) {
-		//console.log(data);
+		console.log(data);
 		
 		// Set extent of data and chart areas on the screen
 		const min = data[0][fieldName];

@@ -18,6 +18,7 @@ import org.hibernate.annotations.Type;
 import com.rho.rhover.common.check.Check;
 import com.rho.rhover.common.check.CheckRun;
 import com.rho.rhover.common.study.Field;
+import com.rho.rhover.common.study.Phase;
 import com.rho.rhover.common.study.Site;
 import com.rho.rhover.common.study.Subject;
 
@@ -54,6 +55,13 @@ public class Anomaly {
 	@ManyToOne
 	@JoinColumn(name="field_id")
 	private Field field;
+	
+	@ManyToOne
+	@JoinColumn(name="phase_id")
+	private Phase phase;
+	
+	@Column(name="record_id")
+	private String recordId;
 	
 	@Column(name="has_been_viewed")
 	@Type(type="org.hibernate.type.NumericBooleanType")
@@ -139,6 +147,22 @@ public class Anomaly {
 		this.field = field;
 	}
 	
+	public Phase getPhase() {
+		return phase;
+	}
+
+	public void setPhase(Phase phase) {
+		this.phase = phase;
+	}
+
+	public String getRecordId() {
+		return recordId;
+	}
+
+	public void setRecordId(String recordId) {
+		this.recordId = recordId;
+	}
+
 	public DatumVersion getCurrentDatumVersion() {
 		DatumVersion current = null;
 		for (DatumVersion version : datumVersions) {

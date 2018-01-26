@@ -380,130 +380,110 @@ public class CsvDataServiceImpl implements CsvDataService {
 	@Override
 	public String getCsvData(CheckRun checkRun) {
 		
-		// Assemble fields
-		Study study = checkRun.getDatasetVersion().getDataset().getStudy();
-		Set<Field> idFields = study.getUniqueIdentifierFields();
-		List<Field> fields = new ArrayList<>();
-		fields.addAll(idFields);
-		Field subjectField = study.getSubjectField();
-		Field siteField = study.getSiteField();
-		if (!fields.contains(subjectField)) {
-			fields.add(subjectField);
-		}
-		if (!fields.contains(siteField)) {
-			fields.add(siteField);
-		}
-		fields.add(checkRun.getField());
+		// Fetch data
+		Dataset dataset = checkRun.getDatasetVersion().getDataset();
+		Study study = dataset.getStudy();
+		Iterator<String> subjects =
+				csvDataRepository.findByFieldAndDataset(study.getSubjectField(), dataset).extractData().iterator();
+		Iterator<String> sites =
+				csvDataRepository.findByFieldAndDataset(study.getSiteField(), dataset).extractData().iterator();
+		Iterator<String> phases =
+				csvDataRepository.findByFieldAndDataset(study.getPhaseField(), dataset).extractData().iterator();
+		Iterator<String> recordIds =
+				csvDataRepository.findByFieldAndDataset(study.getRecordIdField(), dataset).extractData().iterator();
+		Iterator<String> values =
+				csvDataRepository.findByFieldAndDataset(checkRun.getField(), dataset).extractData().iterator();
 		
-		// Assemble data records
-		List<StringTokenizer> tokenizers = new ArrayList<>();
-		List<String> fieldNames = new ArrayList<>();
-		StringBuilder builder = new StringBuilder();
-		int count = 0;
-		for (Field field : fields) {
-			count++;
-			if (count > 1) {
-				builder.append(",");
-			}
-			builder.append(field.getDisplayName());
-			CsvData csvData = csvDataRepository.findByFieldAndDataset(field, checkRun.getDatasetVersion().getDataset());
-			tokenizers.add(new StringTokenizer(csvData.getData(), ","));
-			fieldNames.add(field.getFieldName());
-		}
-		builder.append(",anomaly_id\n");
-		boolean moreRecords = true;
+		// Package data into Record objects
 		List<Record> records = new ArrayList<>();
-		while (moreRecords) {
-			boolean hasNull = false;
-			Record record = new Record();
-			for (int i = 0; i < fieldNames.size(); i++) {
-				String fieldName = fieldNames.get(i);
-				StringTokenizer tok = tokenizers.get(i);
-				if (!tok.hasMoreTokens()) {
-					moreRecords = false;
-					break;
-				}
-				String token = tok.nextToken();
-				if (token.trim().length() == 0 || token.equals("null")) {
-					hasNull = true;
-				}
-				record.fieldValues.put(fieldName, token);
-				if (fieldName.equals(checkRun.getField().getFieldName())) {
-					record.dataValue = token;
-				}
-			}
-			if (moreRecords) {
-				if (!hasNull) {
-					records.add(record);
-				}
-				if (record.dataValue == null) {
-					throw new RuntimeException();
-				}
+		while (subjects.hasNext() && sites.hasNext() && phases.hasNext() && recordIds.hasNext() && values.hasNext()) {
+			Record rec = new Record();
+			rec.subjectName = subjects.next();
+			rec.siteName = sites.next();
+			rec.phaseName = phases.next();
+			rec.recordId = recordIds.next();
+			rec.dataValue = values.next();
+			if (!isNull(rec.dataValue)) {
+				records.add(rec);
 			}
 		}
 		
-		addAnomalyIds(records, checkRun, idFields);
-		fieldNames.add("anomaly_id");
+		// Add anomaly IDs to records
+		addAnomalyIds(records, checkRun);
 		
+		// Sort data by value of checked field
 		Collections.sort(records);
-		for (Record record : records) {
-			builder.append(record.toCsv(fieldNames) + "\n");
+		
+		// Add column names to output
+		StringBuilder builder = new StringBuilder();
+		builder.append(study.getSubjectField().getDisplayName()
+				+ "," + study.getSiteField().getDisplayName()
+				+ "," + study.getPhaseField().getDisplayName()
+				+ "," + study.getRecordIdField().getDisplayName()
+				+ "," + checkRun.getField().getDisplayName()
+				+ ",anomaly_id"
+				+ "\n");
+		
+		// Add data to output
+		for (Record rec : records) {
+			builder.append(rec.subjectName
+					+ "," + rec.siteName
+					+ "," + rec.phaseName
+					+ "," + rec.recordId
+					+ "," + rec.dataValue
+					+ "," + rec.anomalyId
+					+ "\n");
 		}
+		
+		
 		//logger.debug(builder.toString());
 		return builder.toString();
 	}
 	
-	private void addAnomalyIds(List<Record> records, CheckRun checkRun, Set<Field> idFields) {
+	private void addAnomalyIds(List<Record> records, CheckRun checkRun) {
 		List<UniAnomalyDto> dtos = uniAnomalyDtoRepository.findByCheckRunId(checkRun.getCheckRunId());
+		logger.debug("Num anomalies: " + dtos.size());
 		Map<String, Long> anomalyIdIndex = new HashMap<>();
+		StringBuilder sb = new StringBuilder();
 		for (UniAnomalyDto dto : dtos) {
-			anomalyIdIndex.put(concatenateKeysAndValues(dto.getIdFieldNamesAndValues(), idFields), dto.getAnomalyId());
+			String key = generateKey(dto.getSubjectName(), dto.getSiteName(), dto.getPhaseName(), dto.getRecordId());
+//			sb.append("\n" + key);
+			anomalyIdIndex.put(key, dto.getAnomalyId());
 		}
+//		logger.debug(sb.toString());
+//		logger.debug("++++++++++++++++++++");
+		sb = new StringBuilder();
 		for (Record record : records) {
-			String key = concatenateKeysAndValues(record.fieldValues, idFields);
+			String key = generateKey(record.subjectName, record.siteName, record.phaseName, record.recordId);
+			sb.append("\n" + key);
 			Long anomalyId = anomalyIdIndex.get(key);
 			if (anomalyId == null) {
 				anomalyId = 0L;
 			}
-			record.fieldValues.put("anomaly_id", anomalyId.toString());
+			record.anomalyId = anomalyId;
 		}
+//		logger.debug(sb.toString());
 	}
 	
-	private String concatenateKeysAndValues(Map<String, String> map, Set<Field> idFields) {
-		StringBuilder builder = new StringBuilder();
-		int count = 0;
-		for (Field field : idFields) {
-			count++;
-			if (count > 1) {
-				builder.append(",");
-			}
-			String fieldName = field.getFieldName();
-			builder.append(fieldName + "=" + map.get(fieldName));
-		}
-		return builder.toString();
+	private String generateKey(String subjectName, String siteName, String phaseName, String recordId) {
+		return subjectName + "---" + siteName + "---" + phaseName + "---" + recordId;
 	}
 	
 	private static final class Record implements Comparable<Record> {
 		
 		private Logger logger = LoggerFactory.getLogger(this.getClass());
 		
-		private Map<String, String> fieldValues = new HashMap<>();
+		private String subjectName;
+		
+		private String siteName;
+		
+		private String phaseName;
+		
+		private String recordId;
 		
 		private String dataValue;
 		
-		private String toCsv(List<String> fieldNames) {
-			StringBuilder builder = new StringBuilder();
-			int count = 0;
-			for (String fieldName : fieldNames) {
-				count++;
-				if (count > 1) {
-					builder.append(",");
-				}
-				//logger.debug(fieldName + ": " + fieldValues.get(fieldName));
-				builder.append(fieldValues.get(fieldName));
-			}
-			return builder.toString();
-		}
+		private Long anomalyId = 0L;
 	
 		@Override
 		public int compareTo(Record o) {

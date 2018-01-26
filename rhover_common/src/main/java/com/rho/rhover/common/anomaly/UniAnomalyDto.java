@@ -20,31 +20,43 @@ public class UniAnomalyDto implements Comparable<UniAnomalyDto> {
 	
 	private String anomalousValue;
 	
-	private Map<String, String> idFieldNamesAndValues = new HashMap<>();
+	private Long phaseId;
+	
+	private String phaseName;
 	
 	private Long subjectId;
 	
+	private String subjectName;
+	
 	private Long siteId;
+	
+	private String siteName;
+	
+	private String recordId;
 
 	public UniAnomalyDto() {
 		
 	}
 
+
 	public UniAnomalyDto(Long checkRunId, Long anomalyId, Long fieldId, String fieldName, String anomalousValue,
-			Long subjectId, Long siteId) {
+			Long phaseId, String phaseName, Long subjectId, String subjectName, Long siteId, String siteName,
+			String recordId) {
 		super();
 		this.checkRunId = checkRunId;
 		this.anomalyId = anomalyId;
 		this.fieldId = fieldId;
 		this.fieldName = fieldName;
 		this.anomalousValue = anomalousValue;
+		this.phaseId = phaseId;
+		this.phaseName = phaseName;
 		this.subjectId = subjectId;
+		this.subjectName = subjectName;
 		this.siteId = siteId;
+		this.siteName = siteName;
+		this.recordId = recordId;
 	}
 
-	public void addIdFieldNameAndValue(String name, String value) {
-		idFieldNamesAndValues.put(name, value);
-	}
 
 	public Long getCheckRunId() {
 		return checkRunId;
@@ -66,10 +78,6 @@ public class UniAnomalyDto implements Comparable<UniAnomalyDto> {
 		return anomalousValue;
 	}
 
-	public Map<String, String> getIdFieldNamesAndValues() {
-		return idFieldNamesAndValues;
-	}
-
 	public Long getSubjectId() {
 		return subjectId;
 	}
@@ -78,9 +86,32 @@ public class UniAnomalyDto implements Comparable<UniAnomalyDto> {
 		return siteId;
 	}
 
+	public Long getPhaseId() {
+		return phaseId;
+	}
+
+	public String getRecordId() {
+		return recordId;
+	}
+
+	public String getPhaseName() {
+		return phaseName;
+	}
+
+
+	public String getSubjectName() {
+		return subjectName;
+	}
+
+
+	public String getSiteName() {
+		return siteName;
+	}
+
+
 	@Override
 	public int compareTo(UniAnomalyDto o) {
 		return new Double(this.anomalousValue).compareTo(new Double(o.anomalousValue));
 	}
-	
+
 }

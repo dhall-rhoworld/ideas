@@ -36,8 +36,6 @@ import com.rho.rhover.common.anomaly.Datum;
 import com.rho.rhover.common.anomaly.DatumRepository;
 import com.rho.rhover.common.anomaly.DatumVersion;
 import com.rho.rhover.common.anomaly.DatumVersionRepository;
-import com.rho.rhover.common.anomaly.IdFieldValue;
-import com.rho.rhover.common.anomaly.IdFieldValueRepository;
 import com.rho.rhover.common.anomaly.Observation;
 import com.rho.rhover.common.anomaly.ObservationRepository;
 import com.rho.rhover.common.check.BivariateCheck;
@@ -60,6 +58,8 @@ import com.rho.rhover.common.study.Field;
 import com.rho.rhover.common.study.FieldInstance;
 import com.rho.rhover.common.study.FieldInstanceRepository;
 import com.rho.rhover.common.study.FieldRepository;
+import com.rho.rhover.common.study.Phase;
+import com.rho.rhover.common.study.PhaseRepository;
 import com.rho.rhover.common.study.Site;
 import com.rho.rhover.common.study.SiteRepository;
 import com.rho.rhover.common.study.Study;
@@ -94,9 +94,6 @@ public class CheckServiceImpl implements CheckService {
 	private ObservationRepository observationRepository;
 	
 	@Autowired
-	private IdFieldValueRepository idFieldValueRepository;
-	
-	@Autowired
 	private SubjectRepository subjectRepository;
 	
 	@Autowired
@@ -119,6 +116,9 @@ public class CheckServiceImpl implements CheckService {
 	
 	@Autowired
 	private FieldInstanceRepository fieldInstanceRepository;
+	
+	@Autowired
+	private PhaseRepository phaseRepository;
 	
 	@Autowired
 	private CsvDataService csvDataService;
@@ -160,13 +160,7 @@ public class CheckServiceImpl implements CheckService {
 	@Transactional
 	public void runUnivariateCheck(Check check, Dataset dataset) {
 		logger.debug("Running check " + check.getCheckName() + " on dataset " + dataset.getDatasetName());
-		
-		// Get identifying data (i.e. subject, phase, record ID)
-		List<CsvData> idData = new ArrayList<>();
 		Study study = dataset.getStudy();
-		for (Field field : study.getUniqueIdentifierFields()) {
-			idData.add(csvDataRepository.findByFieldAndDataset(field, dataset));
-		}
 		
 		// Determine which data types should be checked as specified by the study admin.  Possible values include
 		// 'numeric', 'continuous', and 'custom'.  If the latter, the study admin will have selected individual fields.
@@ -185,8 +179,8 @@ public class CheckServiceImpl implements CheckService {
 			logger.info("Running univarate outlier check on study " + study.getStudyName() + ", field " + field.getFieldName());
 			
 			// Construct an input dataset for R script
-			CsvData data = csvDataRepository.findByFieldAndDataset(field, dataset);
-			String rScriptInput = generateRScriptInput(idData, data, dataset);
+			FieldInstance fieldInstance = fieldInstanceRepository.findByFieldAndDataset(field, dataset);
+			String rScriptInput = generateRInputData(dataset, fieldInstance);
 			
 			// Write R script input dataset to file
 			FileWriter fileWriter = null;
@@ -217,7 +211,7 @@ public class CheckServiceImpl implements CheckService {
 			String outfilePath = fileNameRoot + "-out.csv";
 			String propfilePath = fileNameRoot + "-prop.csv";
 			String sd = checkParamService.getCheckParam(check, "sd", dataset, field).getParamValue();
-			int dataColNum = idData.size();
+			int dataColNum = 3;
 			String command =
 					rExecutablePath
 					+ " " + univariateOutlierScriptPath
@@ -249,7 +243,7 @@ public class CheckServiceImpl implements CheckService {
 			BufferedReader paramReader = null;
 			try {
 				outlierReader = new BufferedReader(new FileReader(outfilePath));
-				processOutliers(outlierReader, dataColNum, datasetVersion, field, newCheckRun);
+				processOutliers(outlierReader, datasetVersion, field, newCheckRun);
 				paramReader = new BufferedReader(new FileReader(propfilePath));
 				processDataProperties(paramReader, newCheckRun);
 			}
@@ -317,64 +311,28 @@ public class CheckServiceImpl implements CheckService {
 	//
 	// Save outliers identified by R script as new anomalies
 	//
-	private void processOutliers(BufferedReader reader, int dataColNum, DatasetVersion datasetVersion,
+	private void processOutliers(BufferedReader reader, DatasetVersion datasetVersion,
 			Field field, CheckRun checkRun) throws IOException {
 		
-		// Map field IDs to column numbers in the file
-		Dataset dataset = datasetVersion.getDataset();
-		Map<Integer, Field> colNumToFieldId = new HashMap<>();
-		int subjectColNum = -1;
-		int siteColNum = -1;
+		// Read past header
+		reader.readLine();
+		
+		// Process data
 		String line = reader.readLine();
-		String[] values = line.split(",");
-		for (int i = 0; i < dataColNum; i++) {
-			String value = values[i];
-			
-			// Note: generateOutputData() appends field IDs to the end of field names
-			// in the file header separated by '.'
-			int p = value.lastIndexOf(".");
-			String fieldName = value.substring(0, p);
-			if (fieldName.equals(dataset.getStudy().getSubjectFieldName())) {
-				subjectColNum = i;
-			}
-			else if (fieldName.equals(dataset.getStudy().getSiteFieldName())) {
-				siteColNum = i;
-			}
-			Long fieldId = Long.parseLong(value.substring(p + 1));
-			
-			Field idField = fieldRepository.findOne(fieldId);
-			colNumToFieldId.put(i, idField);
-		}
-		
-		// TODO: Throw exception if subjectColNum == -1
-		
-		// Process R script output file
-		line = reader.readLine();
-		int outlierColNum = dataColNum + 1;
 		while (line != null) {
-			values = line.split(",");
+			String[] values = line.split(",");
 			
 			// Case: Record is an outlier
-			if (values[outlierColNum].equals("TRUE")) {
-				
-				// Extract ID field values
-				Collection<IdFieldValue> idFieldValues = new ArrayList<>();
-				for (int i = 0; i < dataColNum; i++) {
-					idFieldValues.add(new IdFieldValue(values[i], colNumToFieldId.get(i)));
-				}
-				
-				// Hash ID field values, which is needed to fetch an observation instance from the database
-				String idFieldValueHash = Observation.generateIdFieldValueHash(idFieldValues);
+			if (values[4].equals("TRUE")) {
 				
 				// Fetch or create new observation
-				Observation observation = observationRepository.findByDatasetAndIdFieldValueHash(dataset, idFieldValueHash);
+				Subject subject = subjectRepository.findBySubjectName(values[0]);
+				Phase phase = phaseRepository.findByPhaseName(values[1]);
+				String recordId = values[2];
+				Observation observation = observationRepository.findByDatasetAndSubjectAndPhaseAndRecordId(datasetVersion.getDataset(), subject, phase, recordId);
 				if (observation == null) {
-					observation = new Observation(dataset, idFieldValueHash);
+					observation = new Observation(datasetVersion.getDataset(), subject, phase, recordId);
 					observationRepository.save(observation);
-					for (IdFieldValue idFieldValue : idFieldValues) {
-						idFieldValue.setObservation(observation);
-						idFieldValueRepository.save(idFieldValue);
-					}
 				}
 				
 				// Fetch or save new datum
@@ -386,7 +344,7 @@ public class CheckServiceImpl implements CheckService {
 				
 				// Fetch or save new datum version
 				DatumVersion datumVersion = datumVersionRepository.findByDatumAndIsCurrent(datum, Boolean.TRUE);
-				String anomalousValue = values[dataColNum];
+				String anomalousValue = values[3];
 				if (datumVersion == null) {
 					datumVersion = new DatumVersion(anomalousValue, Boolean.TRUE, datum);
 					datumVersionRepository.save(datumVersion);
@@ -416,17 +374,14 @@ public class CheckServiceImpl implements CheckService {
 				Check check = checkRun.getCheck();
 				Anomaly anomaly = anomalyRepository.findOne(check, datumVersion);
 				if (anomaly == null) {
-					//logger.debug("Creating new anomaly");
-					String subjectName = values[subjectColNum];
-					Subject subject = subjectRepository.findBySubjectName(subjectName);
-					String siteName = values[siteColNum];
-					Site site = siteRepository.findByStudyAndSiteName(dataset.getStudy(), siteName);
 					anomaly = new Anomaly();
 					anomaly.setCheck(check);
 					anomaly.getDatumVersions().add(datumVersion);
-					anomaly.setSite(site);
+					anomaly.setSite(subject.getSite());
 					anomaly.setSubject(subject);
 					anomaly.setField(field);
+					anomaly.setPhase(phase);
+					anomaly.setRecordId(recordId);
 				}
 				anomaly.getCheckRuns().add(checkRun);
 				anomalyRepository.save(anomaly);
@@ -436,58 +391,6 @@ public class CheckServiceImpl implements CheckService {
 		}
 	}
 
-	//
-	// Generate input data file for R script
-	//
-	private String generateRScriptInput(List<CsvData> idData, CsvData data, Dataset dataset) {
-		StringBuilder builder = new StringBuilder();
-		
-		// Create tokenizers
-		List<StringTokenizer> idDataTokenizers = new ArrayList<>();
-		for (CsvData idDatum : idData) {
-			idDataTokenizers.add(new StringTokenizer(idDatum.getData(), ","));
-		}
-		StringTokenizer dataTokenizer = new StringTokenizer(data.getData(), ",");
-		
-		// ID column headers
-		int count = 0;
-		for (CsvData idDatum : idData) {
-			count++;
-			if (count > 1) {
-				builder.append(",");
-			}
-			builder.append(idDatum.getField().getFieldName() + "." + idDatum.getField().getFieldId());
-		}
-		
-		// Checked column header
-		builder.append("," + data.getField().getFieldName() + "." + data.getField().getFieldId() + "\n");
-		
-		// Data records
-		Set<String> idStrings = new HashSet<>();
-		while (dataTokenizer.hasMoreElements()) {
-			count = 0;
-			StringBuilder observationBuilder = new StringBuilder();
-			for (StringTokenizer tok : idDataTokenizers) {
-				count++;
-				if (count > 1) {
-					observationBuilder.append(",");
-				}
-				observationBuilder.append(tok.nextToken());
-			}
-			if (idStrings.contains(observationBuilder.toString())) {
-				throw new DataIntegrityException("Duplicate observation found in dataset " + dataset.getDatasetName()
-					+ ": " + observationBuilder.toString());
-			}
-			idStrings.add(observationBuilder.toString());
-			String value = dataTokenizer.nextToken();
-			if (!(value == null || value.equals("null"))) {
-				observationBuilder.append("," + value);
-				builder.append(observationBuilder.toString() + "\n");
-			}
-		}
-		
-		return builder.toString();
-	}
 
 	@Override
 	public void runBivariateChecks(Check check, Study study) {
@@ -532,17 +435,22 @@ public class CheckServiceImpl implements CheckService {
 		
 		// Case: fields in same dataset
 		if (biCheck.fieldsInSameDataset()) {
-			List<FieldInstance> fieldInstances = new ArrayList<>();
-			Dataset dataset = biCheck.getxFieldInstance().getDataset();
-			fieldInstances.add(fieldInstanceRepository.findByFieldAndDataset(study.getSubjectField(), dataset));
-			fieldInstances.add(fieldInstanceRepository.findByFieldAndDataset(study.getPhaseField(), dataset));
-			fieldInstances.add(fieldInstanceRepository.findByFieldAndDataset(study.getRecordIdField(), dataset));
-			fieldInstances.add(biCheck.getxFieldInstance());
-			fieldInstances.add(biCheck.getyFieldInstance());
-			dataStr = csvDataService.getCsvData(fieldInstances, false, true);
+			dataStr = generateRInputData(biCheck.getxFieldInstance().getDataset(), biCheck.getxFieldInstance(), biCheck.getyFieldInstance());
 		}
 		
 		return dataStr;
+	}
+	
+	private String generateRInputData(Dataset dataset, FieldInstance ...dataFieldInstances) {
+		List<FieldInstance> fieldInstances = new ArrayList<>();
+		Study study = dataset.getStudy();
+		fieldInstances.add(fieldInstanceRepository.findByFieldAndDataset(study.getSubjectField(), dataset));
+		fieldInstances.add(fieldInstanceRepository.findByFieldAndDataset(study.getPhaseField(), dataset));
+		fieldInstances.add(fieldInstanceRepository.findByFieldAndDataset(study.getRecordIdField(), dataset));
+		for (FieldInstance data : dataFieldInstances) {
+			fieldInstances.add(data);
+		}
+		return csvDataService.getCsvData(fieldInstances, false, true);
 	}
 	
 	private ScriptIoFiles generateScriptIoFiles(String prefix) throws IOException {

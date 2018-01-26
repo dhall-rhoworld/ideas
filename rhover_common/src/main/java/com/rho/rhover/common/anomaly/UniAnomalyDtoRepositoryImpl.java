@@ -23,7 +23,7 @@ public class UniAnomalyDtoRepositoryImpl implements UniAnomalyDtoRepository {
 	public List<UniAnomalyDto> findByCheckRunId(Long checkRunId) {
 		String sql = 
 				"select check_run_id, anomaly_id, field_id, field_name, anomalous_value, " +
-				"id_field_names, id_field_values, subject_id, site_id " +
+				"phase_id, phase_name, subject_id, subject_name, site_id, site_name, record_id " +
 				"from uni_anomaly_dto " +
 				"where check_run_id = " + checkRunId;
 		return queryAndMarkAsVeiwed(sql);
@@ -33,7 +33,7 @@ public class UniAnomalyDtoRepositoryImpl implements UniAnomalyDtoRepository {
 	public List<UniAnomalyDto> findByCheckRunIdAndSiteId(Long checkRunId, Long siteId) {
 		String sql = 
 				"select check_run_id, anomaly_id, field_id, field_name, anomalous_value, " +
-				"id_field_names, id_field_values, subject_id, site_id " +
+				"phase_id, phase_name, subject_id, subject_name, site_id, site_name, record_id " +
 				"from uni_anomaly_dto " +
 				"where check_run_id = " + checkRunId + " " +
 				"and site_id = " + siteId;
@@ -44,7 +44,7 @@ public class UniAnomalyDtoRepositoryImpl implements UniAnomalyDtoRepository {
 	public List<UniAnomalyDto> findByCheckRunIdAndSubjectId(Long checkRunId, Long subjectId) {
 		String sql = 
 				"select check_run_id, anomaly_id, field_id, field_name, anomalous_value, " +
-				"id_field_names, id_field_values, subject_id, site_id " +
+				"phase_id, phase_name, subject_id, subject_name, site_id, site_name, record_id " +
 				"from uni_anomaly_dto " +
 				"where check_run_id = " + checkRunId + " " +
 				"and subject_id = " + subjectId;
@@ -78,13 +78,19 @@ public class UniAnomalyDtoRepositoryImpl implements UniAnomalyDtoRepository {
 
 		@Override
 		public UniAnomalyDto mapRow(ResultSet rs, int num) throws SQLException {
-			UniAnomalyDto dto = new UniAnomalyDto(rs.getLong(1), rs.getLong(2), rs.getLong(3), rs.getString(4), rs.getString(5),
-					rs.getLong(8), rs.getLong(9));
-			String[] idFieldNames = rs.getString(6).split(",");
-			String[] idFieldValues = rs.getString(7).split(",");
-			for (int i = 0; i < idFieldNames.length; i++) {
-				dto.addIdFieldNameAndValue(idFieldNames[i], idFieldValues[i]);
-			}
+			UniAnomalyDto dto = new UniAnomalyDto(
+					rs.getLong(1),
+					rs.getLong(2),
+					rs.getLong(3),
+					rs.getString(4),
+					rs.getString(5),
+					rs.getLong(6),
+					rs.getString(7),
+					rs.getLong(8),
+					rs.getString(9),
+					rs.getLong(10),
+					rs.getString(11),
+					rs.getString(12));
 			return dto;
 		}
 		

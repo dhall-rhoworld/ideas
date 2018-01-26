@@ -61,11 +61,17 @@
 	    </p>
    		<table class="wide">
    			<tr>
-   				<th th:each="id_field : ${id_fields}" th:text="${id_field.fieldName}"/>
+   				<th th:text="${study.subjectField.displayName}"/>
+   				<th th:text="${study.siteField.displayName}"/>
+   				<th th:text="${study.phaseField.displayName}"/>
+   				<th th:text="${study.recordIdField.displayName}"/>
    				<th th:text="${field.fieldName}"/>
    			</tr>
    			<tr th:each="anomaly : ${anomalies}">
-   				<td th:each="id_field : ${id_fields}" th:text="${anomaly.idFieldNamesAndValues.get(id_field.fieldName)}"/>
+   				<td th:text="${anomaly.subjectName}"/>
+   				<td th:text="${anomaly.siteName}"/>
+   				<td th:text="${anomaly.phaseName}"/>
+   				<td th:text="${anomaly.recordId}"/>
    				<td th:text="${anomaly.anomalousValue}" class="attention"/>
    			</tr>
    		</table>

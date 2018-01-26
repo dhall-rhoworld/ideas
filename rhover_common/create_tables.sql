@@ -355,24 +355,16 @@ create table param_used (
 
 create table observation (
 	observation_id BIGINT AUTO_INCREMENT NOT NULL,
-	id_field_value_hash CHAR(32) NOT NULL,
 	dataset_id BIGINT NOT NULL,
+	subject_id BIGINT NOT NULL,
+	phase_id BIGINT NOT NULL,
+	record_id VARCHAR(50) NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT pk_observation PRIMARY KEY (observation_id),
 	CONSTRAINT fk_observation_2_dataset FOREIGN KEY (dataset_id) REFERENCES dataset(dataset_id),
-	CONSTRAINT u_subject_dataset_id_field_value_hash UNIQUE (dataset_id, id_field_value_hash)
-);
-
-create table id_field_value (
-	id_field_value_id BIGINT AUTO_INCREMENT NOT NULL,
-	value VARCHAR(50),
-	field_id BIGINT NOT NULL,
-	observation_id BIGINT NOT NULL,
-	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-	CONSTRAINT pk_id_field_value PRIMARY KEY (id_field_value_id),
-	CONSTRAINT fk_id_field_value_2_field FOREIGN KEY (field_id) REFERENCES field(field_id),
-	CONSTRAINT fk_id_field_value_2_observation FOREIGN KEY (observation_id) REFERENCES observation(observation_id),
-	CONSTRAINT u_value_field_observation UNIQUE (value, field_id, observation_id)
+	CONSTRAINT fk_observation_2_subject FOREIGN KEY (subject_id) REFERENCES subject(subject_id),
+	CONSTRAINT fk_observation_2_phase FOREIGN KEY (phase_id) REFERENCES phase(phase_id),
+	CONSTRAINT u_observation UNIQUE (dataset_id, subject_id, phase_id, record_id)
 );
 
 create table datum (
@@ -413,6 +405,8 @@ create table anomaly (
 	site_id BIGINT NOT NULL,
 	check_id BIGINT NOT NULL,
 	field_id BIGINT NOT NULL,
+	phase_id BIGINT NOT NULL,
+	record_id VARCHAR(50) NOT NULL,
 	has_been_viewed TINYINT NOT NULL DEFAULT 0,
 	is_an_issue TINYINT NOT NULL DEFAULT 1,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -420,7 +414,8 @@ create table anomaly (
 	CONSTRAINT fk_anomaly_2_subject FOREIGN KEY (subject_id) REFERENCES subject(subject_id),
 	CONSTRAINT fk_anomaly_2_site FOREIGN KEY (site_id) REFERENCES site(site_id),
 	CONSTRAINT fk_anomaly_2_checks FOREIGN KEY (check_id) REFERENCES checks(check_id),
-	CONSTRAINT fk_anomaly_2_field FOREIGN KEY (field_id) REFERENCES field(field_id)
+	CONSTRAINT fk_anomaly_2_field FOREIGN KEY (field_id) REFERENCES field(field_id),
+	CONSTRAINT fk_anomaly_2_phase FOREIGN KEY (phase_id) REFERENCES phase(phase_id)
 );
 
 create table anomaly_datum_version (
@@ -452,30 +447,25 @@ create table data_property (
 	CONSTRAINT u_data_property UNIQUE (data_property_name, check_run_id)
 );
 
-create view uni_anomaly_dto as
+create or replace view uni_anomaly_dto as
 select acr.check_run_id as check_run_id,
-adv.anomaly_id as anomaly_id,
+a.anomaly_id as anomaly_id,
 f.field_id as field_id,
 f.field_name as field_name,
 dv.value as anomalous_value,
-a.subject_id as subject_id,
-a.site_id as site_id,
-(
-	select group_concat(idf.field_name)
-	from id_field_value idfv
-	join field idf on idfv.field_id = idf.field_id
-	where idfv.observation_id = d.observation_id
-	group by idfv.observation_id
-) as id_field_names,
-(
-	select group_concat(idfv.value)
-	from id_field_value idfv
-	where idfv.observation_id = d.observation_id
-	group by idfv.observation_id
-) as id_field_values
-from anomaly_datum_version adv
-join anomaly a on a.anomaly_id = adv.anomaly_id
-join datum_version dv on dv.datum_version_id = adv.datum_version_id
-join datum d on d.datum_id = dv.datum_id
-join field f on f.field_id = d.field_id 
-join anomaly_check_run acr on acr.anomaly_id = adv.anomaly_id;
+s.subject_id as subject_id,
+s.subject_name as subject_name,
+si.site_id as site_id,
+si.site_name as site_name,
+p.phase_id as phase_id,
+p.phase_name as phase_name,
+a.record_id as record_id
+from anomaly a
+join subject s on s.subject_id = a.subject_id
+join phase p on p.phase_id = a.phase_id
+join site si on si.site_id = a.site_id
+join field f on f.field_id = a.field_id 
+join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id
+join anomaly_datum_version adv on adv.anomaly_id = a.anomaly_id
+join datum_version dv on dv.datum_version_id = adv.datum_version_id;
+
