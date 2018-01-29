@@ -48,20 +48,20 @@ public class RhoverCheckerApplication implements CommandLineRunner {
 			logger.info("Running data checks on study " + study.getStudyName());
 			
 			// Run univarite outlier checks
-			logger.info("Running univariate outlier check on study " + study.getStudyName());
-			Check check = checkRepository.findByCheckName("UNIVARIATE_OUTLIER");
-			Iterable<Dataset> datasets = datasetRepository.findByStudy(study);
-			for (Dataset dataset : datasets) {
-				if (!dataset.getIsChecked()) {
-					continue;
-				}
-				checkService.runUnivariateCheck(check, dataset);
-			}
+//			logger.info("Running univariate outlier check on study " + study.getStudyName());
+//			Check check = checkRepository.findByCheckName("UNIVARIATE_OUTLIER");
+//			Iterable<Dataset> datasets = datasetRepository.findByStudy(study);
+//			for (Dataset dataset : datasets) {
+//				if (!dataset.getIsChecked()) {
+//					continue;
+//				}
+//				checkService.runUnivariateCheck(check, dataset);
+//			}
 			
 			// Run bivariate outlier checks
-//			logger.info("Running bivariate outlier checks on study " + study.getStudyName());
-//			Check check = checkRepository.findByCheckName("BIVARIATE_OUTLIER");
-//			checkService.runBivariateChecks(check, study);
+			logger.info("Running bivariate outlier checks on study " + study.getStudyName());
+			Check check = checkRepository.findByCheckName("BIVARIATE_OUTLIER");
+			checkService.runBivariateChecks(check, study);
 		}
 	}
 }

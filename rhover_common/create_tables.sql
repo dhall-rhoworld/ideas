@@ -324,13 +324,18 @@ insert into check_param (param_name, param_value, param_scope, check_id)
 values('sd-residual', '2', 'GLOBAL', (select check_id from checks where check_name = 'BIVARIATE_OUTLIER'));
 
 insert into check_param (param_name, param_value, param_scope, check_id)
+values('num-nearest-neighbors', '5', 'GLOBAL', (select check_id from checks where check_name = 'BIVARIATE_OUTLIER'));
+
+insert into check_param (param_name, param_value, param_scope, check_id)
 values('sd-density', '6', 'GLOBAL', (select check_id from checks where check_name = 'BIVARIATE_OUTLIER'));
 
 create table check_run (
 	check_run_id BIGINT AUTO_INCREMENT NOT NULL,
 	dataset_version_id BIGINT NOT NULL,
+	dataset_version_2_id BIGINT NOT NULL,
 	check_id BIGINT NOT NULL,
 	field_id BIGINT,
+	bivariate_check_id BIGINT,
 	is_latest TINYINT NOT NULL DEFAULT 0,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT pk_check_run PRIMARY KEY (check_run_id),
@@ -339,7 +344,9 @@ create table check_run (
 	CONSTRAINT fk_check_run_2_check FOREIGN KEY (check_id)
 		REFERENCES checks (check_id),
 	CONSTRAINT fk_check_runb_2_field FOREIGN KEY (field_id)
-		REFERENCES field(field_id)
+		REFERENCES field(field_id),
+	CONSTRAINT fk_check_run_2_bivariate_check FOREIGN KEY (bivariate_check_id)
+		REFERENCES bivariate_check(bivariate_check_id)
 );
 
 create table param_used (
@@ -425,6 +432,15 @@ create table anomaly_datum_version (
 	CONSTRAINT pk_anomaly_datum_version PRIMARY KEY (anomaly_id, datum_version_id),
 	CONSTRAINT fk_anomaly_datum_version_2_anomaly FOREIGN KEY (anomaly_id) REFERENCES anomaly(anomaly_id),
 	CONSTRAINT fk_anomaly_datum_version_2_datum_version FOREIGN KEY (datum_version_id) REFERENCES datum_version(datum_version_id)
+);
+
+create table anomaly_datum_version_2 (
+	anomaly_id BIGINT NOT NULL,
+	datum_version_id BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_anomaly_datum_version_2 PRIMARY KEY (anomaly_id, datum_version_id),
+	CONSTRAINT fk_anomaly_datum_version_2_2_anomaly FOREIGN KEY (anomaly_id) REFERENCES anomaly(anomaly_id),
+	CONSTRAINT fk_anomaly_datum_version_2_2_datum_version FOREIGN KEY (datum_version_id) REFERENCES datum_version(datum_version_id)
 );
 
 create table anomaly_check_run (

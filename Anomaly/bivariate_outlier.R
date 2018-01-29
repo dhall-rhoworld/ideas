@@ -3,14 +3,42 @@ library(caret)
 library(spatstat)
 
 #
+# Read in arguments from command line
+#
+args <- commandArgs(trailingOnly=TRUE)
+
+# (Arg 1): Input file path
+infile <- args[1]
+
+# (Arg 2): Path to main output file
+outfile <- args[2]
+
+# (Arg 3): Path to secondary output file that will contain
+#          computed statistical parameters
+paramfile <- args[3]
+
+# (Arg 4): Column number of input file that contains values to check
+firstDataCol <- as.integer(args[4])
+
+# (Arg 5): Standard deviations from regression line
+sdResidual <- as.numeric(args[5])
+
+# (Arg 6): Number of nearest neighbors to compute
+numNearestNeighbors <- as.integer(args[6])
+
+# (Arg 7): Standard deviations below mean density
+sdDensity <- as.numeric(args[7])
+
+#
 # Values use in testing
 #
-infile <- "C:/RhoVer/Working/test-in.csv"
-outfile <- "C:/RhoVer/Working/test-out.csv"
-paramfile <- "C:/RhoVer/Working/test-param.csv"
-firstDataCol <- 4
-sdResidual <- 2
-numNearestNeighbors <- 5
+# infile <- "C:/RhoVer/Working/test-in.csv"
+# outfile <- "C:/RhoVer/Working/test-out.csv"
+# paramfile <- "C:/RhoVer/Working/test-param.csv"
+# firstDataCol <- 4
+# sdResidual <- 2
+# numNearestNeighbors <- 5
+# sdDensity <- 6
 
 # Configure input data formats.  All columns to the left
 # of the first one being checked will be considered ID fields
@@ -52,3 +80,20 @@ outlierIndex <- res > cutoffRes
 
 # Compute mean distances to K nearest neighbors
 distMatrix <- nndist(X, Y, k=1:numNearestNeighbors)
+meanDistances <- rowMeans(distMatrix)
+
+# Compute density cutoff value
+cutoffDensity <- mean(meanDistances) + sdDensity * sd(meanDistances)
+
+# Refine outlier calls by applying density cutoff
+outlierIndex <- outlierIndex & meanDistances > cutoffDensity
+
+# Write outlier output file
+df$Is_Outlier <- outlierIndex
+write.csv(df, file = outfile, row.names = FALSE, quote = FALSE)
+
+# Generate output for statistical properties file
+statProps <- data.frame(heteroschedastic <- c("false"))
+statProps$slope <- c(fitY$coefficients[2])
+statProps$intercept <- fitY$coefficients[1]
+write.csv(statProps, file = paramfile, row.names = FALSE, quote = FALSE)

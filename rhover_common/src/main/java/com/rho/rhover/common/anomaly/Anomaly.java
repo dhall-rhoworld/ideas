@@ -40,6 +40,11 @@ public class Anomaly {
 	inverseJoinColumns = @JoinColumn(name="datum_version_id"))
 	private List<DatumVersion> datumVersions = new ArrayList<>();
 	
+	@ManyToMany
+	@JoinTable(name="anomaly_datum_version_2", joinColumns = @JoinColumn(name="anomaly_id"),
+	inverseJoinColumns = @JoinColumn(name="datum_version_id"))
+	private List<DatumVersion> bivariateDatumVersions2 = new ArrayList<>();
+	
 	@ManyToOne
 	@JoinColumn(name="check_id")
 	private Check check;
@@ -161,6 +166,14 @@ public class Anomaly {
 
 	public void setRecordId(String recordId) {
 		this.recordId = recordId;
+	}
+
+	public List<DatumVersion> getBivariateDatumVersions2() {
+		return bivariateDatumVersions2;
+	}
+
+	public void setBivariateDatumVersions2(List<DatumVersion> bivariateDatumVersions2) {
+		this.bivariateDatumVersions2 = bivariateDatumVersions2;
 	}
 
 	public DatumVersion getCurrentDatumVersion() {

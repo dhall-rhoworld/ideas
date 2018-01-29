@@ -88,4 +88,13 @@ public class CheckParamServiceImpl implements CheckParamService {
 		}
 		return params;
 	}
+
+	@Override
+	public CheckParam getCheckParam(Check check, String paramName, BivariateCheck biCheck) {
+		CheckParam param = biCheck.getCheckParams().get(paramName);
+		if (param == null) {
+			param = getCheckParam(check, paramName, biCheck.getStudy());
+		}
+		return param;
+	}
 }

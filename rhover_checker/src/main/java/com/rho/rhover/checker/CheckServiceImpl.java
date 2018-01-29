@@ -7,29 +7,20 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.StringTokenizer;
 
 import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 
-import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
-import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 import com.rho.rhover.common.anomaly.Anomaly;
 import com.rho.rhover.common.anomaly.AnomalyRepository;
-import com.rho.rhover.common.anomaly.DataIntegrityException;
 import com.rho.rhover.common.anomaly.DataProperty;
 import com.rho.rhover.common.anomaly.DataPropertyRepository;
 import com.rho.rhover.common.anomaly.Datum;
@@ -42,14 +33,11 @@ import com.rho.rhover.common.check.BivariateCheck;
 import com.rho.rhover.common.check.BivariateCheckRepository;
 import com.rho.rhover.common.check.Check;
 import com.rho.rhover.common.check.CheckParam;
-import com.rho.rhover.common.check.CheckParamRepository;
 import com.rho.rhover.common.check.CheckParamService;
 import com.rho.rhover.common.check.CheckRun;
 import com.rho.rhover.common.check.CheckRunRepository;
 import com.rho.rhover.common.check.ParamUsed;
 import com.rho.rhover.common.check.ParamUsedRepository;
-import com.rho.rhover.common.study.CsvData;
-import com.rho.rhover.common.study.CsvDataRepository;
 import com.rho.rhover.common.study.CsvDataService;
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.DatasetVersion;
@@ -57,11 +45,8 @@ import com.rho.rhover.common.study.DatasetVersionRepository;
 import com.rho.rhover.common.study.Field;
 import com.rho.rhover.common.study.FieldInstance;
 import com.rho.rhover.common.study.FieldInstanceRepository;
-import com.rho.rhover.common.study.FieldRepository;
 import com.rho.rhover.common.study.Phase;
 import com.rho.rhover.common.study.PhaseRepository;
-import com.rho.rhover.common.study.Site;
-import com.rho.rhover.common.study.SiteRepository;
 import com.rho.rhover.common.study.Study;
 import com.rho.rhover.common.study.Subject;
 import com.rho.rhover.common.study.SubjectRepository;
@@ -74,12 +59,6 @@ public class CheckServiceImpl implements CheckService {
 	
 	@Autowired
 	private DatasetVersionRepository datasetVersionRepository;
-	
-	@Autowired
-	private FieldRepository fieldRepository;
-	
-	@Autowired
-	private CsvDataRepository csvDataRepository;
 	
 	@Autowired
 	private CheckParamService checkParamService;
@@ -95,9 +74,6 @@ public class CheckServiceImpl implements CheckService {
 	
 	@Autowired
 	private SubjectRepository subjectRepository;
-	
-	@Autowired
-	private SiteRepository siteRepository;
 	
 	@Autowired
 	private DatumRepository datumRepository;
@@ -131,6 +107,9 @@ public class CheckServiceImpl implements CheckService {
 	
 	@Value("${univariate.outlier.script.path}")
 	private String univariateOutlierScriptPath;
+	
+	@Value("${bivariate.outlier.script.path}")
+	private String bivariateOutlierScriptPath;
 	
 	private File workingDir;
 	
@@ -194,13 +173,7 @@ public class CheckServiceImpl implements CheckService {
 				throw new RuntimeException(e);
 			}
 			finally {
-				if (fileWriter != null) {
-					try {
-						fileWriter.close();
-					} catch (IOException e) {
-						throw new RuntimeException(e);
-					}
-				}
+				IOUtils.close(fileWriter);
 			}
 			
 			// Run R script.  The script will produce 2 output files:  (1) A copy of the input file with an additional
@@ -243,7 +216,7 @@ public class CheckServiceImpl implements CheckService {
 			BufferedReader paramReader = null;
 			try {
 				outlierReader = new BufferedReader(new FileReader(outfilePath));
-				processOutliers(outlierReader, datasetVersion, field, newCheckRun);
+				processOutliers(outlierReader, datasetVersion, field, newCheckRun, false, null, null);
 				paramReader = new BufferedReader(new FileReader(propfilePath));
 				processDataProperties(paramReader, newCheckRun);
 			}
@@ -251,17 +224,8 @@ public class CheckServiceImpl implements CheckService {
 				throw new RuntimeException(e);
 			}
 			finally {
-				try {
-					if (outlierReader != null) {
-						outlierReader.close();
-					}
-					if (paramReader != null) {
-						paramReader.close();
-					}
-				}
-				catch (IOException e) {
-					throw new RuntimeException(e);
-				}
+				IOUtils.close(outlierReader);
+				IOUtils.close(paramReader);
 			}
 			
 			dataFile.delete();
@@ -312,7 +276,13 @@ public class CheckServiceImpl implements CheckService {
 	// Save outliers identified by R script as new anomalies
 	//
 	private void processOutliers(BufferedReader reader, DatasetVersion datasetVersion,
-			Field field, CheckRun checkRun) throws IOException {
+			Field field, CheckRun checkRun, boolean isBivariate,
+			DatasetVersion datasetVersion2, Field field2) throws IOException {
+		
+		int outlierColNum = 4;
+		if (isBivariate) {
+			outlierColNum = 5;
+		}
 		
 		// Read past header
 		reader.readLine();
@@ -321,59 +291,30 @@ public class CheckServiceImpl implements CheckService {
 		String line = reader.readLine();
 		while (line != null) {
 			String[] values = line.split(",");
-			
-			// Case: Record is an outlier
-			if (values[4].equals("TRUE")) {
+			if (values[outlierColNum].equals("TRUE")) {
 				
-				// Fetch or create new observation
 				Subject subject = subjectRepository.findBySubjectName(values[0]);
 				Phase phase = phaseRepository.findByPhaseName(values[1]);
 				String recordId = values[2];
-				Observation observation = observationRepository.findByDatasetAndSubjectAndPhaseAndRecordId(datasetVersion.getDataset(), subject, phase, recordId);
-				if (observation == null) {
-					observation = new Observation(datasetVersion.getDataset(), subject, phase, recordId);
-					observationRepository.save(observation);
-				}
-				
-				// Fetch or save new datum
-				Datum datum = datumRepository.findByObservationAndField(observation, field);
-				if (datum == null) {
-					datum = new Datum(field, observation);
-					datumRepository.save(datum);
-				}
-				
-				// Fetch or save new datum version
-				DatumVersion datumVersion = datumVersionRepository.findByDatumAndIsCurrent(datum, Boolean.TRUE);
 				String anomalousValue = values[3];
-				if (datumVersion == null) {
-					datumVersion = new DatumVersion(anomalousValue, Boolean.TRUE, datum);
-					datumVersionRepository.save(datumVersion);
-				}
-				
-				// If there is an existing datum version, update if warrented
-				else {
-					
-					// Check if the record is a duplicate
-					if (datumVersion.getDatasetVersions().contains(datasetVersion) && !datumVersion.getValue().equals(anomalousValue)) {
-						throw new DataIntegrityException("Multiple records.  Last one is: " + line);
-					}
-					if (!datumVersion.getValue().equals(anomalousValue)) {
-						datumVersion.setIsCurrent(Boolean.FALSE);
-						datumVersionRepository.save(datumVersion);
-						datumVersion = new DatumVersion(anomalousValue, Boolean.TRUE, datum);
-						datumVersionRepository.save(datumVersion);
-					}
-				}
-				
-				if (!datumVersion.getDatasetVersions().contains(datasetVersion)) {
-					datumVersion.getDatasetVersions().add(datasetVersion);
-				}
-				datumVersionRepository.save(datumVersion);
 				
 				// Update or save new anomaly
 				Check check = checkRun.getCheck();
-				Anomaly anomaly = anomalyRepository.findOne(check, datumVersion);
+				Anomaly anomaly = null;
+				DatumVersion datumVersion = fetchOrCreateDatumVersionAndDependentObjects(
+						recordId, subject, phase, field, datasetVersion, anomalousValue);
+				DatumVersion datumVersion2 = null;
+				if (isBivariate) {
+					String anomalousValue2 = values[4];
+					datumVersion2 = fetchOrCreateDatumVersionAndDependentObjects(
+							recordId, subject, phase, field2, datasetVersion2, anomalousValue2);
+					anomaly = anomalyRepository.findOne(check, datumVersion, datumVersion2);
+				}
+				else {
+					anomaly = anomalyRepository.findOne(check, datumVersion);
+				}
 				if (anomaly == null) {
+					logger.debug("Creating new anomaly");
 					anomaly = new Anomaly();
 					anomaly.setCheck(check);
 					anomaly.getDatumVersions().add(datumVersion);
@@ -382,6 +323,9 @@ public class CheckServiceImpl implements CheckService {
 					anomaly.setField(field);
 					anomaly.setPhase(phase);
 					anomaly.setRecordId(recordId);
+					if (isBivariate) {
+						anomaly.getBivariateDatumVersions2().add(datumVersion2);
+					}
 				}
 				anomaly.getCheckRuns().add(checkRun);
 				anomalyRepository.save(anomaly);
@@ -391,8 +335,45 @@ public class CheckServiceImpl implements CheckService {
 		}
 	}
 
+	private DatumVersion fetchOrCreateDatumVersionAndDependentObjects(String recordId, Subject subject, Phase phase,
+			Field field, DatasetVersion datasetVersion, String anomalousValue) {
+		
+		// Fetch or create new observation
+		Observation observation = observationRepository.findByDatasetAndSubjectAndPhaseAndRecordId(datasetVersion.getDataset(), subject, phase, recordId);
+		if (observation == null) {
+			logger.debug("Creating new observation for subject: " + subject.getSubjectName() + ", phase: " + phase.getPhaseName()
+				+ ", recordId: " + recordId);
+			observation = new Observation(datasetVersion.getDataset(), subject, phase, recordId);
+			observationRepository.save(observation);
+		}
+		
+		// Fetch or save new datum
+		Datum datum = datumRepository.findByObservationAndField(observation, field);
+		if (datum == null) {
+			logger.debug("Creating new datum for field: " + field.getDisplayName());
+			datum = new Datum(field, observation);
+			datumRepository.save(datum);
+		}
+		
+		// Fetch or save new datum version
+		DatumVersion datumVersion = datumVersionRepository.findByDatumAndIsCurrent(datum, Boolean.TRUE);
+		
+		if (datumVersion == null) {
+			logger.debug("Creating new datum version");
+			datumVersion = new DatumVersion(anomalousValue, Boolean.TRUE, datum);
+			datumVersionRepository.save(datumVersion);
+		}
+		
+		if (!datumVersion.getDatasetVersions().contains(datasetVersion)) {
+			datumVersion.getDatasetVersions().add(datasetVersion);
+		}
+		datumVersionRepository.save(datumVersion);
+		
+		return datumVersion;
+	}
 
 	@Override
+	@Transactional
 	public void runBivariateChecks(Check check, Study study) {
 		
 		// Get working directory
@@ -415,8 +396,9 @@ public class CheckServiceImpl implements CheckService {
 			
 			// Generate input and output files
 			BufferedWriter writer = null;
+			ScriptIoFiles scriptIoFiles = null;
 			try {
-				ScriptIoFiles scriptIoFiles = generateScriptIoFiles("bivariate-" + biCheck.getxFieldInstance().getFieldInstanceId()
+				scriptIoFiles = generateScriptIoFiles("bivariate-" + biCheck.getxFieldInstance().getFieldInstanceId()
 						+ "-" + biCheck.getyFieldInstance().getFieldInstanceId() + "-");
 				String rInputData = generateRInputData(biCheck, study);
 				writer = new BufferedWriter(new FileWriter(scriptIoFiles.inputDataFile));
@@ -426,6 +408,67 @@ public class CheckServiceImpl implements CheckService {
 			}
 			finally {
 				IOUtils.close(writer);
+			}
+			
+			// Run R script
+			CheckParam sdResidual = checkParamService.getCheckParam(check, "sd-residual", biCheck);
+			CheckParam sdDensity = checkParamService.getCheckParam(check, "sd-density", biCheck);
+			CheckParam numNearestNeighbors = checkParamService.getCheckParam(check, "num-nearest-neighbors", biCheck);
+			String command =
+					rExecutablePath
+					+ " " + bivariateOutlierScriptPath
+					+ " " + scriptIoFiles.inputDataFile
+					+ " " + scriptIoFiles.outputOutlierFile
+					+ " " + scriptIoFiles.outputStatsFile
+					+ " 4"
+					+ " " + sdResidual.getParamValue()
+					+ " " + numNearestNeighbors.getParamValue()
+					+ " " + sdDensity.getParamValue();
+			logger.debug(command);
+			try {
+				Process process = Runtime.getRuntime().exec(command);
+				process.waitFor();
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+			
+			// Save parameter values used in the check
+			DatasetVersion datasetVersion1 = datasetVersionRepository.findByDatasetAndIsCurrent(
+					biCheck.getxFieldInstance().getDataset(), Boolean.TRUE);
+			DatasetVersion datasetVersion2 = datasetVersionRepository.findByDatasetAndIsCurrent(
+					biCheck.getyFieldInstance().getDataset(), Boolean.TRUE);
+			CheckRun oldCheckRun = checkRunRepository.findByBivariateCheckAndDatasetVersionAndBivariateDatasetVersion2AndIsLatest(
+					biCheck, datasetVersion1, datasetVersion2, Boolean.TRUE);
+			if (oldCheckRun != null) {
+				oldCheckRun.setIsLatest(Boolean.FALSE);
+				checkRunRepository.save(oldCheckRun);
+			}
+			CheckRun newCheckRun = new CheckRun(datasetVersion1, datasetVersion2, check, biCheck, Boolean.TRUE);
+			checkRunRepository.save(newCheckRun);
+			ParamUsed paramUsed = new ParamUsed("sd-residual", sdResidual.getParamValue(), newCheckRun);
+			paramUsedRepository.save(paramUsed);
+			paramUsed = new ParamUsed("num-nearest-neighbors", numNearestNeighbors.getParamValue(), newCheckRun);
+			paramUsedRepository.save(paramUsed);
+			paramUsed = new ParamUsed("sd-density", sdDensity.getParamValue(), newCheckRun);
+			paramUsedRepository.save(paramUsed);
+			
+			// Process outlier data file
+			BufferedReader outlierReader = null;
+			BufferedReader statPropsReader = null;
+			try {
+				outlierReader = new BufferedReader(new FileReader(scriptIoFiles.outputOutlierFile));
+				Field field1 = biCheck.getxFieldInstance().getField();
+				Field field2 = biCheck.getyFieldInstance().getField();
+				processOutliers(outlierReader, datasetVersion1, field1, newCheckRun, true, datasetVersion2, field2);
+				statPropsReader = new BufferedReader(new FileReader(scriptIoFiles.outputStatsFile));
+				processDataProperties(statPropsReader, newCheckRun);
+			}
+			catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			finally {
+				IOUtils.close(outlierReader);
+				IOUtils.close(statPropsReader);
 			}
 		}
 	}

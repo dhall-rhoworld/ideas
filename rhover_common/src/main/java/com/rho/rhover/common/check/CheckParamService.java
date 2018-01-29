@@ -19,4 +19,6 @@ public interface CheckParamService {
 	Set<CheckParam> getAllCheckParams(Check check, Dataset dataset, Field field);
 	
 	Set<CheckParam> getAllCheckParams(Check check, BivariateCheck biCheck);
+	
+	CheckParam getCheckParam(Check check, String paramName, BivariateCheck biCheck);
 }

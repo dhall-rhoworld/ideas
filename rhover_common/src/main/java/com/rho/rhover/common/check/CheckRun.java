@@ -26,12 +26,20 @@ public class CheckRun {
 	private DatasetVersion datasetVersion;
 	
 	@ManyToOne
+	@JoinColumn(name="dataset_version_2_id")
+	private DatasetVersion bivariateDatasetVersion2;
+	
+	@ManyToOne
 	@JoinColumn(name="check_id")
 	private Check check;
 	
 	@ManyToOne
 	@JoinColumn(name="field_id")
 	private Field field;
+	
+	@ManyToOne
+	@JoinColumn(name="bivariate_check_id")
+	private BivariateCheck bivariateCheck;
 	
 	@Column(name="is_latest")
 	@Type(type="org.hibernate.type.NumericBooleanType")
@@ -46,6 +54,16 @@ public class CheckRun {
 		this.datasetVersion = datasetVersion;
 		this.check = check;
 		this.field = field;
+		this.isLatest = isLatest;
+	}
+
+	public CheckRun(DatasetVersion datasetVersion, DatasetVersion bivariateDatasetVersion2, Check check,
+			BivariateCheck bivariateCheck, Boolean isLatest) {
+		super();
+		this.datasetVersion = datasetVersion;
+		this.bivariateDatasetVersion2 = bivariateDatasetVersion2;
+		this.check = check;
+		this.bivariateCheck = bivariateCheck;
 		this.isLatest = isLatest;
 	}
 
@@ -87,6 +105,14 @@ public class CheckRun {
 
 	public void setIsLatest(Boolean isLatest) {
 		this.isLatest = isLatest;
+	}
+
+	public BivariateCheck getBivariateCheck() {
+		return bivariateCheck;
+	}
+
+	public void setBivariateCheck(BivariateCheck bivariateCheck) {
+		this.bivariateCheck = bivariateCheck;
 	}
 
 }

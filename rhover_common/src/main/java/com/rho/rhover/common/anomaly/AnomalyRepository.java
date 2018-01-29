@@ -13,6 +13,9 @@ public interface AnomalyRepository extends CrudRepository<Anomaly, Long>{
 	@Query("select a from Anomaly a where a.check = ?1 and ?2 member a.datumVersions")
 	Anomaly findOne(Check check, DatumVersion datumVersion);
 	
+	@Query("select a from Anomaly a where a.check = ?1 and ?2 member a.datumVersions and ?3 member a.bivariateDatumVersions2")
+	Anomaly findOne(Check check, DatumVersion datumVersion, DatumVersion bivariateDatumVersion2);
+	
 	@Query("select a from Anomaly a where ?1 member a.checkRuns")
 	List<Anomaly> findByCheckRun(CheckRun checkRun);
 }

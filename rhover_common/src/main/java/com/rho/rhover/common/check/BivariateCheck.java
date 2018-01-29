@@ -66,6 +66,7 @@ public class BivariateCheck {
 		this.bivariateCheckId = bivariateCheckId;
 	}
 
+	// TODO: Rename so that the X is capitalized
 	public FieldInstance getxFieldInstance() {
 		return xFieldInstance;
 	}
