@@ -189,6 +189,30 @@ public class AnomalyController {
     	return "anomaly/beeswarm";
     }
     
+    @RequestMapping("/bivariate_scatter")
+    public String bivariateScatterPlot(
+    		@RequestParam("field_instance_id_1") Long fieldInstanceId1,
+    		@RequestParam("field_instance_id_2") Long fieldInstanceId2,
+    		@RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
+			@RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
+			@RequestParam("dataset_id") Long datasetId,
+			Model model) {
+    	FieldInstance fieldInstance1 = fieldInstanceRepository.findOne(fieldInstanceId1);
+    	FieldInstance fieldInstance2 = fieldInstanceRepository.findOne(fieldInstanceId2);
+    	BivariateCheck biCheck = bivariateCheckRepository.findByXFieldInstanceAndYFieldInstance(fieldInstance1, fieldInstance2);
+    	DatasetVersion datasetVersion1 = datasetVersionRepository.findByDatasetAndIsCurrent(fieldInstance1.getDataset(), Boolean.TRUE);
+    	DatasetVersion datasetVersion2 = datasetVersionRepository.findByDatasetAndIsCurrent(fieldInstance2.getDataset(), Boolean.TRUE);
+    	CheckRun checkRun = checkRunRepository.findByBivariateCheckAndDatasetVersionAndBivariateDatasetVersion2AndIsLatest(biCheck, datasetVersion1, datasetVersion2, Boolean.TRUE);
+    	model.addAttribute("check_run_id", checkRun.getCheckRunId());
+    	model.addAttribute("study", fieldInstance1.getDataset().getStudy());
+    	model.addAttribute("fieldInstance1", fieldInstance1);
+    	model.addAttribute("fieldInstance2", fieldInstance2);
+    	model.addAttribute("dataset", datasetRepository.findOne(datasetId));
+    	model.addAttribute("field_name_1", fieldInstance1.getField().getDisplayName());
+    	model.addAttribute("field_name_2", fieldInstance2.getField().getDisplayName());
+    	return "anomaly/bivariate_scatter";
+    }
+    
     @RequestMapping("/boxplot")
     public String boxplot(
 		    @RequestParam("data_field_id") Long dataFieldId,

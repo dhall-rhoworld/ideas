@@ -1,0 +1,44 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>RhoVer Bivariate Plot</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="/rhover.css"/>
+    <link rel="stylesheet" href="/jquery-ui.css"/>
+    <link rel="icon" type="image/png" href="/images/rover-favicon.png" />
+    <script src="/d3.min.js"></script>
+    <script src="/jquery-3.2.1.min.js"></script>
+    <script src="/jquery-ui.js"></script>
+    <script src="/bivariate_scatter.js"></script>
+    
+    <script th:inline="javascript">
+    	fieldInstanceId1 = [[${fieldInstance1.fieldInstanceId}]];
+    	fieldInstanceId2 = [[${fieldInstance2.fieldInstanceId}]];
+    	const url = "/rest/anomaly/data/bivariate_outliers?check_run_id=" + [[${check_run_id}]];
+    	const fieldName1 = [[${field_name_1}]];
+    	const fieldName2 = [[${field_name_1}]];
+    </script>
+</head>
+<body>
+	<div class="page-header">RhoVer (Prototype)</div>
+	
+	<div id="breadcrumbs">
+		<a href="/browse/studies">Studies</a>
+		>
+		
+		<!-- Showing all anomalies from study -->
+		<span th:if="${site == null and subject == null}">
+			<a th:href="@{/browse/datasets(study_id=${study.studyId})}" th:text="${study.studyName}"/>
+			>
+			<a th:href="@{/browse/data_fields(dataset_id=${dataset.datasetId})}" th:text="${dataset.datasetName}"/>
+		</span>
+		
+		>
+		<strong><span th:text="${fieldInstance1.field.displayName}"/> X <span th:text="${fieldInstance2.field.displayName}"/></strong>
+	</div>
+	
+	<div id="content">
+		<div id="chart"/>
+	</div>
+</body>
+</html>

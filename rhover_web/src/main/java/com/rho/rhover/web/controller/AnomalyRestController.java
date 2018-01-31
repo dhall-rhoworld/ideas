@@ -37,6 +37,7 @@ public class AnomalyRestController {
 	@Autowired
 	private CheckRunRepository checkRunRepository;
 
+	// TODO: I don't think this is used anymore and can be removed
 	@RequestMapping("/data/univariate")
 	public ResponseEntity<String> getUnivariateData(@RequestParam("data_field_id") Long dataFieldId) {
 		HttpHeaders headers = new HttpHeaders();
@@ -51,12 +52,20 @@ public class AnomalyRestController {
 		return csvDataService.getCsvData(checkRun);
 	}
 	
+	// TODO: I don't think this is used anymore and can be removed
 	@RequestMapping("/data/bivariate")
 	public ResponseEntity<String> getBivariateData(@RequestParam("bivariate_check_id") Long bivariateCheckId) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "text/plain; charset=utf-8");
 		String data = studyDataRepository.getBivariateData(bivariateCheckId);
 		return new ResponseEntity<String>(data, headers, HttpStatus.OK);
+	}
+	
+	// TODO: May be able to consolidate with getUnivariateOutliers
+	@RequestMapping("/data/bivariate_outliers")
+	public String getBivariteOutliers(@RequestParam("check_run_id") Long checkRunId) {
+		CheckRun checkRun = checkRunRepository.findOne(checkRunId);
+		return csvDataService.getCsvData(checkRun);
 	}
 	
 	@RequestMapping("/not_an_issue")

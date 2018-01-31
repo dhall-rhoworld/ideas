@@ -380,8 +380,23 @@ public class CsvDataServiceImpl implements CsvDataService {
 	@Override
 	public String getCsvData(CheckRun checkRun) {
 		
+		if (checkRun.getBivariateCheck() != null && !checkRun.getBivariateCheck().fieldsInSameDataset()) {
+			throw new UnsupportedOperationException();
+		}
+		
 		// Fetch data
-		Dataset dataset = checkRun.getDatasetVersion().getDataset();
+		Dataset dataset = null;
+		Iterator<String> values = null;
+		Iterator<String> values2 = null;
+		if (checkRun.getBivariateCheck() == null) {
+			dataset = checkRun.getDatasetVersion().getDataset();
+			values = csvDataRepository.findByFieldAndDataset(checkRun.getField(), dataset).extractData().iterator();
+		}
+		else {
+			dataset = checkRun.getBivariateCheck().getxFieldInstance().getDataset();
+			values = csvDataRepository.findByFieldAndDataset(checkRun.getBivariateCheck().getxFieldInstance().getField(), dataset).extractData().iterator();
+			values2 = csvDataRepository.findByFieldAndDataset(checkRun.getBivariateCheck().getyFieldInstance().getField(), dataset).extractData().iterator();
+		}
 		Study study = dataset.getStudy();
 		Iterator<String> subjects =
 				csvDataRepository.findByFieldAndDataset(study.getSubjectField(), dataset).extractData().iterator();
@@ -391,8 +406,6 @@ public class CsvDataServiceImpl implements CsvDataService {
 				csvDataRepository.findByFieldAndDataset(study.getPhaseField(), dataset).extractData().iterator();
 		Iterator<String> recordIds =
 				csvDataRepository.findByFieldAndDataset(study.getRecordIdField(), dataset).extractData().iterator();
-		Iterator<String> values =
-				csvDataRepository.findByFieldAndDataset(checkRun.getField(), dataset).extractData().iterator();
 		
 		// Package data into Record objects
 		List<Record> records = new ArrayList<>();
@@ -403,8 +416,16 @@ public class CsvDataServiceImpl implements CsvDataService {
 			rec.phaseName = phases.next();
 			rec.recordId = recordIds.next();
 			rec.dataValue = values.next();
+			if (values2 != null) {
+				rec.dataValue2 = values2.next();
+			}
 			if (!isNull(rec.dataValue)) {
-				records.add(rec);
+				if (checkRun.getBivariateCheck() == null) {
+					records.add(rec);
+				}
+				else if (!isNull(rec.dataValue2)) {
+					records.add(rec);
+				}
 			}
 		}
 		
@@ -419,10 +440,15 @@ public class CsvDataServiceImpl implements CsvDataService {
 		builder.append(study.getSubjectField().getDisplayName()
 				+ "," + study.getSiteField().getDisplayName()
 				+ "," + study.getPhaseField().getDisplayName()
-				+ "," + study.getRecordIdField().getDisplayName()
-				+ "," + checkRun.getField().getDisplayName()
-				+ ",anomaly_id"
-				+ "\n");
+				+ "," + study.getRecordIdField().getDisplayName());
+		if (checkRun.getBivariateCheck() == null) {
+			builder.append("," + checkRun.getField().getDisplayName());
+		}
+		else {
+			builder.append("," + checkRun.getBivariateCheck().getxFieldInstance().getField().getDisplayName() + ","
+					+ checkRun.getBivariateCheck().getyFieldInstance().getField().getDisplayName());
+		}
+		builder.append(",anomaly_id\n");
 		
 		// Add data to output
 		for (Record rec : records) {
@@ -431,8 +457,11 @@ public class CsvDataServiceImpl implements CsvDataService {
 					+ "," + rec.phaseName
 					+ "," + rec.recordId
 					+ "," + rec.dataValue
-					+ "," + rec.anomalyId
-					+ "\n");
+					);
+			if (rec.dataValue2 != null) {
+				builder.append("," + rec.dataValue2);
+			}
+			builder.append("," + rec.anomalyId + "\n");
 		}
 		
 		
@@ -482,6 +511,8 @@ public class CsvDataServiceImpl implements CsvDataService {
 		private String recordId;
 		
 		private String dataValue;
+		
+		private String dataValue2;
 		
 		private Long anomalyId = 0L;
 	

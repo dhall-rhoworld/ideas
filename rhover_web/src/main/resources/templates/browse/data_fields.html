@@ -98,6 +98,11 @@
    						th:href="@{/anomaly/bivariate_table(field_instance_id_1=${summary.entityId}, field_instance_id_2=${summary.entityId2}, dataset_id=${dataset.datasetId})}">
    						Table
    					</a>
+   					|
+   					<a th:if="${site == null and subject == null}"
+   						th:href="@{/anomaly/bivariate_scatter(field_instance_id_1=${summary.entityId}, field_instance_id_2=${summary.entityId2}, dataset_id=${dataset.datasetId})}">
+   						Chart
+   					</a>
    				</td>
    			</tr>
    		</table>
