@@ -1,5 +1,6 @@
 const margin = {top: 20, right: 20, bottom: 50, left: 50};
 const RADIUS = 3;
+const NUM_POINTS_ON_CURVE = 30;
 
 let minX = 0;
 let minY = 0;
@@ -45,7 +46,7 @@ function renderBivariatePlot(url, divId, width, height) {
 	const chartHeight = height - margin.top - margin.bottom;
 	
 	d3.csv(url, function(error, data) {
-		console.log(data);
+		//console.log(data);
 		
 		// Extract X and Y axis labels
 		const xLabel = data.columns[4];
@@ -128,8 +129,12 @@ function renderBivariatePlot(url, divId, width, height) {
 			.style("text-anchor", "end")
 			.text(yLabel);
 		
-		drawNormalResidualThresholds();
-
+		if (heteroschedastic == "FALSE") {
+			drawNormalResidualThresholds();
+		}
+		else {
+			drawHeteroschedasticThresholds();
+		}
 	});
 }
 
@@ -189,6 +194,64 @@ function drawLine(yIntercept) {
 function drawNormalResidualThresholds() {
 	drawLine(intercept - cutoffResidual);
 	drawLine(intercept + cutoffResidual);
+}
+
+function drawHeteroschedasticThresholds() {
+	const xCoords = [];
+	const step = (maxX - minX) / NUM_POINTS_ON_CURVE;
+	for (let i = 0; i < NUM_POINTS_ON_CURVE; i++) {
+		let x = minX + i * step;
+		xCoords.push(x);
+	}
+	const yLows = [];
+	const yHighs = [];
+	const floatLambda = parseFloat(lambda);
+	const exponent = 1.0 / floatLambda;
+	console.log("lambda: " + floatLambda);
+	console.log("exponent: " + exponent);
+	for (let i = 0; i < NUM_POINTS_ON_CURVE; i++) {
+		let y = computeY(xCoords[i], intercept);
+		let yLow = Math.pow((y - cutoffResidual) * floatLambda + 1, exponent);
+		let yHigh = Math.pow((y + cutoffResidual) * floatLambda + 1, exponent);
+		yLows.push(yLow);
+		yHighs.push(yHigh);
+		console.log(xCoords[i] + "," + yLow);
+	}
+	let lowPoints = "";
+	let highPoints = "";
+	let lowCount = 0;
+	let highCount = 0;
+	for (let i = 0; i < NUM_POINTS_ON_CURVE; i++) {
+		let x = xCoords[i];
+		let yLow = yLows[i];
+		if (yLow >= minY && yLow <= maxY) {
+			lowCount++;
+			let coord = xScale(x) + "," + yScale(yLow);
+			if (lowCount > 1) {
+				coord = " " + coord;
+			}
+			lowPoints += coord;
+		}
+		let yHigh = yHighs[i];
+		if (yHigh >= minY && yHigh <= maxY) {
+			highCount++;
+			let coord = xScale(x) + "," + yScale(yHigh);
+			if (highCount > 1) {
+				coord = " " + coord;
+			}
+			highPoints += coord;
+		}
+	}
+	canvas.append("polyline")
+		.attr("points", lowPoints)
+		.style("stroke", "black")
+		.style("stroke-width", 1)
+		.style("fill", "none");
+	canvas.append("polyline")
+	.attr("points", highPoints)
+	.style("stroke", "black")
+	.style("stroke-width", 1)
+	.style("fill", "none");
 }
 
 $(function() {

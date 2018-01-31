@@ -213,6 +213,14 @@ public class AnomalyController {
     	model.addAttribute("slope", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "slope").getDataPropertyValue());
     	model.addAttribute("intercept", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "intercept").getDataPropertyValue());
     	model.addAttribute("cutoff_residual", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "cutoff_residual").getDataPropertyValue());
+    	String heteroschedastic = dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "heteroschedastic").getDataPropertyValue();
+    	model.addAttribute("heteroschedastic", heteroschedastic);
+    	if (heteroschedastic.equals("TRUE")) {
+    		model.addAttribute("lambda", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "lambda").getDataPropertyValue());
+    	}
+    	else {
+    		model.addAttribute("lambda", "null");
+    	}
     	return "anomaly/bivariate_scatter";
     }
     

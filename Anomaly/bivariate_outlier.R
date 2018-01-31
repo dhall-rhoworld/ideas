@@ -59,21 +59,19 @@ X <- df[, firstDataCol]
 Y <- df[, firstDataCol + 1]
 fitY <- lm(Y ~ X)
 
-# Test if data are heteroschedastic
-#areHet <- ncvTest(fitY)$p <= .05
-areHet <- FALSE
-
-# Compute residuals
+# If data are heteroschedastic, perform Box-Cox transform
+areHet <- ncvTest(fitY)$p <= .05
+#areHet <- FALSE
+lambda <- NaN
 if (areHet) {
   fitBct <- BoxCoxTrans(Y)
   Y2 <- predict(fitBct, Y)
-  fitY2 = lm(Y2 ~ X)
-  res <- abs(residuals(fitY2))
-} else {
-  res <- abs(residuals(fitY))
+  fitY = lm(Y2 ~ X)
+  lambda <- fitBct$lambda
 }
 
 # Compute residual cutoff value
+res <- abs(residuals(fitY))
 cutoffRes <- mean(res) + sdResidual * sd(res)
 
 # Make initual outlier calls based on residual cutoff
@@ -94,8 +92,11 @@ df$Is_Outlier <- outlierIndex
 write.csv(df, file = outfile, row.names = FALSE, quote = FALSE)
 
 # Generate output for statistical properties file
-statProps <- data.frame(heteroschedastic = c("false"))
-statProps$slope <- c(fitY$coefficients[2])
+statProps <- data.frame(heteroschedastic = c(areHet))
+statProps$slope <- fitY$coefficients[2]
 statProps$intercept <- fitY$coefficients[1]
 statProps$cutoff_residual <- cutoffRes
+if (!is.nan(lambda)) {
+  statProps$lambda <- lambda
+}
 write.csv(statProps, file = paramfile, row.names = FALSE, quote = FALSE)
