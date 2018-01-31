@@ -315,6 +315,7 @@ public class CheckServiceImpl implements CheckService {
 				}
 				if (anomaly == null) {
 					logger.debug("Creating new anomaly");
+					FieldInstance fieldInstance = fieldInstanceRepository.findByFieldAndDataset(field2, datasetVersion.getDataset());
 					anomaly = new Anomaly();
 					anomaly.setCheck(check);
 					anomaly.getDatumVersions().add(datumVersion);
@@ -323,8 +324,12 @@ public class CheckServiceImpl implements CheckService {
 					anomaly.setField(field);
 					anomaly.setPhase(phase);
 					anomaly.setRecordId(recordId);
+					anomaly.setFieldInstance(fieldInstance);
 					if (isBivariate) {
 						anomaly.getBivariateDatumVersions2().add(datumVersion2);
+						anomaly.setBivariateField2(field2);
+						FieldInstance fieldInstance2 = fieldInstanceRepository.findByFieldAndDataset(field2, datasetVersion2.getDataset());
+						anomaly.setBivariateFieldInstance2(fieldInstance2);
 					}
 				}
 				anomaly.getCheckRuns().add(checkRun);

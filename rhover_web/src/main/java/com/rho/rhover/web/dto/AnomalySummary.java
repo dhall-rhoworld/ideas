@@ -16,6 +16,8 @@ public class AnomalySummary {
 	private Integer numAnomalies;
 	private Integer numUnviewedAnomalies;
 	private String attribute;
+	private Long entityId2;
+	private String entityName2;
 	
 	public AnomalySummary() {
 		
@@ -29,6 +31,17 @@ public class AnomalySummary {
 		this.numUnviewedAnomalies = numUnviewedAnomalies;
 	}
 	
+	public AnomalySummary(Long entityId, String entityName, Integer numAnomalies, Integer numUnviewedAnomalies,
+			Long entityId2, String entityName2) {
+		super();
+		this.entityId = entityId;
+		this.entityName = entityName;
+		this.numAnomalies = numAnomalies;
+		this.numUnviewedAnomalies = numUnviewedAnomalies;
+		this.entityId2 = entityId2;
+		this.entityName2 = entityName2;
+	}
+
 	public AnomalySummary(Long entityId, String entityName, Integer numAnomalies, Integer numUnviewedAnomalies, String attribute) {
 		this(entityId, entityName, numAnomalies, numUnviewedAnomalies);
 		this.setAttribute(attribute);
@@ -73,4 +86,21 @@ public class AnomalySummary {
 	public void setAttribute(String attribute) {
 		this.attribute = attribute;
 	}
+
+	public Long getEntityId2() {
+		return entityId2;
+	}
+
+	public void setEntityId2(Long entityId2) {
+		this.entityId2 = entityId2;
+	}
+
+	public String getEntityName2() {
+		return entityName2;
+	}
+
+	public void setEntityName2(String entityName2) {
+		this.entityName2 = entityName2;
+	}
+	
 }

@@ -8,11 +8,7 @@ import java.util.Map;
  * @author dhall
  *
  */
-public class UniAnomalyDto implements Comparable<UniAnomalyDto> {
-	
-	private Long checkRunId;
-	
-	private Long anomalyId;
+public class UniAnomalyDto extends AnomalyDto implements Comparable<UniAnomalyDto> {
 	
 	private Long fieldId;
 	
@@ -20,20 +16,6 @@ public class UniAnomalyDto implements Comparable<UniAnomalyDto> {
 	
 	private String anomalousValue;
 	
-	private Long phaseId;
-	
-	private String phaseName;
-	
-	private Long subjectId;
-	
-	private String subjectName;
-	
-	private Long siteId;
-	
-	private String siteName;
-	
-	private String recordId;
-
 	public UniAnomalyDto() {
 		
 	}
@@ -58,14 +40,6 @@ public class UniAnomalyDto implements Comparable<UniAnomalyDto> {
 	}
 
 
-	public Long getCheckRunId() {
-		return checkRunId;
-	}
-
-	public Long getAnomalyId() {
-		return anomalyId;
-	}
-
 	public Long getFieldId() {
 		return fieldId;
 	}
@@ -78,34 +52,18 @@ public class UniAnomalyDto implements Comparable<UniAnomalyDto> {
 		return anomalousValue;
 	}
 
-	public Long getSubjectId() {
-		return subjectId;
-	}
-
-	public Long getSiteId() {
-		return siteId;
-	}
-
-	public Long getPhaseId() {
-		return phaseId;
-	}
-
-	public String getRecordId() {
-		return recordId;
-	}
-
-	public String getPhaseName() {
-		return phaseName;
+	public void setFieldId(Long fieldId) {
+		this.fieldId = fieldId;
 	}
 
 
-	public String getSubjectName() {
-		return subjectName;
+	public void setFieldName(String fieldName) {
+		this.fieldName = fieldName;
 	}
 
 
-	public String getSiteName() {
-		return siteName;
+	public void setAnomalousValue(String anomalousValue) {
+		this.anomalousValue = anomalousValue;
 	}
 
 

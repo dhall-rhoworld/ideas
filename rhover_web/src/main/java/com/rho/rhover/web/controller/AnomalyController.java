@@ -1,7 +1,5 @@
 package com.rho.rhover.web.controller;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,27 +8,29 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.rho.rhover.common.anomaly.Anomaly;
-import com.rho.rhover.common.anomaly.AnomalyRepository;
-import com.rho.rhover.common.anomaly.AnomalyRepositoryOld;
+import com.rho.rhover.common.anomaly.BivariateAnomalyDtoRepository;
 import com.rho.rhover.common.anomaly.BivariateCheckRepositoryOld;
 import com.rho.rhover.common.anomaly.DataPropertyRepository;
 import com.rho.rhover.common.anomaly.UniAnomalyDtoRepository;
+import com.rho.rhover.common.check.BivariateCheck;
+import com.rho.rhover.common.check.BivariateCheckRepository;
 import com.rho.rhover.common.check.Check;
 import com.rho.rhover.common.check.CheckRepository;
 import com.rho.rhover.common.check.CheckRun;
 import com.rho.rhover.common.check.CheckRunRepository;
 import com.rho.rhover.common.check.ParamUsedRepository;
 import com.rho.rhover.common.study.Field;
+import com.rho.rhover.common.study.FieldInstance;
+import com.rho.rhover.common.study.FieldInstanceRepository;
 import com.rho.rhover.common.study.FieldRepository;
 import com.rho.rhover.common.study.DataFieldRepository;
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.DatasetRepository;
 import com.rho.rhover.common.study.DatasetVersion;
+import com.rho.rhover.common.study.DatasetVersionRepository;
 import com.rho.rhover.common.study.Site;
 import com.rho.rhover.common.study.SiteRepository;
 import com.rho.rhover.common.study.Study;
-import com.rho.rhover.common.study.StudyDataRepository;
 import com.rho.rhover.common.study.Subject;
 import com.rho.rhover.common.study.SubjectRepository;
 
@@ -53,7 +53,7 @@ public class AnomalyController {
 	private UniAnomalyDtoRepository uniAnomalyDtoRepository;
 	
 	@Autowired
-	private AnomalyRepository anomalyRepository;
+	private BivariateAnomalyDtoRepository bivariateAnomalyDtoRepository;
 	
 	@Autowired
 	private DataPropertyRepository dataPropertyRepository;
@@ -62,16 +62,10 @@ public class AnomalyController {
 	private ParamUsedRepository paramUsedRepository;
 	
 	@Autowired
-	private AnomalyRepositoryOld anomalyRepositoryOld;
-	
-	@Autowired
 	private DataFieldRepository dataFieldRepository;
 	
 	@Autowired
-	private BivariateCheckRepositoryOld bivariateCheckRepository;
-	
-	@Autowired
-	private StudyDataRepository studyDataRepository;
+	private BivariateCheckRepository bivariateCheckRepository;
 	
 	@Autowired
 	private SiteRepository siteRepository;
@@ -81,6 +75,12 @@ public class AnomalyController {
 	
 	@Autowired
 	private DatasetRepository datasetRepository;
+	
+	@Autowired
+	private FieldInstanceRepository fieldInstanceRepository;
+	
+	@Autowired
+	private DatasetVersionRepository datasetVersionRepository;
     
     @RequestMapping("/table")
     public String anomalyTable(
@@ -109,6 +109,28 @@ public class AnomalyController {
     		model.addAttribute("anomalies", uniAnomalyDtoRepository.findByCheckRunIdAndSubjectId(checkRun.getCheckRunId(), subjectId));
     	}
     	return "anomaly/table";
+    }
+    
+    @RequestMapping("/bivariate_table")
+    public String bivariateAnomalyTable(
+    		@RequestParam("field_instance_id_1") Long fieldInstanceId1,
+    		@RequestParam("field_instance_id_2") Long fieldInstanceId2,
+    		@RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
+			@RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
+			@RequestParam("dataset_id") Long datasetId,
+			Model model) {
+    	FieldInstance fieldInstance1 = fieldInstanceRepository.findOne(fieldInstanceId1);
+    	FieldInstance fieldInstance2 = fieldInstanceRepository.findOne(fieldInstanceId2);
+    	BivariateCheck biCheck = bivariateCheckRepository.findByXFieldInstanceAndYFieldInstance(fieldInstance1, fieldInstance2);
+    	DatasetVersion datasetVersion1 = datasetVersionRepository.findByDatasetAndIsCurrent(fieldInstance1.getDataset(), Boolean.TRUE);
+    	DatasetVersion datasetVersion2 = datasetVersionRepository.findByDatasetAndIsCurrent(fieldInstance2.getDataset(), Boolean.TRUE);
+    	CheckRun checkRun = checkRunRepository.findByBivariateCheckAndDatasetVersionAndBivariateDatasetVersion2AndIsLatest(biCheck, datasetVersion1, datasetVersion2, Boolean.TRUE);
+    	model.addAttribute("anomalies", bivariateAnomalyDtoRepository.findByCheckRunId(checkRun.getCheckRunId()));
+    	model.addAttribute("study", fieldInstance1.getDataset().getStudy());
+    	model.addAttribute("fieldInstance1", fieldInstance1);
+    	model.addAttribute("fieldInstance2", fieldInstance2);
+    	model.addAttribute("dataset", datasetRepository.findOne(datasetId));
+    	return "anomaly/bivariate_table";
     }
     
     @RequestMapping("/beeswarm")

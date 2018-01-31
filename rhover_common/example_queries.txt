@@ -476,5 +476,27 @@ select f.field_name, f.field_label
 from field f
 where f.field_label like '%Fev%';
 
+select f1.field_id, f1.field_label, f2.field_id, f2.field_label,
+(
+	select count(*)
+	from anomaly_check_run acr
+	where acr.check_run_id = cr.check_run_id
+) as total_anomalies,
+(
+	select count(*)
+	from anomaly_check_run acr
+	join anomaly a on a.anomaly_id = acr.anomaly_id
+	where acr.check_run_id = cr.check_run_id
+	and a.has_been_viewed = 0
+) as unviewed_anomalies
+from bivariate_check bc
+join field_instance fi1 on bc.x_field_instance_id = fi1.field_instance_id
+join field_instance fi2 on bc.y_field_instance_id = fi2.field_instance_id
+join field f1 on f1.field_id = fi1.field_id
+join field f2 on f2.field_id = fi2.field_id
+join check_run cr on cr.bivariate_check_id = bc.bivariate_check_id
+where (fi1.dataset_id = 9 or fi2.dataset_id = 9)
+and cr.is_latest = 1
+;
 
 

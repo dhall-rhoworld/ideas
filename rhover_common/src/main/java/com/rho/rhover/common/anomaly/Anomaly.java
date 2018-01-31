@@ -18,6 +18,7 @@ import org.hibernate.annotations.Type;
 import com.rho.rhover.common.check.Check;
 import com.rho.rhover.common.check.CheckRun;
 import com.rho.rhover.common.study.Field;
+import com.rho.rhover.common.study.FieldInstance;
 import com.rho.rhover.common.study.Phase;
 import com.rho.rhover.common.study.Site;
 import com.rho.rhover.common.study.Subject;
@@ -60,6 +61,18 @@ public class Anomaly {
 	@ManyToOne
 	@JoinColumn(name="field_id")
 	private Field field;
+	
+	@ManyToOne
+	@JoinColumn(name="field_2_id")
+	private Field bivariateField2;
+	
+	@ManyToOne
+	@JoinColumn(name="field_instance_id")
+	private FieldInstance fieldInstance;
+	
+	@ManyToOne
+	@JoinColumn(name="field_instance_2_id")
+	private FieldInstance bivariateFieldInstance2;
 	
 	@ManyToOne
 	@JoinColumn(name="phase_id")
@@ -174,6 +187,30 @@ public class Anomaly {
 
 	public void setBivariateDatumVersions2(List<DatumVersion> bivariateDatumVersions2) {
 		this.bivariateDatumVersions2 = bivariateDatumVersions2;
+	}
+
+	public Field getBivariateField2() {
+		return bivariateField2;
+	}
+
+	public void setBivariateField2(Field bivariateField2) {
+		this.bivariateField2 = bivariateField2;
+	}
+
+	public FieldInstance getFieldInstance() {
+		return fieldInstance;
+	}
+
+	public void setFieldInstance(FieldInstance fieldInstance) {
+		this.fieldInstance = fieldInstance;
+	}
+
+	public FieldInstance getBivariateFieldInstance2() {
+		return bivariateFieldInstance2;
+	}
+
+	public void setBivariateFieldInstance2(FieldInstance bivariateFieldInstance2) {
+		this.bivariateFieldInstance2 = bivariateFieldInstance2;
 	}
 
 	public DatumVersion getCurrentDatumVersion() {

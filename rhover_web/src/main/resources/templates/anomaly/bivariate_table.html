@@ -1,0 +1,50 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head> 
+    <title>RhoVer Anomaly Table</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="/rhover.css"/>
+    <link rel="icon" type="image/png" href="/images/rover-favicon.png" />
+</head>
+<body>
+	<div class="page-header">RhoVer (Prototype)</div>
+	
+	<div id="breadcrumbs">
+		<a href="/browse/studies">Studies</a>
+		>
+		
+		<!-- Showing all anomalies from study -->
+		<span th:if="${site == null and subject == null}">
+			<a th:href="@{/browse/datasets(study_id=${study.studyId})}" th:text="${study.studyName}"/>
+			>
+			<a th:href="@{/browse/data_fields(dataset_id=${dataset.datasetId})}" th:text="${dataset.datasetName}"/>
+		</span>
+		
+		>
+		<strong><span th:text="${fieldInstance1.field.displayName}"/> X <span th:text="${fieldInstance2.field.displayName}"/></strong>
+	</div>
+	
+	<div id="content">
+   	
+   		<table class="wide">
+   			<tr>
+   				<th th:text="${study.subjectField.displayName}"/>
+   				<th th:text="${study.siteField.displayName}"/>
+   				<th th:text="${study.phaseField.displayName}"/>
+   				<th th:text="${study.recordIdField.displayName}"/>
+   				<th th:text="${fieldInstance1.field.displayName}"/>
+   				<th th:text="${fieldInstance1.field.displayName}"/>
+   			</tr>
+   			<tr th:each="anomaly : ${anomalies}">
+   			<td th:text="${anomaly.subjectName}"/>
+   				<td th:text="${anomaly.siteName}"/>
+   				<td th:text="${anomaly.phaseName}"/>
+   				<td th:text="${anomaly.recordId}"/>
+   				<td th:text="${anomaly.anomalousValue1}" class="attention"/>
+   				<td th:text="${anomaly.anomalousValue2}" class="attention"/>
+   			</tr>
+   		</table>
+   	
+   	</div>
+ </body>
+ </html>

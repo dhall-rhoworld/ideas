@@ -4,21 +4,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-import javax.sql.DataSource;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 @Service
-public class UniAnomalyDtoRepositoryImpl implements UniAnomalyDtoRepository {
-	
-	private static final int BATCH_SIZE = 100;
-	
-	@Autowired
-	private DataSource dataSource;
+public class UniAnomalyDtoRepositoryImpl extends AnomalyDtoRepositoryImpl implements UniAnomalyDtoRepository {
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<UniAnomalyDto> findByCheckRunId(Long checkRunId) {
 		String sql = 
@@ -26,9 +18,10 @@ public class UniAnomalyDtoRepositoryImpl implements UniAnomalyDtoRepository {
 				"phase_id, phase_name, subject_id, subject_name, site_id, site_name, record_id " +
 				"from uni_anomaly_dto " +
 				"where check_run_id = " + checkRunId;
-		return queryAndMarkAsVeiwed(sql);
+		return (List<UniAnomalyDto>)queryAndMarkAsVeiwed(sql, new UniAnomalyDtoResultSetMapper());
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<UniAnomalyDto> findByCheckRunIdAndSiteId(Long checkRunId, Long siteId) {
 		String sql = 
@@ -37,9 +30,10 @@ public class UniAnomalyDtoRepositoryImpl implements UniAnomalyDtoRepository {
 				"from uni_anomaly_dto " +
 				"where check_run_id = " + checkRunId + " " +
 				"and site_id = " + siteId;
-		return queryAndMarkAsVeiwed(sql);
+		return (List<UniAnomalyDto>)queryAndMarkAsVeiwed(sql, new UniAnomalyDtoResultSetMapper());
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<UniAnomalyDto> findByCheckRunIdAndSubjectId(Long checkRunId, Long subjectId) {
 		String sql = 
@@ -48,30 +42,7 @@ public class UniAnomalyDtoRepositoryImpl implements UniAnomalyDtoRepository {
 				"from uni_anomaly_dto " +
 				"where check_run_id = " + checkRunId + " " +
 				"and subject_id = " + subjectId;
-		return queryAndMarkAsVeiwed(sql);
-	}
-	
-	private List<UniAnomalyDto> queryAndMarkAsVeiwed(String sql) {
-		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-		List<UniAnomalyDto> dtos = jdbcTemplate.query(sql, new UniAnomalyDtoResultSetMapper());
-		int p = 0;
-		while (p < dtos.size()) {
-			int q = p + BATCH_SIZE;
-			if (q > dtos.size()) {
-				q = dtos.size();
-			}
-			StringBuilder builder = new StringBuilder("update anomaly set has_been_viewed = 1 where anomaly_id in (");
-			for (int i = p; i < q; i++) {
-				if (i > p) {
-					builder.append(", ");
-				}
-				builder.append(dtos.get(i).getAnomalyId());
-			}
-			builder.append(")");
-			jdbcTemplate.update(builder.toString());
-			p = q;
-		}
-		return dtos;
+		return (List<UniAnomalyDto>)queryAndMarkAsVeiwed(sql, new UniAnomalyDtoResultSetMapper());
 	}
 
 	private static final class UniAnomalyDtoResultSetMapper implements RowMapper<UniAnomalyDto> {

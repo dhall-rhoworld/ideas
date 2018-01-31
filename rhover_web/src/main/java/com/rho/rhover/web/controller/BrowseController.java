@@ -130,17 +130,20 @@ public class BrowseController {
     	Dataset dataset = datasetRepository.findOne(datasetId);
     	model.addAttribute("dataset", dataset);
 		if (siteId == -1 && subjectId == -1) {
-			model.addAttribute("summaries", anomalySummaryBuilder.getDataFieldSummaries(datasetId));
+			model.addAttribute("univariateSummaries", anomalySummaryBuilder.getUnivariateDataFieldSummaries(datasetId));
+			model.addAttribute("bivariateSummaries", anomalySummaryBuilder.getBivariateDataFieldSummaries(datasetId));
 		}
 		if (siteId != -1) {
 			Site site = siteRepository.findOne(siteId);
 			model.addAttribute("site", site);
-			model.addAttribute("summaries", anomalySummaryBuilder.getDataFieldSummaries(datasetId, site));
+			model.addAttribute("univariateSummaries", anomalySummaryBuilder.getUnivariateDataFieldSummaries(datasetId, site));
+			//model.addAttribute("bivariateSummaries", anomalySummaryBuilder.getBivariateDataFieldSummaries(datasetId, site));
 		}
 		if (subjectId != -1) {
 			Subject subject = subjectRepository.findOne(subjectId);
 			model.addAttribute("subject", subject);
-			model.addAttribute("summaries", anomalySummaryBuilder.getDataFieldSummaries(datasetId, subject));
+			model.addAttribute("univariateSummaries", anomalySummaryBuilder.getUnivariateDataFieldSummaries(datasetId, subject));
+			//model.addAttribute("bivariateSummaries", anomalySummaryBuilder.getBivariateDataFieldSummaries(datasetId, subject));
 		}
 		return "browse/data_fields";
     }

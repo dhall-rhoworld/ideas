@@ -54,7 +54,7 @@
    				<th th:if="${subject}" th:text="'Subject ' + ${subject.subjectName} + ' Anomalies'"/>
    				<th>View</th>
    			</tr>
-   			<tr th:each="summary : ${summaries}">
+   			<tr th:each="summary : ${univariateSummaries}">
    				<td>
    					<span th:text="${summary.entityName}"/>
    				</td>
@@ -75,32 +75,32 @@
    				</td>
    			</tr>
    		</table>
-   		<div th:if="${not #lists.isEmpty(bivariate_checks)}">
-   			<h2>Bivariate Outliers</h2>
-   			<table class="wide">
-   				<tr>
-   					<th colspan="2">Field 1</th>
-   					<th colspan="2">Field 2</th>
-   					<th/>
-   				</tr>
-   				<tr>
-   					<th>Dataset</th>
-   					<th>Label</th>
-   					<th>Dataset</th>
-   					<th>Label</th>
-   					<th>View</th>
-   				</tr>
-   				<tr th:each="check : ${bivariate_checks}">
-   					<td th:text="${check.dataset1.datasetName}"/>
-   					<td th:text="${check.dataField1}"/>
-   					<td th:text="${check.dataset2.datasetName}"/>
-   					<td th:text="${check.dataField2}"/>
-   					<td>
-   						<a th:href="@{/anomaly/scatterplot(bivariate_check_id=${check.bivariateCheckId})}">Scatter Plot</a>
-   					</td>
-   				</tr>
-   			</table>
-   		</div>
+   		
+   		<h2>Bivariate Outliers</h2>
+   		<table class="wide">
+   			<tr>
+   				<th>Variable 1</th>
+   				<th>Variable 2</th>
+   				<th>Total Anomalies</th>
+   				<th>View</th>
+   			</tr>
+   			<tr th:each="summary : ${bivariateSummaries}">
+   				<td th:text="${summary.entityName}"/>
+   				<td th:text="${summary.entityName2}"/>
+   				<td>
+   					<span th:text="${summary.numAnomalies}"/>
+   					<span th:if="${summary.numUnviewedAnomalies > 0}">
+   						&nbsp; (<span class="attention" th:text="${summary.numUnviewedAnomalies}"/> unviewed)
+   					</span>
+   				</td>
+   				<td>
+   					<a th:if="${site == null and subject == null}"
+   						th:href="@{/anomaly/bivariate_table(field_instance_id_1=${summary.entityId}, field_instance_id_2=${summary.entityId2}, dataset_id=${dataset.datasetId})}">
+   						Table
+   					</a>
+   				</td>
+   			</tr>
+   		</table>
     </div>
 </body>
 </html>

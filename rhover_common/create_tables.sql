@@ -412,6 +412,9 @@ create table anomaly (
 	site_id BIGINT NOT NULL,
 	check_id BIGINT NOT NULL,
 	field_id BIGINT NOT NULL,
+	field_2_id BIGINT,
+	field_instance_id BIGINT NOT NULL,
+	field_instance_2_id BIGINT,
 	phase_id BIGINT NOT NULL,
 	record_id VARCHAR(50) NOT NULL,
 	has_been_viewed TINYINT NOT NULL DEFAULT 0,
@@ -422,7 +425,10 @@ create table anomaly (
 	CONSTRAINT fk_anomaly_2_site FOREIGN KEY (site_id) REFERENCES site(site_id),
 	CONSTRAINT fk_anomaly_2_checks FOREIGN KEY (check_id) REFERENCES checks(check_id),
 	CONSTRAINT fk_anomaly_2_field FOREIGN KEY (field_id) REFERENCES field(field_id),
-	CONSTRAINT fk_anomaly_2_phase FOREIGN KEY (phase_id) REFERENCES phase(phase_id)
+	CONSTRAINT fk_anomaly_2_phase FOREIGN KEY (phase_id) REFERENCES phase(phase_id),
+	CONSTRAINT fk_anomaly_2_field_2 FOREIGN KEY (field_2_id) REFERENCES field(field_id),
+	CONSTRAINT fk_anomaly_2_field_instance FOREIGN KEY (field_instance_id) REFERENCES field_instance(field_instance_id),
+	CONSTRAINT fk_anomaly_2_field_instance_2 FOREIGN KEY (field_instance_2_id) REFERENCES field_instance(field_instance_id)
 );
 
 create table anomaly_datum_version (
@@ -484,4 +490,34 @@ join field f on f.field_id = a.field_id
 join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id
 join anomaly_datum_version adv on adv.anomaly_id = a.anomaly_id
 join datum_version dv on dv.datum_version_id = adv.datum_version_id;
+
+create or replace view bivariate_anomaly as
+select acr.check_run_id as check_run_id,
+a.anomaly_id as anomaly_id,
+a.field_instance_id as field_instance_1_id,
+a.field_instance_2_id as field_instance_2_id,
+f1.field_name as field_name_1,
+f2.field_name as field_name_2,
+dv1.value as anomalous_value_1,
+dv2.value as anomalous_value_2,
+s.subject_id as subject_id,
+s.subject_name as subject_name,
+si.site_id as site_id,
+si.site_name as site_name,
+p.phase_id as phase_id,
+p.phase_name as phase_name,
+a.record_id as record_id
+from anomaly a
+join subject s on s.subject_id = a.subject_id
+join phase p on p.phase_id = a.phase_id
+join site si on si.site_id = a.site_id
+join field_instance fi1 on fi1.field_instance_id = a.field_instance_id
+join field_instance fi2 on fi2.field_instance_id = a.field_instance_2_id
+join field f1 on f1.field_id = fi1.field_id
+join field f2 on f2.field_id = fi2.field_id
+join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id
+join anomaly_datum_version adv1 on adv1.anomaly_id = a.anomaly_id
+join anomaly_datum_version adv2 on adv2.anomaly_id = a.anomaly_id
+join datum_version dv1 on dv1.datum_version_id = adv1.datum_version_id
+join datum_version dv2 on dv2.datum_version_id = adv2.datum_version_id;
 

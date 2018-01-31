@@ -215,7 +215,7 @@ public class AnomalySummaryBuilder {
 		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapperWithAttribute()));
 	}
 	
-	public List<AnomalySummary> getDataFieldSummaries(Long datasetId) {
+	public List<AnomalySummary> getUnivariateDataFieldSummaries(Long datasetId) {
 		String sql =
 				"select f.field_id, f.field_label,\r\n" + 
 				"(\r\n" + 
@@ -224,7 +224,8 @@ public class AnomalySummaryBuilder {
 				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
 				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" + 
 				"	where a.field_id = f.field_id\r\n" + 
-				"	and a.is_an_issue = 1\r\n" + 
+				"	and a.is_an_issue = 1\r\n" +
+				"   and a.field_2_id is null \r\n" +
 				"	and cr.is_latest = 1\r\n" + 
 				") total,\r\n" + 
 				"(\r\n" + 
@@ -236,6 +237,7 @@ public class AnomalySummaryBuilder {
 				"	and a.is_an_issue = 1\r\n" + 
 				"	and cr.is_latest = 1\r\n" + 
 				"   and a.has_been_viewed = 0\r\n" +
+				"   and a.field_2_id is null \r\n" +
 				") unviewed\r\n" + 
 				"from field f\r\n" + 
 				"join dataset_version_field dvf on dvf.field_id = f.field_id\r\n" + 
@@ -244,7 +246,7 @@ public class AnomalySummaryBuilder {
 		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
 	}
 	
-	public List<AnomalySummary> getDataFieldSummaries(Long datasetId, Site site) {
+	public List<AnomalySummary> getUnivariateDataFieldSummaries(Long datasetId, Site site) {
 		String sql =
 				"select f.field_id, f.field_label,\r\n" + 
 				"(\r\n" + 
@@ -255,6 +257,7 @@ public class AnomalySummaryBuilder {
 				"	where a.field_id = f.field_id\r\n" + 
 				"	and a.site_id = " + site.getSiteId() + "\r\n" + 
 				"	and a.is_an_issue = 1\r\n" + 
+				"   and a.field_2_id is null \r\n" +
 				"	and cr.is_latest = 1\r\n" + 
 				") total,\r\n" + 
 				"(\r\n" + 
@@ -265,6 +268,7 @@ public class AnomalySummaryBuilder {
 				"	where a.field_id = f.field_id\r\n" + 
 				"	and a.site_id = " + site.getSiteId() + "\r\n" + 
 				"	and a.is_an_issue = 1\r\n" + 
+				"   and a.field_2_id is null \r\n" +
 				"	and cr.is_latest = 1\r\n" + 
 				"   and a.has_been_viewed = 0\r\n" +
 				") unviewed\r\n" + 
@@ -275,7 +279,7 @@ public class AnomalySummaryBuilder {
 		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
 	}
 	
-	public List<AnomalySummary> getDataFieldSummaries(Long datasetId, Subject subject) {
+	public List<AnomalySummary> getUnivariateDataFieldSummaries(Long datasetId, Subject subject) {
 		String sql =
 				"select f.field_id, f.field_label,\r\n" + 
 				"(\r\n" + 
@@ -286,6 +290,7 @@ public class AnomalySummaryBuilder {
 				"	where a.field_id = f.field_id\r\n" + 
 				"	and a.subject_id = " + subject.getSubjectId() + "\r\n" + 
 				"	and a.is_an_issue = 1\r\n" + 
+				"   and a.field_2_id is null \r\n" +
 				"	and cr.is_latest = 1\r\n" + 
 				") total,\r\n" + 
 				"(\r\n" + 
@@ -296,6 +301,99 @@ public class AnomalySummaryBuilder {
 				"	where a.field_id = f.field_id\r\n" + 
 				"	and a.subject_id = " + subject.getSubjectId() + "\r\n" + 
 				"	and a.is_an_issue = 1\r\n" + 
+				"   and a.field_2_id is null \r\n" +
+				"	and cr.is_latest = 1\r\n" + 
+				"   and a.has_been_viewed = 0\r\n" +
+				") unviewed\r\n" + 
+				"from field f\r\n" + 
+				"join dataset_version_field dvf on dvf.field_id = f.field_id\r\n" + 
+				"join dataset_version dv on dv.dataset_version_id = dvf.dataset_version_id\r\n" + 
+				"where dv.dataset_id = " + datasetId;
+		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
+	}
+	
+	public List<AnomalySummary> getBivariateDataFieldSummaries(Long datasetId) {
+		String sql =
+				"select fi1.field_instance_id, f1.field_label, fi2.field_instance_id, f2.field_label,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from anomaly_check_run acr\r\n" + 
+				"	where acr.check_run_id = cr.check_run_id\r\n" + 
+				") as total_anomalies,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from anomaly_check_run acr\r\n" + 
+				"	join anomaly a on a.anomaly_id = acr.anomaly_id\r\n" + 
+				"	where acr.check_run_id = cr.check_run_id\r\n" + 
+				"	and a.has_been_viewed = 0\r\n" + 
+				") as unviewed_anomalies\r\n" + 
+				"from bivariate_check bc\r\n" + 
+				"join field_instance fi1 on bc.x_field_instance_id = fi1.field_instance_id\r\n" + 
+				"join field_instance fi2 on bc.y_field_instance_id = fi2.field_instance_id\r\n" + 
+				"join field f1 on f1.field_id = fi1.field_id\r\n" + 
+				"join field f2 on f2.field_id = fi2.field_id\r\n" + 
+				"join check_run cr on cr.bivariate_check_id = bc.bivariate_check_id\r\n" + 
+				"where (fi1.dataset_id = " + datasetId + " or fi2.dataset_id = " + datasetId + ")\r\n" + 
+				"and cr.is_latest = 1";
+		return removeEmpties(jdbcTemplate.query(sql, new BivariateAnomalySummaryRowMapper()));
+	}
+	
+	public List<AnomalySummary> getBivariateDataFieldSummaries(Long datasetId, Site site) {
+		String sql =
+				"select f.field_id, f.field_label,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from anomaly a\r\n" + 
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" + 
+				"	where a.field_id = f.field_id\r\n" + 
+				"	and a.site_id = " + site.getSiteId() + "\r\n" + 
+				"	and a.is_an_issue = 1\r\n" + 
+				"   and a.field_2_id is not null \r\n" +
+				"	and cr.is_latest = 1\r\n" + 
+				") total,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from anomaly a\r\n" + 
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" + 
+				"	where a.field_id = f.field_id\r\n" + 
+				"	and a.site_id = " + site.getSiteId() + "\r\n" + 
+				"	and a.is_an_issue = 1\r\n" + 
+				"   and a.field_2_id is not null \r\n" +
+				"	and cr.is_latest = 1\r\n" + 
+				"   and a.has_been_viewed = 0\r\n" +
+				") unviewed\r\n" + 
+				"from field f\r\n" + 
+				"join dataset_version_field dvf on dvf.field_id = f.field_id\r\n" + 
+				"join dataset_version dv on dv.dataset_version_id = dvf.dataset_version_id\r\n" + 
+				"where dv.dataset_id = " + datasetId;
+		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
+	}
+	
+	public List<AnomalySummary> getBivariateDataFieldSummaries(Long datasetId, Subject subject) {
+		String sql =
+				"select f.field_id, f.field_label,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from anomaly a\r\n" + 
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" + 
+				"	where a.field_id = f.field_id\r\n" + 
+				"	and a.subject_id = " + subject.getSubjectId() + "\r\n" + 
+				"	and a.is_an_issue = 1\r\n" + 
+				"   and a.field_2_id is not null \r\n" +
+				"	and cr.is_latest = 1\r\n" + 
+				") total,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from anomaly a\r\n" + 
+				"	join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id\r\n" + 
+				"	join check_run cr on cr.check_run_id = acr.check_run_id\r\n" + 
+				"	where a.field_id = f.field_id\r\n" + 
+				"	and a.subject_id = " + subject.getSubjectId() + "\r\n" + 
+				"	and a.is_an_issue = 1\r\n" + 
+				"   and a.field_2_id is not null \r\n" +
 				"	and cr.is_latest = 1\r\n" + 
 				"   and a.has_been_viewed = 0\r\n" +
 				") unviewed\r\n" + 
@@ -334,6 +432,12 @@ public class AnomalySummaryBuilder {
 	private static class AnomalySummaryRowMapperWithAttribute implements RowMapper<AnomalySummary> {
 		public AnomalySummary mapRow(ResultSet rs, int p) throws SQLException {
 			return new AnomalySummary(rs.getLong(1), rs.getString(2), rs.getInt(3), rs.getInt(4), rs.getString(5));
+		}
+	}
+	
+	private static class BivariateAnomalySummaryRowMapper implements RowMapper<AnomalySummary> {
+		public AnomalySummary mapRow(ResultSet rs, int p) throws SQLException {
+			return new AnomalySummary(rs.getLong(1), rs.getString(2), rs.getInt(5), rs.getInt(6), rs.getLong(3), rs.getString(4));
 		}
 	}
 }
