@@ -1,6 +1,16 @@
 const margin = {top: 20, right: 20, bottom: 50, left: 50};
 const RADIUS = 3;
 
+let minX = 0;
+let minY = 0;
+let maxX = 0;
+let maxY = 0;
+
+let xScale = null;
+let yScale = null;
+
+let canvas = null;
+
 function min(data, colName) {
 	if (data.length == 0) {
 		return 0;
@@ -50,26 +60,18 @@ function renderBivariatePlot(url, divId, width, height) {
 		};
 		
 		// Set up X-axis scale
-		//const minX = d3.min(data, xValue);
-		const minX = min(data, xLabel);
-		//const maxX = d3.max(data, xValue);
-		const maxX = max(data, xLabel);
-		const xScale = d3.scaleLinear()
+		minX = min(data, xLabel);
+		maxX = max(data, xLabel);
+		xScale = d3.scaleLinear()
 			.range([0, chartWidth])
 			.domain([minX, maxX]);
 		
-		console.log("minX: " + minX + ", maxX: " + maxX);
-		
 		// Set up Y-axis scale
-		//const minY = d3.min(data, yValue);
-		const minY = min(data, yLabel);
-		//const maxY = d3.max(data, yValue);
-		const maxY = max(data, yLabel);
-		const yScale = d3.scaleLinear()
+		minY = min(data, yLabel);
+		maxY = max(data, yLabel);
+		yScale = d3.scaleLinear()
 			.range([chartHeight, 0])
 			.domain([minY, maxY]);
-		
-		console.log("minY: " + minY + ", maxY: " + maxY);
 		
 		// Create functions to map X and Y coordinates to chart
 		const mapX = function(record) {
@@ -85,7 +87,7 @@ function renderBivariatePlot(url, divId, width, height) {
 		svg.attr("height", height);
 		
 		// Create canvas area within SVG
-		const canvas = svg.append("g");
+		canvas = svg.append("g");
 		canvas.attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
 		
 		// Draw data points
@@ -102,8 +104,6 @@ function renderBivariatePlot(url, divId, width, height) {
 				.classed("inlier", function(d) {
 					return d["anomaly_id"] == 0;
 				});
-		
-		//canvas.append("text").attr("x", chartWidth).attr("y", 100).style("text-anchor", "end").text("Hello!");
 		
 		// Draw X-axis
 		const xAxis = d3.axisBottom().scale(xScale);
@@ -127,10 +127,69 @@ function renderBivariatePlot(url, divId, width, height) {
 			.attr("y", -40)
 			.style("text-anchor", "end")
 			.text(yLabel);
+		
+		drawNormalResidualThresholds();
+
 	});
 }
 
+function computeX(y, yIntercept) {
+	return (y - yIntercept) / slope;
+}
 
+function computeY(x, yIntercept) {
+	return yIntercept + slope * x;
+}
+
+function drawLine(yIntercept) {
+	const coords = {};
+	
+	// Compute coordinates of point where line enters plotting area
+	let tempY = computeY(minX, yIntercept);
+	if (tempY >= minY && tempY <= maxY) {
+		coords.x1 = minX;
+		coords.y1 = tempY;
+	}
+	else if (tempY > maxY && slope < 0){
+		coords.x1 = computeX(maxY, yIntercept);
+		coords.y1 = maxY;
+	}
+	else if (tempY < minY && slope > 0) {
+		coords.x1 = computeX(minY, yIntercept);
+		coords.y1 = minY;
+	}
+	
+	// Compute coordinates of point where line exits plotting area
+	tempY = computeY(maxX, yIntercept);
+	if (tempY >= minY && tempY <= maxY) {
+		coords.x2 = maxX;
+		coords.y2 = tempY;
+	}
+	else if (tempY > maxY && slope > 0) {
+		coords.x2 = computeX(maxY, yIntercept);
+		coords.y2 = maxY;
+	}
+	else if (tempY < minY && slope < 0) {
+		coords.x2 = computeX(minY, yIntercept);
+		coords.y2 = minY;
+	}
+	
+	// Draw line
+	if ("x1" in coords && "y1" in coords && "x2" in coords && "y2" in coords) {
+		canvas.append("line")
+		.attr("x1", xScale(coords.x1))
+		.attr("y1", yScale(coords.y1))
+		.attr("x2", xScale(coords.x2))
+		.attr("y2", yScale(coords.y2))
+		.style("stroke-width", 1)
+		.style("stroke", "black");
+	}
+}
+
+function drawNormalResidualThresholds() {
+	drawLine(intercept - cutoffResidual);
+	drawLine(intercept + cutoffResidual);
+}
 
 $(function() {
 	renderBivariatePlot(url, "chart", 600, 600);

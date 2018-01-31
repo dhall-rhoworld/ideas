@@ -60,7 +60,8 @@ Y <- df[, firstDataCol + 1]
 fitY <- lm(Y ~ X)
 
 # Test if data are heteroschedastic
-areHet <- ncvTest(fitY)$p <= .05
+#areHet <- ncvTest(fitY)$p <= .05
+areHet <- FALSE
 
 # Compute residuals
 if (areHet) {
@@ -93,7 +94,8 @@ df$Is_Outlier <- outlierIndex
 write.csv(df, file = outfile, row.names = FALSE, quote = FALSE)
 
 # Generate output for statistical properties file
-statProps <- data.frame(heteroschedastic <- c("false"))
+statProps <- data.frame(heteroschedastic = c("false"))
 statProps$slope <- c(fitY$coefficients[2])
 statProps$intercept <- fitY$coefficients[1]
+statProps$cutoff_residual <- cutoffRes
 write.csv(statProps, file = paramfile, row.names = FALSE, quote = FALSE)

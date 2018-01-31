@@ -210,6 +210,9 @@ public class AnomalyController {
     	model.addAttribute("dataset", datasetRepository.findOne(datasetId));
     	model.addAttribute("field_name_1", fieldInstance1.getField().getDisplayName());
     	model.addAttribute("field_name_2", fieldInstance2.getField().getDisplayName());
+    	model.addAttribute("slope", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "slope").getDataPropertyValue());
+    	model.addAttribute("intercept", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "intercept").getDataPropertyValue());
+    	model.addAttribute("cutoff_residual", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "cutoff_residual").getDataPropertyValue());
     	return "anomaly/bivariate_scatter";
     }
     
