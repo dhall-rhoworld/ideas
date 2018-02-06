@@ -332,7 +332,7 @@ values('sd-density', '6', 'GLOBAL', (select check_id from checks where check_nam
 create table check_run (
 	check_run_id BIGINT AUTO_INCREMENT NOT NULL,
 	dataset_version_id BIGINT NOT NULL,
-	dataset_version_2_id BIGINT NOT NULL,
+	dataset_version_2_id BIGINT,
 	check_id BIGINT NOT NULL,
 	field_id BIGINT,
 	bivariate_check_id BIGINT,
@@ -413,7 +413,7 @@ create table anomaly (
 	check_id BIGINT NOT NULL,
 	field_id BIGINT NOT NULL,
 	field_2_id BIGINT,
-	field_instance_id BIGINT NOT NULL,
+	field_instance_id BIGINT,
 	field_instance_2_id BIGINT,
 	phase_id BIGINT NOT NULL,
 	record_id VARCHAR(50) NOT NULL,

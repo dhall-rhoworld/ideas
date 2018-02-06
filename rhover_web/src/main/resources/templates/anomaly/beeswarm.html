@@ -44,6 +44,11 @@
 		</span>
 		>
 		<strong><span th:text="${field.fieldLabel}"/></strong>
+
+		<span style="float:right;">
+			Add second variable&nbsp;&nbsp;
+			<input type="text" id="text_second_field"/>
+		</span>
 	</div>
 	
 	<div id="content">
@@ -101,7 +106,10 @@
 
 <script th:inline="javascript">
 	const url = "/rest/anomaly/data/univariate_outliers?check_run_id=" + [[${check_run_id}]];
+	
+	// TODO: Consider consolidating this variable with fieldName1 below
 	const fieldName = [[${field_name}]];
+	
 	const mean = parseFloat([[${mean}]]);
 	const sd = parseFloat([[${sd}]]);
 	const siteName = [[${site_name}]];
@@ -109,6 +117,10 @@
 	const numSd = parseFloat([[${num_sd}]]);
 	const siteFieldName = [[${site_field_name}]];
 	const subjectFieldName = [[${subject_field_name}]];
+	const studyId = [[${field.study.studyId}]];
+	const datasetName = [[${dataset.datasetName}]];
+	const datasetId = [[${dataset.datasetId}]];
+	const fieldName1 = [[${field.fieldName}]];
 	
 	$(function() {
 		$("#dialog_data").dialog({
@@ -123,6 +135,44 @@
 					}
 				}
 			]
+		});
+		
+		$("#text_second_field").autocomplete({
+			minLength: 4,
+			source: function(request, response) {
+				const url = "/rest/admin/study/get_matching_field_instances?study_id="
+					+ studyId + "\u0026term=" + request.term;
+				$.get(url)
+					.done(function(data) {
+						response(data);
+					})
+					.fail(function() {
+						console.log("Error");
+					});
+			},
+			select: function(event, ui) {
+				
+				// Extract field and dataset name from search box.
+				// Autocomplete will have inserted text in the following format:
+				// FIELD_LABEL (FIELD_NAME) [DATASET_NAME]
+				const value = ui.item.value;
+				const namePatt = new RegExp("\\(.*\\)");
+				const fieldNameField = namePatt.exec(value);
+				const datasetPatt = new RegExp("\\[.*\\]");
+				const datasetField = datasetPatt.exec(value);
+
+				// TODO: Add logic to deal with invalid variables
+				const fieldName2 = fieldNameField[0].substring(1, fieldNameField[0].length - 1);
+				const datasetName2 = datasetField[0].substring(1, datasetField[0].length - 1);
+				
+				const url = "/anomaly/bivariate_scatter?" +
+						"field_name_1=" + fieldName1 + "\u0026" +
+						"dataset_name_1=" + datasetName + "\u0026" +
+						"field_name_2=" + fieldName2 + "\u0026" +
+						"dataset_name_2=" + datasetName2 + "\u0026" +
+						"dataset_id=" + datasetId;
+				window.location = url;
+			}
 		});
 	});
 	

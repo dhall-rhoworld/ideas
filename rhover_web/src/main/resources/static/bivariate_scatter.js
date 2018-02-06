@@ -196,7 +196,12 @@ function drawNormalResidualThresholds() {
 	drawLine(intercept + cutoffResidual);
 }
 
-function drawHeteroschedasticThresholds() {
+/**
+ * Calculates points on curved line when data are heteroschedastic.
+ * @returns Object containing two strings encoding points for the low and high
+ * threshold lines.
+ */
+function calculateThesholdLinePoints() {
 	const xCoords = [];
 	const step = (maxX - minX) / NUM_POINTS_ON_CURVE;
 	for (let i = 0; i < NUM_POINTS_ON_CURVE; i++) {
@@ -209,16 +214,19 @@ function drawHeteroschedasticThresholds() {
 	const exponent = 1.0 / floatLambda;
 	console.log("lambda: " + floatLambda);
 	console.log("exponent: " + exponent);
+	console.log("cutoff residual: " + cutoffResidual);
 	for (let i = 0; i < NUM_POINTS_ON_CURVE; i++) {
 		let y = computeY(xCoords[i], intercept);
+		//console.log("y: " + y);
 		let yLow = Math.pow((y - cutoffResidual) * floatLambda + 1, exponent);
 		let yHigh = Math.pow((y + cutoffResidual) * floatLambda + 1, exponent);
+		//console.log("yHigh: " + yHigh);
 		yLows.push(yLow);
 		yHighs.push(yHigh);
-		console.log(xCoords[i] + "," + yLow);
 	}
-	let lowPoints = "";
-	let highPoints = "";
+	const threshPoints = {};
+	threshPoints.low = "";
+	threshPoints.high = "";
 	let lowCount = 0;
 	let highCount = 0;
 	for (let i = 0; i < NUM_POINTS_ON_CURVE; i++) {
@@ -230,28 +238,35 @@ function drawHeteroschedasticThresholds() {
 			if (lowCount > 1) {
 				coord = " " + coord;
 			}
-			lowPoints += coord;
+			threshPoints.low += coord;
 		}
 		let yHigh = yHighs[i];
+		//console.log(yHigh);
 		if (yHigh >= minY && yHigh <= maxY) {
 			highCount++;
 			let coord = xScale(x) + "," + yScale(yHigh);
 			if (highCount > 1) {
 				coord = " " + coord;
 			}
-			highPoints += coord;
+			threshPoints.high += coord;
 		}
 	}
+	return threshPoints;
+}
+
+function drawHeteroschedasticThresholds() {
+	const threshPoints = calculateThesholdLinePoints();
+	canvas.selectAll("polyline").remove();
 	canvas.append("polyline")
-		.attr("points", lowPoints)
+		.attr("points", threshPoints.low)
 		.style("stroke", "black")
 		.style("stroke-width", 1)
 		.style("fill", "none");
 	canvas.append("polyline")
-	.attr("points", highPoints)
-	.style("stroke", "black")
-	.style("stroke-width", 1)
-	.style("fill", "none");
+		.attr("points", threshPoints.high)
+		.style("stroke", "black")
+		.style("stroke-width", 1)
+		.style("fill", "none");
 }
 
 $(function() {

@@ -160,10 +160,14 @@ public class AnomalyController {
     	model.addAttribute("mean", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "mean").getDataPropertyValue());
     	model.addAttribute("sd", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "sd").getDataPropertyValue());
     	model.addAttribute("num_sd", paramUsedRepository.findByCheckRunAndParamName(checkRun, "sd").getParamValue());
+    	
+    	//TODO: Remove this.  Adding whole field object as an attribute below
     	model.addAttribute("field_name", field.getDisplayName());
+    	
     	Study study = datasetVersion.getDataset().getStudy();
     	model.addAttribute("subject_field_name", study.getSubjectField().getDisplayName());
     	model.addAttribute("site_field_name", study.getSiteField().getDisplayName());
+    	model.addAttribute("field", field);
     	if (siteId == -1 && subjectId == -1) {
     		model.addAttribute("site_name", "-1");
     		model.addAttribute("subject_name", "-1");
@@ -191,14 +195,36 @@ public class AnomalyController {
     
     @RequestMapping("/bivariate_scatter")
     public String bivariateScatterPlot(
-    		@RequestParam("field_instance_id_1") Long fieldInstanceId1,
-    		@RequestParam("field_instance_id_2") Long fieldInstanceId2,
+    		@RequestParam(name="field_instance_id_1", required=false, defaultValue="-1") Long fieldInstanceId1,
+    		@RequestParam(name="field_instance_id_2", required=false, defaultValue="-1") Long fieldInstanceId2,
+    		@RequestParam(name="field_name_1", required=false, defaultValue="") String fieldName1,
+    		@RequestParam(name="field_name_2", required=false, defaultValue="") String fieldName2,
+    		@RequestParam(name="dataset_name_1", required=false, defaultValue="") String datasetName1,
+    		@RequestParam(name="dataset_name_2", required=false, defaultValue="") String datasetName2,
     		@RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
 			@RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
 			@RequestParam("dataset_id") Long datasetId,
 			Model model) {
-    	FieldInstance fieldInstance1 = fieldInstanceRepository.findOne(fieldInstanceId1);
-    	FieldInstance fieldInstance2 = fieldInstanceRepository.findOne(fieldInstanceId2);
+    	Dataset dataset = datasetRepository.findOne(datasetId);
+    	Study study = dataset.getStudy();
+    	FieldInstance fieldInstance1 = null;
+    	if (fieldInstanceId1.equals(-1L)) {
+    		Field field1 = fieldRepository.findByStudyAndFieldName(study, fieldName1);
+    		Dataset dataset1 = datasetRepository.findByStudyAndDatasetName(study, datasetName1);
+    		fieldInstance1 = fieldInstanceRepository.findByFieldAndDataset(field1, dataset1);
+    	}
+    	else {
+    		fieldInstance1 = fieldInstanceRepository.findOne(fieldInstanceId1);
+    	}
+    	FieldInstance fieldInstance2 = null;
+    	if (fieldInstanceId2.equals(-1L)) {
+    		Field field2 = fieldRepository.findByStudyAndFieldName(study, fieldName2);
+    		Dataset dataset2 = datasetRepository.findByStudyAndDatasetName(study, datasetName2);
+    		fieldInstance2 = fieldInstanceRepository.findByFieldAndDataset(field2, dataset2);
+    	}
+    	else {
+    		fieldInstance2 = fieldInstanceRepository.findOne(fieldInstanceId2);
+    	}
     	BivariateCheck biCheck = bivariateCheckRepository.findByXFieldInstanceAndYFieldInstance(fieldInstance1, fieldInstance2);
     	DatasetVersion datasetVersion1 = datasetVersionRepository.findByDatasetAndIsCurrent(fieldInstance1.getDataset(), Boolean.TRUE);
     	DatasetVersion datasetVersion2 = datasetVersionRepository.findByDatasetAndIsCurrent(fieldInstance2.getDataset(), Boolean.TRUE);
@@ -207,12 +233,14 @@ public class AnomalyController {
     	model.addAttribute("study", fieldInstance1.getDataset().getStudy());
     	model.addAttribute("fieldInstance1", fieldInstance1);
     	model.addAttribute("fieldInstance2", fieldInstance2);
-    	model.addAttribute("dataset", datasetRepository.findOne(datasetId));
+    	model.addAttribute("dataset", dataset);
     	model.addAttribute("field_name_1", fieldInstance1.getField().getDisplayName());
     	model.addAttribute("field_name_2", fieldInstance2.getField().getDisplayName());
     	model.addAttribute("slope", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "slope").getDataPropertyValue());
     	model.addAttribute("intercept", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "intercept").getDataPropertyValue());
-    	model.addAttribute("cutoff_residual", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "cutoff_residual").getDataPropertyValue());
+    	model.addAttribute("cutoff_residual", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "cutoff_residual").getDataPropertyValue());  	
+    	//model.addAttribute("mean_res", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "mean_res").getDataPropertyValue());
+    	model.addAttribute("sd_res", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "sd_res").getDataPropertyValue());
     	String heteroschedastic = dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "heteroschedastic").getDataPropertyValue();
     	model.addAttribute("heteroschedastic", heteroschedastic);
     	if (heteroschedastic.equals("TRUE")) {
@@ -221,6 +249,9 @@ public class AnomalyController {
     	else {
     		model.addAttribute("lambda", "null");
     	}
+    	model.addAttribute("sd_residual", paramUsedRepository.findByCheckRunAndParamName(checkRun, "sd-residual").getParamValue());
+    	model.addAttribute("num_nearest_neighbors", paramUsedRepository.findByCheckRunAndParamName(checkRun, "num-nearest-neighbors").getParamValue());
+    	model.addAttribute("sd_density", paramUsedRepository.findByCheckRunAndParamName(checkRun, "sd-density").getParamValue());
     	return "anomaly/bivariate_scatter";
     }
     

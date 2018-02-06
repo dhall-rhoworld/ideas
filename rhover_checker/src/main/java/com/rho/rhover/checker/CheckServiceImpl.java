@@ -314,7 +314,7 @@ public class CheckServiceImpl implements CheckService {
 					anomaly = anomalyRepository.findOne(check, datumVersion);
 				}
 				if (anomaly == null) {
-					logger.debug("Creating new anomaly");
+					//logger.debug("Creating new anomaly");
 					FieldInstance fieldInstance = fieldInstanceRepository.findByFieldAndDataset(field2, datasetVersion.getDataset());
 					anomaly = new Anomaly();
 					anomaly.setCheck(check);
@@ -346,8 +346,8 @@ public class CheckServiceImpl implements CheckService {
 		// Fetch or create new observation
 		Observation observation = observationRepository.findByDatasetAndSubjectAndPhaseAndRecordId(datasetVersion.getDataset(), subject, phase, recordId);
 		if (observation == null) {
-			logger.debug("Creating new observation for subject: " + subject.getSubjectName() + ", phase: " + phase.getPhaseName()
-				+ ", recordId: " + recordId);
+//			logger.debug("Creating new observation for subject: " + subject.getSubjectName() + ", phase: " + phase.getPhaseName()
+//				+ ", recordId: " + recordId);
 			observation = new Observation(datasetVersion.getDataset(), subject, phase, recordId);
 			observationRepository.save(observation);
 		}
@@ -355,7 +355,7 @@ public class CheckServiceImpl implements CheckService {
 		// Fetch or save new datum
 		Datum datum = datumRepository.findByObservationAndField(observation, field);
 		if (datum == null) {
-			logger.debug("Creating new datum for field: " + field.getDisplayName());
+			//logger.debug("Creating new datum for field: " + field.getDisplayName());
 			datum = new Datum(field, observation);
 			datumRepository.save(datum);
 		}
@@ -364,7 +364,7 @@ public class CheckServiceImpl implements CheckService {
 		DatumVersion datumVersion = datumVersionRepository.findByDatumAndIsCurrent(datum, Boolean.TRUE);
 		
 		if (datumVersion == null) {
-			logger.debug("Creating new datum version");
+			//logger.debug("Creating new datum version");
 			datumVersion = new DatumVersion(anomalousValue, Boolean.TRUE, datum);
 			datumVersionRepository.save(datumVersion);
 		}
@@ -391,12 +391,12 @@ public class CheckServiceImpl implements CheckService {
 		for (BivariateCheck biCheck : biChecks) {
 			
 			// Retrieve parameters
-			logger.debug("Checking " + biCheck.getxFieldInstance().getField().getDisplayName()
-					+ " and " + biCheck.getyFieldInstance().getField().getDisplayName());
+//			logger.debug("Checking " + biCheck.getxFieldInstance().getField().getDisplayName()
+//					+ " and " + biCheck.getyFieldInstance().getField().getDisplayName());
 			Set<CheckParam> params = checkParamService.getAllCheckParams(check, biCheck);
 			for (CheckParam param : params) {
-				logger.debug("Param " + param.getParamName() + ": " + param.getParamValue()
-						+ " [" + param.getParamScope() + "]");
+//				logger.debug("Param " + param.getParamName() + ": " + param.getParamValue()
+//						+ " [" + param.getParamScope() + "]");
 			}
 			
 			// Generate input and output files

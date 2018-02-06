@@ -25,8 +25,8 @@
 	
     <div id="content">
     
-        <a th:href="@{/admin/study/correlations(study_id=${study_id})}">Explore Correlations</a> |
-    	<strong><a th:href="@{/admin/study/bivariates(study_id=${study_id})}">Bivariate Checks</a></strong>
+    	<strong><a th:href="@{/admin/study/bivariates(study_id=${study_id})}">Bivariate Checks</a></strong> |
+    	<a th:href="@{/admin/study/correlations(study_id=${study_id})}">Explore Correlations</a>
     	
     	<div th:if="${duplicates}" class="message_box">
     		The following duplicate checks were not saved:

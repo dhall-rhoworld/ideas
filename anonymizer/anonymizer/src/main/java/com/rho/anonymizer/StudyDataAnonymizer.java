@@ -12,6 +12,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.epam.parso.Column;
 import com.epam.parso.SasFileReader;
@@ -19,6 +21,10 @@ import com.epam.parso.impl.SasFileReaderImpl;
 import com.rho.rhover.daemon.DataFrame;
 
 public class StudyDataAnonymizer {
+	
+	private final Pattern yearPattern = Pattern.compile("[0-9]{4}$");
+	private final Pattern monthPattern = Pattern.compile(" [A-Z][a-z]{2} ");
+	private final Pattern dayPattern = Pattern.compile(" [0-9]{2} ");
 	
 	private final AnonymizationHelper anonymizationHelper;
 	
@@ -33,9 +39,13 @@ public class StudyDataAnonymizer {
 		//File outputDir = new File("S:\\RhoFED\\NIAID\\DAIT\\General\\Bioinformatics\\Projects\\RhoVer\\Data\\AREPA");
 		//StudyDataAnonymizer anonymizer = new StudyDataAnonymizer(new MuppitsAnonymizationHelper());
 		
-		File inputDir = new File("S:\\RhoFED\\ICAC2\\PROSE\\Statistics\\Data\\Complete");
-		File outputDir = new File("S:\\RhoFED\\NIAID\\DAIT\\General\\Bioinformatics\\Projects\\RhoVer\\Data\\SNIFFLES");
+//		File inputDir = new File("S:\\RhoFED\\ICAC2\\PROSE\\Statistics\\Data\\Complete");
+//		File outputDir = new File("S:\\RhoFED\\NIAID\\DAIT\\General\\Bioinformatics\\Projects\\RhoVer\\Data\\SNIFFLES");
+		
+		File inputDir = new File("C:\\temp\\RhoVer_Test\\Input");
+		File outputDir = new File("C:\\temp\\RhoVer_Test\\Output");
 		StudyDataAnonymizer anonymizer = new StudyDataAnonymizer(new ProseAnonymizationHelper());
+		
 		anonymizer.anonymizeFiles(inputDir, outputDir);
 	}
 	
@@ -112,7 +122,6 @@ public class StudyDataAnonymizer {
 				count = 0;
 				int i = 0;
 				for (Column col : cols) {
-					
 					String colName = col.getName();
 					if (!anonymizationHelper.dropField(colName)) {
 						count++;
@@ -136,6 +145,9 @@ public class StudyDataAnonymizer {
 									subMap.put(datum, newDatum);
 								}
 								datum = newDatum;
+							}
+							else if (isADate(datum)) {
+								datum = formatDate(datum);
 							}
 							datum = datum.replaceAll("[,\\n\\r]", " ");
 							writer.write(datum);
@@ -162,5 +174,22 @@ public class StudyDataAnonymizer {
 			IOUtils.close(inStream);
 			IOUtils.close(writer);
 		}
+	}
+
+	private String formatDate(String datum) {
+		Matcher matcher = yearPattern.matcher(datum);
+		matcher.find();
+		String year = datum.substring(matcher.start(), matcher.end()).trim();
+		matcher = monthPattern.matcher(datum);
+		matcher.find();
+		String month = datum.substring(matcher.start(), matcher.end()).trim();
+		matcher = dayPattern.matcher(datum);
+		matcher.find();
+		String day = datum.substring(matcher.start(), matcher.end()).trim();
+		return day + "-" + month + "-" + year;
+	}
+
+	private boolean isADate(String datum) {
+		return datum.matches("^[A-Za-z]{3} [A-Za-z]{3} [0-9]{2} .*");
 	}
 }

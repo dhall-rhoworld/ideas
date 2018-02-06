@@ -1,5 +1,8 @@
 package com.rho.anonymizer;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -34,5 +37,16 @@ public class AppTest
     public void testApp()
     {
         assertTrue( true );
+    }
+    
+    public void testDateRegex() {
+    	String datum = "Mon Feb 06 19:00:00 EST 2012";
+    	assertTrue(datum.matches("^[A-Za-z]{3} [A-Za-z]{3} [0-9]{2} .*"));
+    	//assertTrue(datum.matches("Mon.*"));
+    	
+    	Pattern pattern = Pattern.compile("[0-9]{4}$");
+    	Matcher matcher = pattern.matcher(datum);
+    	assertTrue(matcher.find());
+    	System.out.println(datum.substring(matcher.start(), matcher.end()));
     }
 }

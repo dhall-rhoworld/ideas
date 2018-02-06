@@ -221,7 +221,7 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteFieldName, subj
 	subjectField = subjectFieldName;
 	
 	d3.csv(dataUrl, function(data) {
-		console.log(data);
+		//console.log(data);
 		
 		// Set extent of data and chart areas on the screen
 		const min = data[0][fieldName];
@@ -408,7 +408,3 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteFieldName, subj
 		});
 	});
 }
-
-
-
-

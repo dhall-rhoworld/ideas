@@ -19,7 +19,8 @@
     	const fieldName2 = [[${field_name_1}]];
     	const slope = parseFloat([[${slope}]]);
     	const intercept = parseFloat([[${intercept}]]);
-    	const cutoffResidual = parseFloat([[${cutoff_residual}]]);
+    	let cutoffResidual = parseFloat([[${cutoff_residual}]]);
+    	const sdRes = parseFloat([[${sd_res}]]);
     	const heteroschedastic = [[${heteroschedastic}]];
     	const lambda = [[${lambda}]];
     </script>
@@ -39,11 +40,66 @@
 		</span>
 		
 		>
-		<strong><span th:text="${fieldInstance1.field.displayName}"/> X <span th:text="${fieldInstance2.field.displayName}"/></strong>
+		[<a th:text="${fieldInstance1.field.displayName}" th:href="@{/anomaly/beeswarm(field_id=${fieldInstance1.field.fieldId}, dataset_id=${dataset.datasetId})}"/>
+		X
+		 <a th:text="${fieldInstance2.field.displayName}" th:href="@{/anomaly/beeswarm(field_id=${fieldInstance2.field.fieldId}, dataset_id=${dataset.datasetId})}"/>
+		]
 	</div>
 	
 	<div id="content">
+		<div>
+			<fieldset class="control-group">
+				<legend>Check Parameters</legend>
+				<label for="spinner_sd_residual">SD from line</label>
+				<input id="spinner_sd_residual" size="2" th:value="${sd_residual}"/>
+				<label for="spinner_sd_density">SD below mean density</label>
+				<input id="spinner_sd_density" size="2" th:value="${sd_density}"/>
+				<label for="spinner_neighbors">Neighbors used for density</label>
+				<input id="spinner_neighbors" size="2" th:value="${num_nearest_neighbors}"/>
+				<button type="button">Apply</button>
+			</fieldset>
+		</div>
 		<div id="chart"/>
 	</div>
 </body>
+
+<script>
+	function onSdResidualChange() {
+		const sd = parseFloat($("#spinner_sd_residual").val());
+		cutoffResidual = sd * sdRes;
+		drawHeteroschedasticThresholds();
+	}
+	
+	function onSdDensityChange() {
+		
+	}
+	
+	function onNeighborsChange() {
+		
+	}
+	
+	$("#spinner_sd_residual").spinner({
+		step: 0.25,
+		numberFormat: "n",
+		stop: function() {
+			onSdResidualChange();
+		}
+	});
+	
+	$("#spinner_sd_density").spinner({
+		step: 0.25,
+		numberFormat: "n",
+		stop: function() {
+			onSdDensityChange();
+		}
+	});
+	
+	$("#spinner_neighbors").spinner({
+		step: 1,
+		numberFormat: "n",
+		stop: function() {
+			onNeighborsChange();
+		}
+	});
+</script>
 </html>

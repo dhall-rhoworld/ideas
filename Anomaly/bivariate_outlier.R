@@ -72,7 +72,8 @@ if (areHet) {
 
 # Compute residual cutoff value
 res <- abs(residuals(fitY))
-cutoffRes <- mean(res) + sdResidual * sd(res)
+sdRes <- sd(res)
+cutoffRes <- sdResidual * sdRes
 
 # Make initual outlier calls based on residual cutoff
 outlierIndex <- res > cutoffRes
@@ -96,6 +97,7 @@ statProps <- data.frame(heteroschedastic = c(areHet))
 statProps$slope <- fitY$coefficients[2]
 statProps$intercept <- fitY$coefficients[1]
 statProps$cutoff_residual <- cutoffRes
+statProps$sd_res <- sdRes
 if (!is.nan(lambda)) {
   statProps$lambda <- lambda
 }
