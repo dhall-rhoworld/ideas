@@ -23,6 +23,7 @@ import com.rho.rhover.common.study.Field;
 import com.rho.rhover.common.study.FieldInstance;
 import com.rho.rhover.common.study.FieldInstanceRepository;
 import com.rho.rhover.common.study.FieldRepository;
+import com.rho.rhover.common.study.PhaseRepository;
 import com.rho.rhover.common.study.DataFieldRepository;
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.DatasetRepository;
@@ -81,6 +82,9 @@ public class AnomalyController {
 	
 	@Autowired
 	private DatasetVersionRepository datasetVersionRepository;
+	
+	@Autowired
+	private PhaseRepository phaseRepository;
     
     @RequestMapping("/table")
     public String anomalyTable(
@@ -190,6 +194,9 @@ public class AnomalyController {
     		model.addAttribute("filter_entity", "subject");
     		model.addAttribute("filter_value", subject.getSubjectName());
     	}
+    	
+    	model.addAttribute("sites", siteRepository.findByStudy(study));
+    	model.addAttribute("phases", phaseRepository.findByStudy(study));
     	return "anomaly/beeswarm";
     }
     
