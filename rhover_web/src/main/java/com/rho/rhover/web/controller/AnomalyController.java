@@ -1,5 +1,8 @@
 package com.rho.rhover.web.controller;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +26,7 @@ import com.rho.rhover.common.study.Field;
 import com.rho.rhover.common.study.FieldInstance;
 import com.rho.rhover.common.study.FieldInstanceRepository;
 import com.rho.rhover.common.study.FieldRepository;
+import com.rho.rhover.common.study.Phase;
 import com.rho.rhover.common.study.PhaseRepository;
 import com.rho.rhover.common.study.DataFieldRepository;
 import com.rho.rhover.common.study.Dataset;
@@ -196,7 +200,9 @@ public class AnomalyController {
     	}
     	
     	model.addAttribute("sites", siteRepository.findByStudy(study));
-    	model.addAttribute("phases", phaseRepository.findByStudy(study));
+    	List<Phase> phases = phaseRepository.findByStudy(study);
+    	Collections.sort(phases);
+    	model.addAttribute("phases", phases);
     	return "anomaly/beeswarm";
     }
     

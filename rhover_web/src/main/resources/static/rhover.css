@@ -163,6 +163,18 @@ table.invisible tr, td {
 	padding: 8px;
 }
 
+table.grid {
+	border: none;
+	margin: auto;
+	border-spacing: 0px;
+}
+
+table.grid tr, td {
+	border: none;
+	margin: 1px;
+	padding: 1px;
+}
+
 .required_field {
 	color: red;
 }
@@ -243,4 +255,10 @@ a.action-link:hover {
 
 tr.edited {
 	color: red;
+}
+
+div.filters {
+	width: 200px;
+	padding: 5px;
+	float: left;
 }

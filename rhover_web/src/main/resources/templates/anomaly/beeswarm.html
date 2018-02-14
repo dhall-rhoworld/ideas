@@ -46,165 +46,110 @@
 	</div>
 	
 	<div id="content">
-		
-		<div id="tabs">
-			<ul>
-				<li><a href="#tab_actions">Actions</a></li>
-				<li><a href="#tab_filters">Filters</a></li>
-				<li><a href="#tab_group">Group By</a></li>
-				<li><a href="#tab_color">Color By</a></li>
-				<li><a href="#tab_highlight">Highlight</a></li>
-				<li><a href="#tab_views">Other Charts</a></li>
-			</ul>
-			
-			<div id="tab_actions">
-				<label for="spinner_sd">Outlier Boundary</label>
-				<input id="spinner_sd" size="2" th:value="${num_sd}"/>
-				<button type="button">Apply</button>
+	
+		<div style="float: left; width: 300px; border: 1px solid grey; padding: 10px;" id="div_controls">
+			<div style="text-align: left">
+				<img src="/images/close.png" width="25" height="25" id="close_controls"/>
+			</div>
+			<div id="accordion">
+				<h3>Data Filters</h3>
+				<div>
+					<table class="invisible">
+						<tr>
+							<th>Site</th>
+							<th>Phase</th>
+						</tr>
+						<tr>
+							<td>
+								<select multiple="true">
+									<option th:each="site : ${sites}" th:text="${site.siteName}"/>
+								</select>
+							</td>
+							<td>
+								<select multiple="true">
+									<option th:each="phase : ${phases}" th:text="${phase.phaseName}"/>
+								</select>
+							</td>
+						</tr>
+					</table>
+				</div>
 				
-				&nbsp;&nbsp;&nbsp;
-				<button type="button" id="button_show" disabled="true">Show Data</button>
+				<h3>Group Data By</h3>
+				<div>
+					<table class="grid">
+						<tr>
+							<td><input type="radio" name="group_by" value="none" checked="true"/></td>
+							<td align="left">Do not group</td>
+						</tr>
+					 	<tr>
+							<td><input type="radio" name="group_by" value="site"/></td>
+							<td align="left">Site</td>
+						</tr>
+						<tr>
+							<td><input type="radio" name="group_by" value="phase"/></td>
+							<td align="left">Phase</td>
+						</tr>
+					</table>
+				</div>
 				
-				&nbsp;&nbsp;&nbsp;
-				Label Data
-				<select id="select_issue" disabled="true">
-					<option>Not an Issue</option>
-					<option>Is An Issue</option>
-				</select>
-				<button type="button" id="button_status" disabled="true">Apply</button>
-			</div>
-			
-			<div id="tab_filters">
-				<table class="invisible">
-					<tr>
-						<th>Filter by Site</th>
-						<th>Filter by Phase</th>
-					</tr>
-					<tr>
-						<td>
-							<select multiple="true">
-								<option th:each="site : ${sites}" th:value="${site.siteId}"
-									th:text="${site.siteName}"/>
-							</select>
-						</td>
-						<td>
-							<select multiple="true">
-								<option th:each="phase : ${phases}" th:value="${phase.phaseId}"
-									th:text="${phase.phaseName}"/>
-							</select>
-						</td>
-					</tr>
-				</table>
-			</div>
-			
-			<div id="tab_group">
-				<table class="invisible">
-					<tr>
-						<th>Group by Site</th>
-						<th>Group by Phase</th>
-					</tr>
-					<tr>
-						<td>
-							<select multiple="true">
-								<option th:each="site : ${sites}" th:value="${site.siteId}"
-									th:text="${site.siteName}"/>
-							</select>
-						</td>
-						<td>
-							<select multiple="true">
-								<option th:each="phase : ${phases}" th:value="${phase.phaseId}"
-									th:text="${phase.phaseName}"/>
-							</select>
-						</td>
-					</tr>
-				</table>
-			</div>
-			
-			<div id="tab_color">
-				Options
-			</div>
-			
-			<div id="tab_highlight">
-				<table class="invisible">
-					<tr>
-						<th>Color by Site</th>
-						<th>Color by Phase</th>
-						<th>Color by Subject</th>
-						<th/>
-					</tr>
-					<tr>
-						<td>
-							<select multiple="true">
-								<option th:each="site : ${sites}" th:value="${site.siteId}"
-									th:text="${site.siteName}"/>
-							</select>
-						</td>
-						<td>
-							<select multiple="true">
-								<option th:each="phase : ${phases}" th:value="${phase.phaseId}"
-									th:text="${phase.phaseName}"/>
-							</select>
-						</td>
-						<td>
-							<select multiple="true" style="width: 100px;">
-								<option>Subject 1</option>
-								<option>Subject 2</option>
-							</select>
-						</td>
-						<td align="left">
-							<p><button type="button">Add Subject</button></p>
-							<p><button type="button">Remove Subject</button></p>
-						</td>
-					</tr>
-				</table>
-			</div>
-			
-			<div id="tab_views">
-				Scatterplot: Add second variable&nbsp;&nbsp;
-				<input type="text" id="text_second_field"/>
+				<h3>Highlight Data</h3>
+				<div>
+					<table class="invisible">
+						<tr>
+							<th>Site</th>
+							<th>Phase</th>
+						</tr>
+						<tr>
+							<td>
+								<select multiple="true">
+									<option th:each="site : ${sites}" th:text="${site.siteName}"/>
+								</select>
+							</td>
+							<td>
+								<select multiple="true">
+									<option th:each="phase : ${phases}" th:text="${phase.phaseName}"/>
+								</select>
+							</td>
+						</tr>
+					</table>
+					
+					<p>
+						Subject
+						<input type="text" id="input_subject"/>
+					</p>
+				</div>
 			</div>
 		</div>
 		
-		<!--
-		<div>
-			<fieldset class="control-group">
-				<legend>Check Parameters</legend>
-				<label for="spinner_sd">Cutoff (StDev)</label>
-				<input id="spinner_sd" size="2" th:value="${num_sd}"/>
-				<button type="button">Apply</button>
-			</fieldset>
+		<div style="float: left; width: 475px">
+			<div id="tabs">
+				<ul>
+					<li><a href="#check_params">Data Check Settings</a></li>
+					<li><a href="#view">View</a></li>
+					<li><a href="#actions">Actions</a></li>
+				</ul>
+				<div id="check_params">
+					<label for="spinner_sd">Outlier Boundary</label>
+					<input id="spinner_sd" size="2" th:value="${num_sd}"/>
+					<button type="button">Apply</button>
+				</div>
+				
+				<div id="view">
+					<button type="button" id="button_options">Chart Options</button>
+					<button type="button" id="button_charts">Other Charts</button>
+				</div>
+				
+				<div id="actions">
+					Actions
+				</div>
+			</div>
 			
-			<fieldset class="control-group">
-				<legend>Actions</legend>
-				<button type="button" id="button_show" disabled="true">Show Data</button>
-			</fieldset>
-			
-			<fieldset class="control-group">
-				<legend>Label Data</legend>
-				<select id="select_issue" disabled="true">
-					<option>Not an Issue</option>
-					<option>Is An Issue</option>
-				</select>
-				<button type="button" id="button_status" disabled="true">Apply</button>
-			</fieldset>
-			
-			<fieldset class="control-group">
-				<legend>Filter By</legend>
-				<select id="select_filter">
-					<option th:selected="${filter_entity} == 'none'" value="none">No Filter</option>
-					<option th:selected="${filter_entity} == 'site'" value="site">Site</option>
-					<option th:selected="${filter_entity} == 'subject'" value="subject">Subject</option>
-				</select>
-				<input type="text" size="6" id="text_filter" th:value="${filter_value}"/>
-				<button type="button" id="button_filter">Apply</button>
-			</fieldset>
+			<div>
+				<svg/>
+			</div>
+	
+			<h3 th:text="${field.fieldLabel}"/>
 		</div>
-		-->
-		
-		<div>
-			<svg/>
-		</div>
-		<h3 th:text="${field.fieldLabel}"/>
 		
 		<div id="dialog_data">
     		<table id="dialog_data_table" class="wide"/>
@@ -251,6 +196,10 @@
 			]
 		});
 		
+		$("#button_options").click(function() {
+			$("#div_controls").toggle("slide", 500);
+		});
+		
 		$("#text_second_field").autocomplete({
 			minLength: 4,
 			source: function(request, response) {
@@ -290,6 +239,14 @@
 		});
 		
 		$("#tabs").tabs();
+		
+		$("#accordion").accordion();
+		
+		$("#close_controls").click(function() {
+			$("#div_controls").toggle("slide", 500);
+		});
+		
+		$("#div_controls").toggle("slide", 5);
 	});
 	
 	$("#button_show").click(function() {
