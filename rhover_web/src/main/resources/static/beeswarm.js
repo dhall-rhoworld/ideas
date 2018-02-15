@@ -45,7 +45,8 @@ let lowerThresh = -1;
 let upperThresh = -1;
 let siteFilter = -1;
 let subjectFilter = -1;
-let filters = [];
+let filterCriteria = [];
+let highlightCriteria = [];
 
 // Metadata passed in by system
 let siteField = null;
@@ -92,18 +93,20 @@ function setFilter(entity, value) {
  * are not displayed. If the given filters array is empty, then no data
  * will be filtered.
  * 
- * @param filterCriteria Array of filter criteria objects as follows:
+ * @param criteria Array of filter criteria objects as follows:
  * 
- *                       {name: NAME, values: [VALUE1, VALUE2, ... , VALUEN]}
+ *                 {name: NAME, values: [VALUE1, VALUE2, ... , VALUEN]}
  *                
- *                       Data points that do not have an attributed named NAME with a
- *                       value in [VALUE...VALUEN] will not be displayed.
+ *                 Data points that do not have an attributed named NAME with a
+ *                 value in [VALUE...VALUEN] will not be displayed.
  */
-function setFilters(filterCriteria) {
-	filters = filterCriteria;
+function setFilterCriteria(criteria) {
+	filterCriteria = criteria;
 }
 
-
+function setHighlightCriteria(criteria) {
+	highlightCriteria = criteria;
+}
 
 /**
  * Get data selected by user
@@ -111,27 +114,19 @@ function setFilters(filterCriteria) {
  */
 function getSelectedData() {
 	selectedData = new Array();
-	dataArea.selectAll(".data-selected").each(function(d) {
+	dataArea.selectAll(".selected").each(function(d) {
 		selectedData.push(d);
 	});
 	return selectedData;
+	//return dataArea.selectAll(".selected");
 }
 
 /**
  * Redraw plot
  */
 function reDraw() {
-	dataArea.selectAll("circle")
-		.classed("outlier", function(d) {
-			return d["anomaly_id"] > 0 && (d[fieldName] < lowerThresh || d[fieldName] > upperThresh);
-		})
-		.classed("inlier", function(d) {
-			return d["anomaly_id"] == 0 || (d[fieldName] >= lowerThresh && d[fieldName] <= upperThresh);
-		})
-		.classed("background", function(d) {
-			return (siteFilter != "-1" && d[siteField] != siteFilter) ||
-				(subjectFilter != "-1" && d[subjectField] != subjectFilter)
-		});
+	console.log("Redrawing");
+	dataPoints.classed("background", isBackground);
 }
 
 /**
@@ -366,6 +361,32 @@ function onBrushEnd() {
 	d3.select(this).call(brush.move, null);
 }
 
+function isOutlier(dataPoint) {
+	return dataPoint["anomaly_id"] > 0;
+}
+
+function isInlier(dataPoint) {
+	return dataPoint["anomaly_id"] == 0;
+}
+
+function isBackground(dataPoint) {
+	if (highlightCriteria.length == 0) {
+		return false;
+	}
+	let background = true;
+	for (let i = 0; i < highlightCriteria.length && background; i++) {
+		let propName = highlightCriteria[i].name;
+		let propValues = highlightCriteria[i].values;
+		for (let j = 0; j < propValues.length && background; j++) {
+			let propValue = propValues[j];
+			if (dataPoint[propName] == propValue) {
+				background = false;
+			}
+		}
+	}
+	return background;
+}
+
 /**
  * Render the beeswarm
  * @param dataUrl URL to retrieve data
@@ -386,7 +407,7 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteFieldName, subj
 	subjectField = subjectFieldName;
 	
 	d3.csv(dataUrl, function(data) {
-		console.log(data);
+		//console.log(data);
 		
 		// Set extent of data and chart areas on the screen
 		const min = data[0][fieldName];
@@ -426,16 +447,9 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteFieldName, subj
 			.attr("cy", function(d) {return d.__y__;})
 			.attr("r", CIRCUMFERENCE)
 			.classed("deselected", true)
-			.classed("outlier", function(d) {
-				return d["anomaly_id"] > 0 && (d[fieldName] < lowerThresh || d[fieldName] > upperThresh);
-			})
-			.classed("inlier", function(d) {
-				return d["anomaly_id"] == 0 || (d[fieldName] >= lowerThresh && d[fieldName] <= upperThresh);
-			})
-			.classed("background", function(d) {
-				return (siteFilter != "-1" && d[siteField] != siteFilter) ||
-					(subjectFilter != "-1" && d[subjectField] != subjectFilter)
-			});
+			.classed("outlier", isOutlier)
+			.classed("inlier", isInlier)
+			.classed("background", isBackground);
 		
 		// Drawn any overflows
 		svg.selectAll(".overflow-mark-top")

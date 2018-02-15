@@ -79,7 +79,7 @@
 			</div>
 			
 			<div id="actions">
-				<button type="button">Show Data</button>
+				<button type="button" id="button_show">Show Data</button>
 				<button type="button">Add to Query List</button>
 				&nbsp;&nbsp;&nbsp;
 				Label Data
@@ -120,8 +120,10 @@
     				<td>
     					Plot relationship with second variable (scatter plot)
     					<p>
-		    				<input type="text" value="Enter second variable" class="input_hint"/>
-		    				<button type="button">Go</button>
+		    				<input type="text" value="Enter second variable" class="input_hint"
+		    					id="text_second_field"
+		    				/>
+		    				<button type="button" id="button_scatter">Go</button>
 		    			</p>
     				</td>
     			</tr>
@@ -200,12 +202,12 @@
 					</tr>
 					<tr>
 						<td>
-							<select multiple="true">
+							<select multiple="true" id="highlight_site">
 								<option th:each="site : ${sites}" th:text="${site.siteName}"/>
 							</select>
 						</td>
 						<td>
-							<select multiple="true">
+							<select multiple="true" id="highlight_phase">
 								<option th:each="phase : ${phases}" th:text="${phase.phaseName}"/>
 							</select>
 						</td>
@@ -214,10 +216,10 @@
 				
 				<p>
 					<span th:text="${subject_field_name}"/>
-					<input type="text" id="input_subject"/>
+					<input type="text" id="highlight_subject"/>
 				</p>
 				
-				<p><button type="button">Remove All</button></p>
+				<p><button type="button" id="highlight_remove">Remove All</button></p>
 			</fieldset>
 			
 		</div>
@@ -262,6 +264,27 @@
 		}
 		console.log(JSON.stringify(filters));
 	}
+	
+	function onHighlightChange() {
+		const sites = $("#highlight_site").val();
+		const phases = $("#highlight_phase").val();
+		const criteria = [];
+		if (sites.length > 0) {
+			let criterion = {};
+			criterion.name = siteFieldName;
+			criterion.values = sites;
+			criteria.push(criterion);
+		}
+		if (phases.length > 0) {
+			let criterion = {};
+			criterion.name = phaseFieldName;
+			criterion.values = phases;
+			criteria.push(criterion);
+		}
+		//console.log(JSON.stringify(criteria));
+		setHighlightCriteria(criteria);
+		reDraw();
+	}
 
 	function initializeFilters() {
 		$("#filter_site").click(function() {
@@ -276,6 +299,22 @@
 			$("#filter_site").val("");
 			$("#filter_phase").val("");
 			onFilterChange();
+		});
+	}
+	
+	function initializeHighlights() {
+		$("#highlight_site").click(function() {
+			onHighlightChange();
+		});
+		
+		$("#highlight_phase").click(function() {
+			onHighlightChange();
+		});
+		
+		$("#highlight_remove").click(function() {
+			$("#highlight_site").val("");
+			$("#highlight_phase").val("");
+			onHighlightChange();
 		});
 	}
 
@@ -346,81 +385,85 @@
 			}
 		});
 		
-		/*
+		
 		$("#button_show").click(function() {
-			data = getSelectedData();
-			varNames = Object.keys(data[0]);
-			varNames.splice(varNames.indexOf("anomaly_id"), 1);
-			let html = "<tr>";
-			for (var i in varNames) {
-				html += "<th>";
-				html += varNames[i];
-				html += "</th>"
-			}
-			for (var i in data) {
-				html += "<tr>"
-				for (var j in varNames) {
-					html += "<td>";
-					html += data[i][varNames[j]];
-					html += "</td>"
-				}
-				html += "</tr>"
-			}
-			html += "</tr>";
-			$("#dialog_data_table").html(html);
-			$("#dialog_data").dialog("open");
+			onClickShowData();
 		});
 		
-		$("#button_filter").click(function() {
-			setFilter($("#select_filter").val(), $("#text_filter").val());
-			reDraw();
-		});
-		
-		$("#text_second_field").autocomplete({
-			minLength: 4,
-			source: function(request, response) {
-				const url = "/rest/admin/study/get_matching_field_instances?study_id="
-					+ studyId + "\u0026term=" + request.term;
-				$.get(url)
-					.done(function(data) {
-						response(data);
-					})
-					.fail(function() {
-						console.log("Error");
-					});
-			},
-			select: function(event, ui) {
-
-				// Extract field and dataset name from search box.
-				// Autocomplete will have inserted text in the following format:
-				// FIELD_LABEL (FIELD_NAME) [DATASET_NAME]
-				const value = ui.item.value;
-				const namePatt = new RegExp("\\(.*\\)");
-				const fieldNameField = namePatt.exec(value);
-				const datasetPatt = new RegExp("\\[.*\\]");
-				const datasetField = datasetPatt.exec(value);
-
-				// TODO: Add logic to deal with invalid variables
-				const fieldName2 = fieldNameField[0].substring(1, fieldNameField[0].length - 1);
-				const datasetName2 = datasetField[0].substring(1, datasetField[0].length - 1);
+		$("#text_second_field").click(function() {
+			if ($("#text_second_field").val() == "Enter second variable") {
+				$("#text_second_field").removeClass("input_hint");
+				$("#text_second_field").val("");
 				
-				const url = "/anomaly/bivariate_scatter?" +
-						"field_name_1=" + fieldName1 + "\u0026" +
-						"dataset_name_1=" + datasetName + "\u0026" +
-						"field_name_2=" + fieldName2 + "\u0026" +
-						"dataset_name_2=" + datasetName2 + "\u0026" +
-						"dataset_id=" + datasetId;
-				window.location = url;
+				$("#text_second_field").autocomplete({
+					minLength: 4,
+					source: function(request, response) {
+						const url = "/rest/admin/study/get_matching_field_instances?study_id="
+							+ studyId + "\u0026term=" + request.term;
+						$.get(url)
+							.done(function(data) {
+								response(data);
+							})
+							.fail(function() {
+								console.log("Error");
+							});
+					}
+				});
 			}
 		});
 		
-		*/
+		$("#button_scatter").click(function() {
+			const value = $("#text_second_field").val();
+			const namePatt = new RegExp("\\(.*\\)");
+			const fieldNameField = namePatt.exec(value);
+			const datasetPatt = new RegExp("\\[.*\\]");
+			const datasetField = datasetPatt.exec(value);
+
+			// TODO: Add logic to deal with invalid variables
+			const fieldName2 = fieldNameField[0].substring(1, fieldNameField[0].length - 1);
+			const datasetName2 = datasetField[0].substring(1, datasetField[0].length - 1);
+			
+			const url = "/anomaly/bivariate_scatter?" +
+					"field_name_1=" + fieldName1 + "\u0026" +
+					"dataset_name_1=" + datasetName + "\u0026" +
+					"field_name_2=" + fieldName2 + "\u0026" +
+					"dataset_name_2=" + datasetName2 + "\u0026" +
+					"dataset_id=" + datasetId;
+			window.location = url;
+		});
+	}
+	
+	function onClickShowData() {
+		const data = getSelectedData();
+		console.log(data);
+		let varNames = Object.keys(data[0]);
+		varNames.splice(varNames.indexOf("anomaly_id"), 1);
+		varNames.splice(varNames.indexOf("__y__"), 1);
+		let html = "<tr>";
+		for (var i in varNames) {
+			html += "<th>";
+			html += varNames[i];
+			html += "</th>"
+		}
+		for (var i in data) {
+			html += "<tr>"
+			for (var j in varNames) {
+				html += "<td>";
+				html += data[i][varNames[j]];
+				html += "</td>"
+			}
+			html += "</tr>"
+		}
+		html += "</tr>";
+		$("#dialog_data_table").html(html);
+		$("#dialog_data").dialog("open");
 	}
 	
 	$(function() {
 		initializeDialogs();
 		initializeWidgets();
 		initializeFilters();
+		initializeHighlights();
 		
 		$("#tabs").tabs();
 		
@@ -451,22 +494,19 @@
 		$.contextMenu({
 			selector: "svg",
 			items: {
-				"show": {name: "Show Data", icon: "fa-eye"},
-				"query": {name: "Add to Query List", icon: "fa-list"},
-				"notissue": {name: "Label Not an Issue", icon: "fa-check-circle"},
+				"data": {name: "Show selected data", icon: "fa-eye"},
+				"query": {name: "Add selected to Query List", icon: "fa-list"},
+				"notissue": {name: "Label selected 'Not an Issue'", icon: "fa-check-circle"},
+				"subject": {name: "Highlight all data from selected subject", icon: "fa-user"}
 			},
 			callback: function(key, options) {
-				const message = "clicked " + key;
-				console.log(message);
+				if (key == "data") {
+					onClickShowData();
+				}
 			}
 		});
 	});
-	
-	
-	
-	
-	
-	
+
 </script>
 
 </html>
