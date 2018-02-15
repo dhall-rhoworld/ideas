@@ -32,6 +32,7 @@ let minX = 0;
 let maxX = 0;
 let minY = 0;
 let maxY = 0;
+let dataMidPoint = 0;
 let dataArea = null;
 let xScale = null;
 
@@ -53,6 +54,10 @@ let subjectField = null;
 // HTML client event handler function, which is invoked
 // upon certain user actions, such as selecting data
 let eventHandler = null;
+
+// SVG canvas object
+let svg = null;
+
 
 //
 // FUNCTIONS INVOKED BY CLIENT WEB PAGE
@@ -95,6 +100,8 @@ function setFilter(entity, value) {
 function setFilters(filterCriteria) {
 	filters = filterCriteria;
 }
+
+
 
 /**
  * Get data selected by user
@@ -219,6 +226,94 @@ function setYAndComputHeight(data, fieldName, xScale) {
 	return maxY - minY;
 }
 
+function onMouseDown(mouseCoords) {
+	d3.selectAll("rect").remove();
+	if (dataAreSelected) {
+		dataArea.selectAll(".outlier-selected").classed("outlier-selected", false);
+		dataArea.selectAll(".inlier-selected").classed("inlier-selected", false);
+		dataArea.selectAll(".data-selected").classed("data-selected", false);
+		dataAreSelected = false;
+		eventHandler(false);
+	}
+	isDragging = true;
+	mouseDownX = mouseCoords[0];
+	mouseDownY = mouseCoords[1];
+	selectRect = svg.append("rect")
+		.attr("x", mouseDownX)
+		.attr("y", mouseDownY)
+		.attr("width", 0)
+		.attr("height", 0)
+		.classed("select-rect", true);
+}
+
+function onMouseMove(mouseCoords) {
+	let x = mouseCoords[0];
+	let y = mouseCoords[1];
+	if (isDragging) {
+		minX = mouseDownX;
+		maxX = x;
+		if (minX > maxX) {
+			minX = x;
+			maxX = mouseDownX;
+		}
+		minY = mouseDownY;
+		maxY = y;
+		if (minY > maxY) {
+			minY = y;
+			maxY = mouseDownY;
+		}
+		let width = maxX - minX;
+		let height = maxY - minY;
+		selectRect
+			.attr("x", minX)
+			.attr("y", minY)
+			.attr("width", width)
+			.attr("height", height);
+	}
+}
+
+function onMouseUp(mouseCoords) {
+	mouseUpX = mouseCoords[0];
+	mouseUpY = mouseCoords[1];
+	if (isDragging) {
+		isDragging = false;
+		selectRect.remove();
+		minX = mouseDownX;
+		maxX = mouseUpX;
+		if (minX > maxX) {
+			minX = mouseUpX;
+			maxX = mouseDownX;
+		}
+		minY = mouseDownY;
+		maxY = mouseUpY;
+		if (minY > maxY) {
+			minY = mouseUpY;
+			maxY = mouseDownY;
+		}
+		minX -= BORDER;
+		maxX -= BORDER;
+		dataArea.selectAll("circle").each(function(d) {
+			const x = d3.select(this).attr("cx");
+			const y = dataMidPoint + parseInt(d3.select(this).attr("cy"));
+			if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
+				if ((siteFilter == "-1" && subjectFilter == "-1") || d[siteField] == siteFilter || d[subjectField] == subjectFilter) {
+					let node = d3.select(this);
+					node.classed("data-selected", true);
+					if (node.classed("outlier")) {
+						node.classed("outlier-selected", true);
+					}
+					else if (node.classed("inlier")) {
+						node.classed("inlier-selected", true)
+					}
+					dataAreSelected = true;
+				}
+			}
+		});
+		if (dataAreSelected) {
+			eventHandler(true);
+		}
+	}
+}
 
 /**
  * Render the beeswarm
@@ -252,10 +347,10 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteFieldName, subj
 		let dataHeight = setYAndComputHeight(data, fieldName, xScale);
 		laneMaxX[0] = min - 100;
 		const svgHeight = dataHeight + 2 * BORDER + PADDING + AXIS_HEIGHT;
-		const svg = d3.select("svg")
+		svg = d3.select("svg")
 			.attr("width", SVG_WIDTH)
 			.attr("height", svgHeight);
-		const dataMidPoint = BORDER + dataHeight / 2;
+		dataMidPoint = BORDER + dataHeight / 2;
 		dataArea = svg.append("g")
 			.attr("transform", "translate(" + BORDER + ", " + dataMidPoint + ")");
 		const axisY = dataHeight + BORDER + PADDING;
@@ -338,92 +433,15 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteFieldName, subj
 		
 		// Add selection event handler
 		svg.on("mousedown", function() {
-			d3.selectAll("rect").remove();
-			if (dataAreSelected) {
-				dataArea.selectAll(".outlier-selected").classed("outlier-selected", false);
-				dataArea.selectAll(".inlier-selected").classed("inlier-selected", false);
-				dataArea.selectAll(".data-selected").classed("data-selected", false);
-				dataAreSelected = false;
-				eventHandler(false);
-			}
-			isDragging = true;
-			mouseDownX = d3.mouse(this)[0];
-			mouseDownY = d3.mouse(this)[1];
-			selectRect = svg.append("rect")
-				.attr("x", mouseDownX)
-				.attr("y", mouseDownY)
-				.attr("width", 0)
-				.attr("height", 0)
-				.classed("select-rect", true);
+			onMouseDown(d3.mouse(this));
 		});
 		
 		svg.on("mousemove", function() {
-			let x = d3.mouse(this)[0];
-			let y = d3.mouse(this)[1];
-			if (isDragging) {
-				minX = mouseDownX;
-				maxX = x;
-				if (minX > maxX) {
-					minX = x;
-					maxX = mouseDownX;
-				}
-				minY = mouseDownY;
-				maxY = y;
-				if (minY > maxY) {
-					minY = y;
-					maxY = mouseDownY;
-				}
-				let width = maxX - minX;
-				let height = maxY - minY;
-				selectRect
-					.attr("x", minX)
-					.attr("y", minY)
-					.attr("width", width)
-					.attr("height", height);
-			}
+			onMouseMove(d3.mouse(this));
 		});
 		
 		svg.on("mouseup", function() {
-			mouseUpX = d3.mouse(this)[0];
-			mouseUpY = d3.mouse(this)[1];
-			if (isDragging) {
-				isDragging = false;
-				selectRect.remove();
-				minX = mouseDownX;
-				maxX = mouseUpX;
-				if (minX > maxX) {
-					minX = mouseUpX;
-					maxX = mouseDownX;
-				}
-				minY = mouseDownY;
-				maxY = mouseUpY;
-				if (minY > maxY) {
-					minY = mouseUpY;
-					maxY = mouseDownY;
-				}
-				minX -= BORDER;
-				maxX -= BORDER;
-				dataArea.selectAll("circle").each(function(d) {
-					const x = d3.select(this).attr("cx");
-					const y = dataMidPoint + parseInt(d3.select(this).attr("cy"));
-					if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
-						if ((siteFilter == "-1" && subjectFilter == "-1") || d[siteField] == siteFilter || d[subjectField] == subjectFilter) {
-							let node = d3.select(this);
-							node.classed("data-selected", true);
-							if (node.classed("outlier")) {
-								node.classed("outlier-selected", true);
-							}
-							else if (node.classed("inlier")) {
-								node.classed("inlier-selected", true)
-							}
-							dataAreSelected = true;
-						}
-					}
-				});
-				if (dataAreSelected) {
-					eventHandler(true);
-				}
-			}
+			onMouseUp(d3.mouse(this));
 		});
 	});
 }
