@@ -12,6 +12,8 @@
     <script src="/beeswarm.js"></script>
 </head>
 <body>
+
+	<!-- Bread crumbs -->
 	<div id="breadcrumbs">
 		<a href="/browse/studies">Studies</a>
 		>
@@ -42,146 +44,240 @@
 		</span>
 		>
 		<strong><span th:text="${field.fieldLabel}"/></strong>
-
 	</div>
+	<!-- End bread cumbs -->
 	
+	<!-- Main content -->
 	<div id="content">
 	
-		<div style="float: left; width: 300px; border: 1px solid grey; padding: 10px;" id="div_controls">
-			<div style="text-align: left">
-				<img src="/images/close.png" width="25" height="25" id="close_controls"/>
-			</div>
-			<div id="accordion">
-				<h3>Data Filters</h3>
-				<div>
-					<table class="invisible">
-						<tr>
-							<th>Site</th>
-							<th>Phase</th>
-						</tr>
-						<tr>
-							<td>
-								<select multiple="true">
-									<option th:each="site : ${sites}" th:text="${site.siteName}"/>
-								</select>
-							</td>
-							<td>
-								<select multiple="true">
-									<option th:each="phase : ${phases}" th:text="${phase.phaseName}"/>
-								</select>
-							</td>
-						</tr>
-					</table>
-				</div>
-				
-				<h3>Group Data By</h3>
-				<div>
-					<table class="grid">
-						<tr>
-							<td><input type="radio" name="group_by" value="none" checked="true"/></td>
-							<td align="left">Do not group</td>
-						</tr>
-					 	<tr>
-							<td><input type="radio" name="group_by" value="site"/></td>
-							<td align="left">Site</td>
-						</tr>
-						<tr>
-							<td><input type="radio" name="group_by" value="phase"/></td>
-							<td align="left">Phase</td>
-						</tr>
-					</table>
-				</div>
-				
-				<h3>Highlight Data</h3>
-				<div>
-					<table class="invisible">
-						<tr>
-							<th>Site</th>
-							<th>Phase</th>
-						</tr>
-						<tr>
-							<td>
-								<select multiple="true">
-									<option th:each="site : ${sites}" th:text="${site.siteName}"/>
-								</select>
-							</td>
-							<td>
-								<select multiple="true">
-									<option th:each="phase : ${phases}" th:text="${phase.phaseName}"/>
-								</select>
-							</td>
-						</tr>
-					</table>
-					
-					<p>
-						Subject
-						<input type="text" id="input_subject"/>
-					</p>
-				</div>
-			</div>
-		</div>
-		
-		<div style="float: left; width: 475px">
-			<div id="tabs">
-				<ul>
-					<li><a href="#check_params">Data Check Settings</a></li>
-					<li><a href="#view">View</a></li>
-					<li><a href="#actions">Actions</a></li>
-				</ul>
-				<div id="check_params">
-					<label for="spinner_sd">Outlier Boundary</label>
-					<input id="spinner_sd" size="2" th:value="${num_sd}"/>
-					<button type="button">Apply</button>
-				</div>
-				
-				<div id="view">
-					<button type="button" id="button_options">Chart Options</button>
-					<button type="button" id="button_charts">Other Charts</button>
-				</div>
-				
-				<div id="actions">
-					Actions
-				</div>
+		<!-- Tabs -->
+		<div id="tabs">
+			<ul>
+				<li><a href="#check_params">Data Check Settings</a></li>
+				<li><a href="#view">View</a></li>
+				<li><a href="#actions">Actions On Selected Data</a></li>
+			</ul>
+			<div id="check_params">
+				<img id="img_boundary" src="/images/info.png" width="20" height="20" 
+   				title="Numer of standard deviations from the mean above which a value is considered an outlier. (Current value shown as vertical dashed lines in chart). Changes to this setting will only be applied to this variable. Pressing Apply button will trigger an immediate run of the data check with the specified setting, which will also be saved and used in future data check runs."
+   				/>
+				<label for="spinner_sd">Outlier Boundary (stdev from mean)</label>
+				<input id="spinner_sd" size="2" th:value="${num_sd}"/>
+				<button type="button" id="button_boundary">Apply</button>
 			</div>
 			
-			<div>
-				<svg/>
+			<div id="view">
+				<button type="button" id="button_options">Chart Options</button>
+				<button type="button" id="button_charts">Other Charts</button>
 			</div>
-	
-			<h3 th:text="${field.fieldLabel}"/>
+			
+			<div id="actions">
+				<button type="button">Show Data</button>
+				<button type="button">Add to Query List</button>
+				&nbsp;&nbsp;&nbsp;
+				Label Data
+				<select>
+					<option>Is an Issue</option>
+					<option>Not an Issue</option>
+				</select>
+				<button type="button">Save Label</button>
+			</div>
 		</div>
+		<!-- End tabs -->
 		
+		<!-- Chart -->
+		<div>
+			<svg/>
+		</div>
+
+		<!-- X-axis label -->
+		<h3 th:text="${field.fieldLabel}"/>
+	</div>
+	<!-- End main content -->
+		
+	<!-- Dialogs -->
+	<div>
+	
+		<!-- Dialog for showing data selected by user -->
 		<div id="dialog_data">
     		<table id="dialog_data_table" class="wide"/>
     	</div>
     	
-    	<div id="dialog_progress">
-    		
+    	<!-- Dialog for navigating to other charts -->
+    	<div id="dialog_charts">
+    		<table class="invisible">
+    			<tr>
+    				<td>
+    				 	<img src="/images/scatterplot.png"/>
+    				</td>
+    				<td>
+    					Plot relationship with second variable (scatter plot)
+    					<p>
+		    				<input type="text" value="Enter second variable" class="input_hint"/>
+		    				<button type="button">Go</button>
+		    			</p>
+    				</td>
+    			</tr>
+    			
+    			<tr>
+    				<td>
+    					<img src="/images/longitudinalplot.png"/>
+    				</td>
+    				<td>
+	    				Plot longitudinally across visits (time series)
+	    				<button type="button">Go</button>
+    				</td>
+    			</tr>
+    			
+    			<tr>
+    				<td>
+    					<img src="/images/violinplot.png"/>
+    				</td>
+    				<td>
+    					Plot with other variables in same chart (violin plots)
+    					<button type="button">Go</button>
+    				</td>
+    			</tr>
+    		</table>
     	</div>
+    	
+    	<!-- Chart options dialog -->
+    	<div id="dialog_controls" style="text-align: center;">
+    		<fieldset style="margin: 20px; background-color: #f6f6f6; border: 1px solid black;">
+				<legend style="font-weight: bold;">Data Filters</legend>
+				<table class="invisible">
+					<tr>
+						<th th:text="${site_field_name}"/>
+						<th th:text="${phase_field_name}"/>
+					</tr>
+					<tr>
+						<td>
+							<select multiple="true" id="filter_site">
+								<option th:each="site : ${sites}" th:text="${site.siteName}"/>
+							</select>
+						</td>
+						<td>
+							<select multiple="true" id="filter_phase">
+								<option th:each="phase : ${phases}" th:text="${phase.phaseName}"/>
+							</select>
+						</td>
+					</tr>
+				</table>
+				<p><button type="button" id="filter_remove">Remove All</button></p>
+			</fieldset>
 			
+			<fieldset style="margin: 20px; background-color: #f6f6f6; border: 1px solid black;">
+				<legend style="font-weight: bold;">Group Data By</legend>
+				<table class="grid">
+					<tr>
+						<td><input type="radio" name="group_by" value="none" checked="true"/></td>
+						<td align="left">Do not group</td>
+					</tr>
+				 	<tr>
+						<td><input type="radio" name="group_by" value="site"/></td>
+						<td align="left" th:text="${site_field_name}"/>
+					</tr>
+					<tr>
+						<td><input type="radio" name="group_by" value="phase"/></td>
+						<td align="left" th:text="${phase_field_name}"/>
+					</tr>
+				</table>
+			</fieldset>
+			
+			<fieldset style="margin: 20px; background-color: #f6f6f6; border: 1px solid black;">
+				<legend style="font-weight: bold;">Highlight Data</legend>
+				<table class="invisible">
+					<tr>
+						<th th:text="${site_field_name}"/>
+						<th th:text="${phase_field_name}"/>
+					</tr>
+					<tr>
+						<td>
+							<select multiple="true">
+								<option th:each="site : ${sites}" th:text="${site.siteName}"/>
+							</select>
+						</td>
+						<td>
+							<select multiple="true">
+								<option th:each="phase : ${phases}" th:text="${phase.phaseName}"/>
+							</select>
+						</td>
+					</tr>
+				</table>
+				
+				<p>
+					<span th:text="${subject_field_name}"/>
+					<input type="text" id="input_subject"/>
+				</p>
+				
+				<p><button type="button">Remove All</button></p>
+			</fieldset>
+			
+		</div>
+		<!-- End chart options dialog -->
+		
 	</div>
-    
+    <!-- End dialogs -->
 </body>
 
+<!-- Script to initialize Javascript variables -->
 <script th:inline="javascript">
 	const url = "/rest/anomaly/data/univariate_outliers?check_run_id=" + [[${check_run_id}]];
-	
-	// TODO: Consider consolidating this variable with fieldName1 below
-	const fieldName = [[${field_name}]];
-	
 	const mean = parseFloat([[${mean}]]);
 	const sd = parseFloat([[${sd}]]);
 	const siteName = [[${site_name}]];
 	const subjectName = [[${subject_name}]];
 	const numSd = parseFloat([[${num_sd}]]);
 	const siteFieldName = [[${site_field_name}]];
+	const phaseFieldName = [[${phase_field_name}]];
 	const subjectFieldName = [[${subject_field_name}]];
 	const studyId = [[${field.study.studyId}]];
 	const datasetName = [[${dataset.datasetName}]];
 	const datasetId = [[${dataset.datasetId}]];
 	const fieldName1 = [[${field.fieldName}]];
 	
-	$(function() {
+	// TODO: Consider consolidating this variable with fieldName1 below
+	const fieldName = [[${field_name}]];
+</script>
+
+<!-- Interactity scripts -->
+<script>
+
+	function onFilterChange() {
+		const sites = $("#filter_site").val();
+		const phases = $("#filter_phase").val();
+		const filters = {};
+		if (sites.length > 0) {
+			filters[siteFieldName] = sites;
+		}
+		if (phases.length > 0) {
+			filters[phaseFieldName] = phases;
+		}
+		console.log(JSON.stringify(filters));
+	}
+
+	function initializeFilters() {
+		$("#filter_site").click(function() {
+			onFilterChange();
+		});
+		
+		$("#filter_phase").click(function() {
+			onFilterChange();
+		});
+		
+		$("#filter_remove").click(function() {
+			$("#filter_site").val("");
+			$("#filter_phase").val("");
+			onFilterChange();
+		});
+	}
+
+	/**
+	 * Initialize dialogs
+	 */
+	function initializeDialogs() {
+		
+		// Dialog for displaying user-selected data
 		$("#dialog_data").dialog({
 			autoOpen: false,
 			modal: true,
@@ -196,8 +292,82 @@
 			]
 		});
 		
+		// Plot contorol dialog
+		$("#dialog_controls").dialog({
+			autoOpen: false,
+			modal: false,
+			minWidth: 500,
+			title: "Chart Options",
+			buttons: [
+				{
+					text: "OK",
+					click: function() {
+						$(this).dialog("close");
+					}
+				}
+			]
+		});
+		
+		$("#dialog_charts").dialog({
+			autoOpen: false,
+			modal: true,
+			minWidth: 700,
+			title: "Other Charts"
+		});
+	}
+	
+	/**
+	 * Initialize widgets
+	 */
+	function initializeWidgets() {
+		$("#img_boundary").tooltip();
+		
 		$("#button_options").click(function() {
-			$("#div_controls").toggle("slide", 500);
+			$("#dialog_controls").dialog("open");
+		});
+		
+		$("#button_charts").click(function() {
+			$("#dialog_charts").dialog("open");
+		});
+		
+		
+		$("#spinner_sd").spinner({
+			step: 0.25,
+			numberFormat: "n",
+			stop: function() {
+				const sd = $("#spinner_sd").val();
+				setThresholdLines(sd);
+			}
+		});
+		
+		/*
+		$("#button_show").click(function() {
+			data = getSelectedData();
+			varNames = Object.keys(data[0]);
+			varNames.splice(varNames.indexOf("anomaly_id"), 1);
+			let html = "<tr>";
+			for (var i in varNames) {
+				html += "<th>";
+				html += varNames[i];
+				html += "</th>"
+			}
+			for (var i in data) {
+				html += "<tr>"
+				for (var j in varNames) {
+					html += "<td>";
+					html += data[i][varNames[j]];
+					html += "</td>"
+				}
+				html += "</tr>"
+			}
+			html += "</tr>";
+			$("#dialog_data_table").html(html);
+			$("#dialog_data").dialog("open");
+		});
+		
+		$("#button_filter").click(function() {
+			setFilter($("#select_filter").val(), $("#text_filter").val());
+			reDraw();
 		});
 		
 		$("#text_second_field").autocomplete({
@@ -238,79 +408,46 @@
 			}
 		});
 		
+		*/
+	}
+	
+	$(function() {
+		initializeDialogs();
+		initializeWidgets();
+		initializeFilters();
+		
 		$("#tabs").tabs();
 		
-		$("#accordion").accordion();
-		
-		$("#close_controls").click(function() {
-			$("#div_controls").toggle("slide", 500);
-		});
-		
-		$("#div_controls").toggle("slide", 5);
-	});
-	
-	$("#button_show").click(function() {
-		data = getSelectedData();
-		varNames = Object.keys(data[0]);
-		varNames.splice(varNames.indexOf("anomaly_id"), 1);
-		let html = "<tr>";
-		for (var i in varNames) {
-			html += "<th>";
-			html += varNames[i];
-			html += "</th>"
+		// Set filters within beeswarm
+		if (siteName != "-1") {
+			setFilter("site", siteName);
 		}
-		for (var i in data) {
-			html += "<tr>"
-			for (var j in varNames) {
-				html += "<td>";
-				html += data[i][varNames[j]];
-				html += "</td>"
-			}
-			html += "</tr>"
-		}
-		html += "</tr>";
-		$("#dialog_data_table").html(html);
-		$("#dialog_data").dialog("open");
-	});
-	
-	$("#button_filter").click(function() {
-		setFilter($("#select_filter").val(), $("#text_filter").val());
-		reDraw();
-	});
-	
-	if (siteName != "-1") {
-		setFilter("site", siteName);
-	}
-	else if (subjectName != "-1") {
-		setFilter("subject", subjectName);
-	}
-	else {
-		setFilter("none");
-	}
-	
-	renderBeeswarm(url, fieldName, mean, sd, numSd, siteFieldName, subjectFieldName, function(itemsAreSelected) {
-		if (itemsAreSelected) {
-			$("#button_show").prop("disabled", false);
-			$("#select_issue").prop("disabled", false);
-			$("#button_status").prop("disabled", false);
+		else if (subjectName != "-1") {
+			setFilter("subject", subjectName);
 		}
 		else {
-			$("#button_show").prop("disabled", true);
-			$("#select_issue").prop("disabled", true);
-			$("#button_status").prop("disabled", true);
+			setFilter("none");
 		}
-	});
-</script>
-
-<script>
-	$("#spinner_sd").spinner({
-		step: 0.25,
-		numberFormat: "n",
-		stop: function() {
-			const sd = $("#spinner_sd").val();
-			setThresholdLines(sd);
-		}
+		
+		renderBeeswarm(url, fieldName, mean, sd, numSd, siteFieldName, subjectFieldName, function(itemsAreSelected) {
+			if (itemsAreSelected) {
+				$("#button_show").prop("disabled", false);
+				$("#select_issue").prop("disabled", false);
+				$("#button_status").prop("disabled", false);
+			}
+			else {
+				$("#button_show").prop("disabled", true);
+				$("#select_issue").prop("disabled", true);
+				$("#button_status").prop("disabled", true);
+			}
+		});
 	});
 	
+	
+	
+	
+	
+	
 </script>
+
 </html>

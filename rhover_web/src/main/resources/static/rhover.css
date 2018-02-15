@@ -262,3 +262,7 @@ div.filters {
 	padding: 5px;
 	float: left;
 }
+
+.input_hint {
+	color: LightGray;
+}

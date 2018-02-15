@@ -44,6 +44,7 @@ let lowerThresh = -1;
 let upperThresh = -1;
 let siteFilter = -1;
 let subjectFilter = -1;
+let filters = [];
 
 // Metadata passed in by system
 let siteField = null;
@@ -75,6 +76,24 @@ function setFilter(entity, value) {
 		subjectFilter = value;
 		siteFilter = -1;
 	}
+}
+
+/**
+ * Set data filters.
+ * 
+ * Data points that do not match filter criteria
+ * are not displayed. If the given filters array is empty, then no data
+ * will be filtered.
+ * 
+ * @param filterCriteria Array of filter criteria objects as follows:
+ * 
+ *                       {name: NAME, values: [VALUE1, VALUE2, ... , VALUEN]}
+ *                
+ *                       Data points that do not have an attributed named NAME with a
+ *                       value in [VALUE...VALUEN] will not be displayed.
+ */
+function setFilters(filterCriteria) {
+	filters = filterCriteria;
 }
 
 /**
@@ -221,7 +240,7 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteFieldName, subj
 	subjectField = subjectFieldName;
 	
 	d3.csv(dataUrl, function(data) {
-		//console.log(data);
+		console.log(data);
 		
 		// Set extent of data and chart areas on the screen
 		const min = data[0][fieldName];
