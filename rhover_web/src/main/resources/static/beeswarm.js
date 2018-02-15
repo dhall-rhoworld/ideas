@@ -57,7 +57,9 @@ let eventHandler = null;
 
 // SVG canvas object
 let svg = null;
-
+let brush = null;
+let brushGroup = null;
+let dataPoints = null;
 
 //
 // FUNCTIONS INVOKED BY CLIENT WEB PAGE
@@ -315,6 +317,55 @@ function onMouseUp(mouseCoords) {
 	}
 }
 
+function isBrushed(brushCoords, dataPoint) {
+	const x = parseInt(dataPoint.attr("cx")) + BORDER;
+	const y = parseInt(dataPoint.attr("cy")) + dataMidPoint;
+	const x1 = brushCoords[0][0];
+	const y1 = brushCoords[0][1];
+	const x2 = brushCoords[1][0];
+	const y2 = brushCoords[1][1];
+	return x1 <= x && x <= x2 && y1 <= y && y <= y2;
+}
+
+function onBrushStart() {
+	if (!d3.event.selection) {
+		return;
+	}
+	dataPoints.classed("selected", false);
+	dataPoints.classed("inlier-selected", false);
+	dataPoints.classed("outlier-selected", false);
+	dataPoints.classed("deselected", true);
+}
+
+function onBrush() {
+	if (d3.event.selection == null) {
+		return;
+	}
+	dataPoints.classed("selected", false);
+	dataPoints.classed("inlier-selected", false);
+	dataPoints.classed("outlier-selected", false);
+	dataPoints.classed("deselected", true);
+	const brushCoords = d3.brushSelection(this);
+	const selectedPoints = dataPoints.filter(function() {
+		return isBrushed(brushCoords, d3.select(this));
+	});
+	selectedPoints.classed("deselected", false);
+	selectedPoints.classed("selected", true);
+	selectedPoints.classed("inlier-selected", function() {
+		return d3.select(this).classed("inlier");
+	});
+	selectedPoints.classed("outlier-selected", function() {
+		return d3.select(this).classed("outlier");
+	});
+}
+
+function onBrushEnd() {
+	if (!d3.event.selection) {
+		return;
+	}
+	d3.select(this).call(brush.move, null);
+}
+
 /**
  * Render the beeswarm
  * @param dataUrl URL to retrieve data
@@ -364,7 +415,7 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteFieldName, subj
 		// Draw data points
 		lowerThresh = mean - numSd * sd;
 		upperThresh = mean + numSd * sd;
-		dataArea.selectAll("circle")
+		dataPoints = dataArea.selectAll("circle")
 			.data(data)
 			.enter()
 			.append("circle")
@@ -374,6 +425,7 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteFieldName, subj
 			.attr("cx", function(d) {return xScale(d[fieldName]);})
 			.attr("cy", function(d) {return d.__y__;})
 			.attr("r", CIRCUMFERENCE)
+			.classed("deselected", true)
 			.classed("outlier", function(d) {
 				return d["anomaly_id"] > 0 && (d[fieldName] < lowerThresh || d[fieldName] > upperThresh);
 			})
@@ -431,7 +483,14 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteFieldName, subj
 			.attr("x1", xUpper).attr("y1", y1).attr("x2", xUpper).attr("y2", y2)
 			.attr("stroke", "black").attr("stroke-width", 1).attr("stroke-dasharray", "5, 5");
 		
+		brush = d3.brush()
+			.on("start", onBrushStart)
+			.on("brush", onBrush)
+			.on("end", onBrushEnd)
+		brushGroup = svg.append("g").call(brush);
+		
 		// Add selection event handler
+		/*
 		svg.on("mousedown", function() {
 			onMouseDown(d3.mouse(this));
 		});
@@ -443,5 +502,6 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteFieldName, subj
 		svg.on("mouseup", function() {
 			onMouseUp(d3.mouse(this));
 		});
+		*/
 	});
 }

@@ -10,6 +10,13 @@
     <script src="/jquery-3.2.1.min.js"></script>
     <script src="/jquery-ui.js"></script>
     <script src="/beeswarm.js"></script>
+    
+    <script src="/jquery.contextMenu.min.js"></script>
+    <script src="/jquery.ui.position.min.js"></script>
+    <link rel="stylesheet" href="/jquery.contextMenu.min.css"/>
+    
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"/>
 </head>
 <body>
 
@@ -330,7 +337,6 @@
 			$("#dialog_charts").dialog("open");
 		});
 		
-		
 		$("#spinner_sd").spinner({
 			step: 0.25,
 			numberFormat: "n",
@@ -439,6 +445,19 @@
 				$("#button_show").prop("disabled", true);
 				$("#select_issue").prop("disabled", true);
 				$("#button_status").prop("disabled", true);
+			}
+		});
+		
+		$.contextMenu({
+			selector: "svg",
+			items: {
+				"show": {name: "Show Data", icon: "fa-eye"},
+				"query": {name: "Add to Query List", icon: "fa-list"},
+				"notissue": {name: "Label Not an Issue", icon: "fa-check-circle"},
+			},
+			callback: function(key, options) {
+				const message = "clicked " + key;
+				console.log(message);
 			}
 		});
 	});

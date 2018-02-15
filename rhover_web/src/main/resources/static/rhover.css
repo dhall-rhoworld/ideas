@@ -75,13 +75,13 @@ table.half-wide tr:nth-child(even) {
 .inlier {
 	stroke: green;
 	stroke-width: 1;
-	fill: none;
+	/*fill: none;*/
 }
 
 .outlier {
 	stroke: red;
 	stroke-width: 1;
-	fill: none;
+	/*fill: none;*/
 }
 
 .inlier-selected {
@@ -90,6 +90,10 @@ table.half-wide tr:nth-child(even) {
 
 .outlier-selected {
 	fill: red;
+}
+
+.deselected {
+	fill: none;
 }
 
 .background {
