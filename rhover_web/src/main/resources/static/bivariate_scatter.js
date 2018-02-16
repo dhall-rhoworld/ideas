@@ -99,6 +99,7 @@ function renderBivariatePlot(url, divId, width, height) {
 				.attr("r", RADIUS)
 				.attr("cx", mapX)
 				.attr("cy", mapY)
+				.classed("deselected", true)
 				.classed("outlier", function(d) {
 					return d["anomaly_id"] > 0;
 				})

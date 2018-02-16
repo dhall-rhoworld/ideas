@@ -125,7 +125,6 @@ function getSelectedData() {
  * Redraw plot
  */
 function reDraw() {
-	console.log("Redrawing");
 	dataPoints.classed("background", isBackground);
 }
 
@@ -136,10 +135,10 @@ function reDraw() {
 function setThresholdLines(numSd) {
 	lowerThresh = dataMean - numSd * dataSd;
 	lowerX = xScale(lowerThresh) + BORDER;
-	line1.attr("x1", lowerX).attr("x2", lowerX);
+	line1.transition().attr("x1", lowerX).attr("x2", lowerX);
 	upperThresh = dataMean + numSd * dataSd;
 	upperX = xScale(upperThresh) + BORDER;
-	line2.attr("x1", upperX).attr("x2", upperX);
+	line2.transition().attr("x1", upperX).attr("x2", upperX);
 }
 
 //
@@ -387,6 +386,24 @@ function isBackground(dataPoint) {
 	return background;
 }
 
+function passesFilter(dataPoint) {
+	if (filterCriteria.length == 0) {
+		return true;
+	}
+	let passes = false;
+	for (let i = 0; i < filterCriteria.length && !passes; i++) {
+		let propName = filterCriteria[i].name;
+		let propValues = filterCriteria[i].values;
+		for (let j = 0; j < propValues.length && !passes; j++) {
+			let propValue = propValues[j];
+			if (dataPoint[propName] == propValue) {
+				passes = true;
+			}
+		}
+	}
+	return passes;
+}
+
 /**
  * Render the beeswarm
  * @param dataUrl URL to retrieve data
@@ -502,20 +519,5 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteFieldName, subj
 			.on("brush", onBrush)
 			.on("end", onBrushEnd)
 		brushGroup = svg.append("g").call(brush);
-		
-		// Add selection event handler
-		/*
-		svg.on("mousedown", function() {
-			onMouseDown(d3.mouse(this));
-		});
-		
-		svg.on("mousemove", function() {
-			onMouseMove(d3.mouse(this));
-		});
-		
-		svg.on("mouseup", function() {
-			onMouseUp(d3.mouse(this));
-		});
-		*/
 	});
 }

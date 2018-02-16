@@ -281,7 +281,6 @@
 			criterion.values = phases;
 			criteria.push(criterion);
 		}
-		//console.log(JSON.stringify(criteria));
 		setHighlightCriteria(criteria);
 		reDraw();
 	}
@@ -327,15 +326,7 @@
 		$("#dialog_data").dialog({
 			autoOpen: false,
 			modal: true,
-			minWidth: 800,
-			buttons: [
-				{
-					text: "OK",
-					click: function() {
-						$(this).dialog("close");
-					}
-				}
-			]
+			minWidth: 800
 		});
 		
 		// Plot contorol dialog
@@ -343,15 +334,7 @@
 			autoOpen: false,
 			modal: false,
 			minWidth: 500,
-			title: "Chart Options",
-			buttons: [
-				{
-					text: "OK",
-					click: function() {
-						$(this).dialog("close");
-					}
-				}
-			]
+			title: "Chart Options"
 		});
 		
 		$("#dialog_charts").dialog({
@@ -446,13 +429,13 @@
 			html += "</th>"
 		}
 		for (var i in data) {
-			html += "<tr>"
+			html += "<tr>";
 			for (var j in varNames) {
 				html += "<td>";
 				html += data[i][varNames[j]];
-				html += "</td>"
+				html += "</td>";
 			}
-			html += "</tr>"
+			html += "</tr>";
 		}
 		html += "</tr>";
 		$("#dialog_data_table").html(html);
@@ -494,13 +477,22 @@
 		$.contextMenu({
 			selector: "svg",
 			items: {
-				"data": {name: "Show selected data", icon: "fa-eye"},
+				"options": {name: "Chart Options", icon: "fa-cogs"},
+				"charts": {name: "Other Charts", icon: "fa-signal"},
+				"separator_1": {type: "cm_separator"},
+				"data": {name: "Show selected data", icon: "fa-table"},
 				"query": {name: "Add selected to Query List", icon: "fa-list"},
 				"notissue": {name: "Label selected 'Not an Issue'", icon: "fa-check-circle"},
 				"subject": {name: "Highlight all data from selected subject", icon: "fa-user"}
 			},
 			callback: function(key, options) {
-				if (key == "data") {
+				if (key == "options") {
+					$("#dialog_controls").dialog("open");
+				}
+				else if (key == "charts") {
+					$("#dialog_charts").dialog("open");
+				}
+				else if (key == "data") {
 					onClickShowData();
 				}
 			}

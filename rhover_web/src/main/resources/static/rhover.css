@@ -270,36 +270,3 @@ div.filters {
 .input_hint {
 	color: LightGray;
 }
-
-.svg_tooltip {
-	
-}
-
-.svg_tooltip {
-  line-height: 1;
-  font-weight: bold;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.8);
-  color: #fff;
-  border-radius: 2px;
-}
-
-/* Creates a small triangle extender for the tooltip */
-.svg_tooltip:after {
-  box-sizing: border-box;
-  display: inline;
-  font-size: 10px;
-  width: 100%;
-  line-height: 1;
-  color: rgba(0, 0, 0, 0.8);
-  content: "\25BC";
-  position: absolute;
-  text-align: center;
-}
-
-/* Style northward tooltips differently */
-.svg_tooltip.n:after {
-  margin: -1px 0 0 0;
-  top: 100%;
-  left: 0;
-}
