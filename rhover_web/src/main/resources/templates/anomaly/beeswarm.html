@@ -57,41 +57,13 @@
 	<!-- Main content -->
 	<div id="content">
 	
-		<!-- Tabs -->
-		<div id="tabs">
-			<ul>
-				<li><a href="#check_params">Data Check Settings</a></li>
-				<li><a href="#view">View</a></li>
-				<li><a href="#actions">Actions On Selected Data</a></li>
-			</ul>
-			<div id="check_params">
-				<img id="img_boundary" src="/images/info.png" width="20" height="20" 
-   				title="Numer of standard deviations from the mean above which a value is considered an outlier. (Current value shown as vertical dashed lines in chart). Changes to this setting will only be applied to this variable. Pressing Apply button will trigger an immediate run of the data check with the specified setting, which will also be saved and used in future data check runs."
-   				/>
-				<label for="spinner_sd">Outlier Boundary (stdev from mean)</label>
-				<input id="spinner_sd" size="2" th:value="${num_sd}"/>
-				<button type="button" id="button_boundary">Apply</button>
-			</div>
-			
-			<div id="view">
-				<button type="button" id="button_options">Chart Options</button>
-				<button type="button" id="button_charts">Other Charts</button>
-			</div>
-			
-			<div id="actions">
-				<button type="button" id="button_show">Show Data</button>
-				<button type="button">Add to Query List</button>
-				&nbsp;&nbsp;&nbsp;
-				Label Data
-				<select>
-					<option>Is an Issue</option>
-					<option>Not an Issue</option>
-				</select>
-				<button type="button">Save Label</button>
-			</div>
-		</div>
-		<!-- End tabs -->
-		
+		<img id="img_boundary" src="/images/info.png" width="20" height="20" 
+			title="Numer of standard deviations from the mean above which a value is considered an outlier. (Current value shown as vertical dashed lines in chart). Changes to this setting will only be applied to this variable. Pressing Apply button will trigger an immediate run of the data check with the specified setting, which will also be saved and used in future data check runs."
+			/>
+		<label for="spinner_sd">Outlier Boundary (stdev from mean)</label>
+		<input id="spinner_sd" size="2" th:value="${num_sd}"/>
+		<button type="button" id="button_boundary">Apply</button>
+	
 		<!-- Chart -->
 		<div>
 			<svg/>
