@@ -549,6 +549,7 @@ function addHighlightsToBar(criteria) {
 }
 
 function removeHighlight(propName, propValue) {
+	console.log("Removing highlight: " + propName + " = " + propValue);
 	const values = $("select[name='highlight-" + propName + "']").val();
 	const p = values.indexOf(propValue);
 	values.splice(p, 1);
@@ -736,8 +737,27 @@ function onClickShowData() {
 	for (var i in data) {
 		html += "<tr>";
 		for (var j in varNames) {
+			let varName = varNames[j];
+			let buttonId = "button-" + varName + "---" + data[i][varName];
 			html += "<td>";
-			html += data[i][varNames[j]];
+			if (varName === subjectFieldName || varName === siteFieldName || varName === phaseFieldName) {
+				let className = "highlight_button_small";
+				if (isHighlighted(varName, data[i][varName])) {
+					className = "highlight_button_small_clicked";
+				}
+				html += "<span title='Click to highlight data' class='";
+				html += className;
+				html += "' data-filter-prop-name='";
+				html += varName;
+				html += "' data-filter-prop-value='";
+				html += data[i][varName];
+				html += "'><img src='/images/highlighter.png' height='15' width='15' onclick='onClickHighlightButton(\"";
+				html += varName;
+				html += "\", \"";
+				html += data[i][varName];
+				html += "\");'/></span>&nbsp;&nbsp;";
+			}
+			html += data[i][varName];
 			html += "</td>";
 		}
 		html += "</tr>";
@@ -745,6 +765,34 @@ function onClickShowData() {
 	html += "</tr>";
 	$("#dialog_data_table").html(html);
 	$("#dialog_data").dialog("open");
+}
+
+function isHighlighted(propName, propValue) {
+	const values = $("select[name='highlight-" + propName + "']").val();
+	if (values === undefined) {
+		return false;
+	}
+	return values.indexOf(propValue) >= 0;
+}
+
+function onClickHighlightButton(propName, propValue) {
+	const selector = "span[data-filter-prop-name='" + propName + "'][data-filter-prop-value='" + propValue + "']";
+	const highlighted = $(selector).hasClass("highlight_button_small_clicked");
+	if (highlighted) {
+		$(selector).removeClass("highlight_button_small_clicked");
+		$(selector).addClass("highlight_button_small");
+		removeHighlight(propName, propValue);
+	}
+	else {
+		const values = $("select[name='highlight-" + propName + "']").val();
+		if (values.indexOf(propValue) == -1) {
+			values.push(propValue);
+		}
+		$("select[name='highlight-" + propName + "']").val(values);
+		$(selector).removeClass("highlight_button_small");
+		$(selector).addClass("highlight_button_small_clicked");
+	}
+	onHighlightChange();
 }
 
 $(function() {
@@ -787,7 +835,6 @@ $(function() {
 			"data": {name: "Show selected data", icon: "fa-table"},
 			"query": {name: "Add selected to Query List", icon: "fa-list"},
 			"notissue": {name: "Label selected 'Not an Issue'", icon: "fa-check-circle"},
-			"subject": {name: "Highlight all data from selected subject", icon: "fa-user"},
 			"separator_2": {type: "cm_separator"},
 			"scatter": {name: "Plot relationship with second variable", icon: "fa-chart-line"},
 			"longitudinal": {name: "Plot data longitudinally"},

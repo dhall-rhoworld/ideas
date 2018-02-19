@@ -162,7 +162,7 @@
 							</select>
 						</td>
 						<td>
-							<select multiple="true" id="highlight_phase">
+							<select multiple="true" id="highlight_phase" th:name="'highlight-' + ${phase_field_name}">
 								<option th:each="phase : ${phases}" th:text="${phase.phaseName}"/>
 							</select>
 						</td>
