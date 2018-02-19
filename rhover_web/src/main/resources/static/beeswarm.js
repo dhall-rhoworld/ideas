@@ -58,9 +58,12 @@ let eventHandler = null;
 
 // SVG canvas object
 let svg = null;
+
 let brush = null;
 let brushGroup = null;
 let dataPoints = null;
+
+let highlightedSubjects = [];
 
 //
 // FUNCTIONS INVOKED BY CLIENT WEB PAGE
@@ -524,7 +527,23 @@ function renderBeeswarm(dataUrl, fieldName, mean, sd, numSd, siteFieldName, subj
 
 // ------------------------------------
 
-function addHighlightsToBar(criteria) {
+function initializeHighlightDialogFields() {
+	$("#highlight_site").click(function() {
+		onHighlightChange();
+	});
+	
+	$("#highlight_phase").click(function() {
+		onHighlightChange();
+	});
+	
+	$("#highlight_remove").click(function() {
+		$("#highlight_site").val("");
+		$("#highlight_phase").val("");
+		onHighlightChange();
+	});
+}
+
+function synchronizeHighlightsBar(criteria) {
 	$("#highlights_bar").empty();
 	if (criteria.length > 0) {
 		let html = "<span class='filter_label'>Highlight:</span>";
@@ -533,7 +552,7 @@ function addHighlightsToBar(criteria) {
 			let propValues = criteria[i].values;
 			for (let j = 0; j < propValues.length; j++) {
 				let propValue = propValues[j];
-				html += "<span class='filter_button'><img src='/images/close.png' height='20' width='20' onclick=\"removeHighlight('";
+				html += "<span class='filter_button'><img src='/images/close.png' height='20' width='20' onclick=\"removeHighlightFromDialog('";
 				html += propName;
 				html += "', '";
 				html += propValue;
@@ -548,26 +567,18 @@ function addHighlightsToBar(criteria) {
 	}
 }
 
-function removeHighlight(propName, propValue) {
-	console.log("Removing highlight: " + propName + " = " + propValue);
-	const values = $("select[name='highlight-" + propName + "']").val();
-	const p = values.indexOf(propValue);
-	values.splice(p, 1);
-	$("select[name='highlight-" + propName + "']").val(values);
+function removeHighlightFromDialog(propName, propValue) {
+	if (propName === subjectFieldName) {
+		const p = highlightedSubjects.indexOf(propValue);
+		highlightedSubjects.splice(p, 1);
+	}
+	else {
+		const values = $("select[name='highlight-" + propName + "']").val();
+		const p = values.indexOf(propValue);
+		values.splice(p, 1);
+		$("select[name='highlight-" + propName + "']").val(values);
+	}
 	onHighlightChange();
-}
-
-function onFilterChange() {
-	const sites = $("#filter_site").val();
-	const phases = $("#filter_phase").val();
-	const filters = {};
-	if (sites.length > 0) {
-		filters[siteFieldName] = sites;
-	}
-	if (phases.length > 0) {
-		filters[phaseFieldName] = phases;
-	}
-	console.log(JSON.stringify(filters));
 }
 
 function onHighlightChange() {
@@ -586,9 +597,63 @@ function onHighlightChange() {
 		criterion.values = phases;
 		criteria.push(criterion);
 	}
+	if (highlightedSubjects.length > 0) {
+		let criterion = {};
+		criterion.name = subjectFieldName;
+		criterion.values = highlightedSubjects;
+		criteria.push(criterion);
+	}
 	setHighlightCriteria(criteria);
 	reDraw();
-	addHighlightsToBar(criteria);
+	synchronizeHighlightsBar(criteria);
+}
+
+function isHighlighted(propName, propValue) {
+	if (propName === subjectFieldName) {
+		return highlightedSubjects.indexOf(propValue) >= 0;
+	}
+	const values = $("select[name='highlight-" + propName + "']").val();
+	return values.indexOf(propValue) >= 0;
+}
+
+function onClickHighlightButton(propName, propValue) {
+	const selector = "span[data-filter-prop-name='" + propName + "'][data-filter-prop-value='" + propValue + "']";
+	const highlighted = $(selector).hasClass("highlight_button_small_clicked");
+	if (highlighted) {
+		$(selector).removeClass("highlight_button_small_clicked");
+		$(selector).addClass("highlight_button_small");
+		removeHighlightFromDialog(propName, propValue);
+	}
+	else {
+		if (propName === subjectFieldName) {
+			if (highlightedSubjects.indexOf(propValue) == -1) {
+				highlightedSubjects.push(propValue);
+			}
+		}
+		else {
+			const values = $("select[name='highlight-" + propName + "']").val();
+			if (values.indexOf(propValue) == -1) {
+				values.push(propValue);
+			}
+			$("select[name='highlight-" + propName + "']").val(values);
+		}
+		$(selector).removeClass("highlight_button_small");
+		$(selector).addClass("highlight_button_small_clicked");
+	}
+	onHighlightChange();
+}
+
+function onFilterChange() {
+	const sites = $("#filter_site").val();
+	const phases = $("#filter_phase").val();
+	const filters = {};
+	if (sites.length > 0) {
+		filters[siteFieldName] = sites;
+	}
+	if (phases.length > 0) {
+		filters[phaseFieldName] = phases;
+	}
+	console.log(JSON.stringify(filters));
 }
 
 function initializeFilters() {
@@ -604,22 +669,6 @@ function initializeFilters() {
 		$("#filter_site").val("");
 		$("#filter_phase").val("");
 		onFilterChange();
-	});
-}
-
-function initializeHighlights() {
-	$("#highlight_site").click(function() {
-		onHighlightChange();
-	});
-	
-	$("#highlight_phase").click(function() {
-		onHighlightChange();
-	});
-	
-	$("#highlight_remove").click(function() {
-		$("#highlight_site").val("");
-		$("#highlight_phase").val("");
-		onHighlightChange();
 	});
 }
 
@@ -724,7 +773,6 @@ function initializeWidgets() {
 
 function onClickShowData() {
 	const data = getSelectedData();
-	console.log(data);
 	let varNames = Object.keys(data[0]);
 	varNames.splice(varNames.indexOf("anomaly_id"), 1);
 	varNames.splice(varNames.indexOf("__y__"), 1);
@@ -767,39 +815,12 @@ function onClickShowData() {
 	$("#dialog_data").dialog("open");
 }
 
-function isHighlighted(propName, propValue) {
-	const values = $("select[name='highlight-" + propName + "']").val();
-	if (values === undefined) {
-		return false;
-	}
-	return values.indexOf(propValue) >= 0;
-}
-
-function onClickHighlightButton(propName, propValue) {
-	const selector = "span[data-filter-prop-name='" + propName + "'][data-filter-prop-value='" + propValue + "']";
-	const highlighted = $(selector).hasClass("highlight_button_small_clicked");
-	if (highlighted) {
-		$(selector).removeClass("highlight_button_small_clicked");
-		$(selector).addClass("highlight_button_small");
-		removeHighlight(propName, propValue);
-	}
-	else {
-		const values = $("select[name='highlight-" + propName + "']").val();
-		if (values.indexOf(propValue) == -1) {
-			values.push(propValue);
-		}
-		$("select[name='highlight-" + propName + "']").val(values);
-		$(selector).removeClass("highlight_button_small");
-		$(selector).addClass("highlight_button_small_clicked");
-	}
-	onHighlightChange();
-}
 
 $(function() {
 	initializeDialogs();
 	initializeWidgets();
 	initializeFilters();
-	initializeHighlights();
+	initializeHighlightDialogFields();
 	
 	$("#tabs").tabs();
 	
