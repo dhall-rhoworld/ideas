@@ -102,26 +102,6 @@
 		    			</p>
     				</td>
     			</tr>
-    			
-    			<tr>
-    				<td>
-    					<img src="/images/longitudinalplot.png"/>
-    				</td>
-    				<td>
-	    				Plot longitudinally across visits (time series)
-	    				<button type="button">Go</button>
-    				</td>
-    			</tr>
-    			
-    			<tr>
-    				<td>
-    					<img src="/images/violinplot.png"/>
-    				</td>
-    				<td>
-    					Plot with other variables in same chart (violin plots)
-    					<button type="button">Go</button>
-    				</td>
-    			</tr>
     		</table>
     	</div>
     	
@@ -177,7 +157,7 @@
 					</tr>
 					<tr>
 						<td>
-							<select multiple="true" id="highlight_site">
+							<select multiple="true" id="highlight_site" th:name="'highlight-' + ${site_field_name}">
 								<option th:each="site : ${sites}" th:text="${site.siteName}"/>
 							</select>
 						</td>

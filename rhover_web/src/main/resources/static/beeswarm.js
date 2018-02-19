@@ -533,7 +533,11 @@ function addHighlightsToBar(criteria) {
 			let propValues = criteria[i].values;
 			for (let j = 0; j < propValues.length; j++) {
 				let propValue = propValues[j];
-				html += "<span class='filter_button'><img src='/images/close.png' height='20' width='20'/>&nbsp;";
+				html += "<span class='filter_button'><img src='/images/close.png' height='20' width='20' onclick=\"removeHighlight('";
+				html += propName;
+				html += "', '";
+				html += propValue;
+				html += "');\"/>&nbsp;";
 				html += propName;
 				html += " = ";
 				html += propValue;
@@ -542,6 +546,14 @@ function addHighlightsToBar(criteria) {
 		}
 		$("#highlights_bar").html(html);
 	}
+}
+
+function removeHighlight(propName, propValue) {
+	const values = $("select[name='highlight-" + propName + "']").val();
+	const p = values.indexOf(propValue);
+	values.splice(p, 1);
+	$("select[name='highlight-" + propName + "']").val(values);
+	onHighlightChange();
 }
 
 function onFilterChange() {
@@ -771,7 +783,6 @@ $(function() {
 		selector: "svg",
 		items: {
 			"options": {name: "Chart Options", icon: "fa-cogs"},
-			"charts": {name: "Other Charts", icon: "fa-signal"},
 			"separator_1": {type: "cm_separator"},
 			"data": {name: "Show selected data", icon: "fa-table"},
 			"query": {name: "Add selected to Query List", icon: "fa-list"},
@@ -786,7 +797,7 @@ $(function() {
 			if (key == "options") {
 				$("#dialog_controls").dialog("open");
 			}
-			else if (key == "charts") {
+			else if (key == "scatter") {
 				$("#dialog_charts").dialog("open");
 			}
 			else if (key == "data") {
