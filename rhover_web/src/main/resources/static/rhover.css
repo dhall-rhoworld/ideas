@@ -270,3 +270,28 @@ div.filters {
 .input_hint {
 	color: LightGray;
 }
+
+.container {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	color: black;
+}
+
+.filter_button {
+	display: flex;
+	flex-direction: row;
+	border: 1px solid black;
+	padding: 5px;
+	color: black;
+	background-color: LightSteelBlue;
+	margin: 3px;
+}
+
+.filter_label {
+	display: flex;
+	flex-direction: row;
+	padding: 5px;
+	color: black;
+	margin: 3px;
+}
