@@ -1,20 +1,14 @@
 // Drawing constants
 const CIRCUMFERENCE = 3;
 const AXIS_HEIGHT = 25;
-const PADDING = 20;
+const PADDING = 40;
 const BORDER = 25;
 const SVG_WIDTH = 800;
 const MAX_LANES = 100;
 		
 // Helper variables for laying out data points in beeswarm configuration
-const panelParams = [];
-panelParams[0] = {};
-let laneOrder = new Array(MAX_LANES);
-let laneMaxX = new Array(MAX_LANES);
-let numLanes = 1;
-laneOrder[0] = 0;
-let overflows = new Array();
-let currentOverflow = null;
+let panels = {};
+let numPanels = 0;
 
 // State variables used during user interaction
 let line1 = null;
@@ -26,8 +20,6 @@ let minX = 0;
 let maxX = 0;
 let minY = 0;
 let maxY = 0;
-let dataMidPoint = 0;
-let dataArea = null;
 let xScale = null;
 
 // Statistical properties
@@ -39,6 +31,7 @@ let lowerThresh = -1;
 let upperThresh = -1;
 let filterCriteria = [];
 let highlightCriteria = [];
+let groupBy = "none";
 
 // HTML client event handler function, which is invoked
 // upon certain user actions, such as selecting data
@@ -52,8 +45,6 @@ let brushGroup = null;
 let dataPoints = null;
 
 let highlightedSubjects = [];
-
-let groupBy = "none";
 
 let data = null;
 let fieldToPlot = null;
@@ -94,8 +85,8 @@ function setHighlightCriteria(criteria) {
 }
 
 function setGroupBy(attribute) {
-	console.log("")
 	groupBy = attribute;
+	reRenderBeeswarm();
 }
 
 /**
@@ -104,7 +95,7 @@ function setGroupBy(attribute) {
  */
 function getSelectedData() {
 	selectedData = new Array();
-	dataArea.selectAll(".selected").each(function(d) {
+	svg.selectAll(".selected").each(function(d) {
 		selectedData.push(d);
 	});
 	return selectedData;
@@ -128,49 +119,101 @@ function setThresholdLines(numSd) {
 //
 
 /**
- * Get y-coordinate for a data point in the beeswarm.  Function will position
- * data point in a vertical lane so that it does not overlap 
- * @param x X-coordinate in pixels
- * @returns Y coordinate in pixels
+ * Set y-coordinate for a data point in the beeswarm.  Function will position
+ * data point in a vertical lane so that it does not overlap.  Y-coordinate
+ * is saves as property __y__ in the given data point.
+ * @param dataPoint Data point to position
  */
-function getY(x) {
+function setY(dataPoint) {
+	let panel = getPanel(dataPoint)
 	let lane = 0;
-	while (lane < numLanes && (laneMaxX[lane] + 2 * CIRCUMFERENCE) > x) {
+	let x = xScale(dataPoint[fieldToPlot]);
+	while (lane < panel.numLanes && (panel.laneMaxX[lane] + 2 * CIRCUMFERENCE) > x) {
 		lane++;
 	}
 	if (lane >= MAX_LANES) {
-		if (currentOverflow == null) {
-			currentOverflow = new Object();
-			currentOverflow.x = x;
-			currentOverflow.count = 1;
-			overflows.push(currentOverflow);
+		if (panel.currentOverflow == null) {
+			panel.currentOverflow = new Object();
+			panel.currentOverflow.x = x;
+			panel.currentOverflow.count = 1;
+			panel.overflows.push(panel.currentOverflow);
 		}
-		else if (x < currentOverflow.x + 2 * CIRCUMFERENCE) {
-			currentOverflow.count++;
+		else if (x < panel.currentOverflow.x + 2 * CIRCUMFERENCE) {
+			panel.currentOverflow.count++;
 		}
 		else {
-			currentOverflow = new Object();
-			currentOverflow.x = x;
-			currentOverflow.count = 1;
-			overflows.push(currentOverflow);
+			panel.currentOverflow = new Object();
+			panel.currentOverflow.x = x;
+			panel.currentOverflow.count = 1;
+			panel.overflows.push(panel.currentOverflow);
 		}
 		return NaN;
 	}
-	laneMaxX[lane] = x;
-	if (lane == numLanes) {
-		numLanes++;
-		if (laneOrder[lane - 1] == 0) {
-			laneOrder[lane] = -1;
+	panel.laneMaxX[lane] = x;
+	if (lane == panel.numLanes) {
+		panel.numLanes++;
+		if (panel.laneOrder[lane - 1] == 0) {
+			panel.laneOrder[lane] = -1;
 		}
-		else if (laneOrder[lane - 1] < 0) {
-			laneOrder[lane] = -laneOrder[lane - 1];
+		else if (panel.laneOrder[lane - 1] < 0) {
+			panel.laneOrder[lane] = -panel.laneOrder[lane - 1];
 		}
 		else {
-			laneOrder[lane] = -laneOrder[lane - 1] - 1;
+			panel.laneOrder[lane] = -panel.laneOrder[lane - 1] - 1;
 		}
 	}
-	let y = laneOrder[lane] * 2 * CIRCUMFERENCE;
-	return y;
+	let y = panel.laneOrder[lane] * 2 * CIRCUMFERENCE;
+	dataPoint.__y__ = y;
+	if (isNaN(panel.minY) || y < panel.minY) {
+		panel.minY = y;
+	}
+	if (isNaN(panel.maxY) || y > panel.maxY) {
+		panel.maxY = y;
+	}
+}
+
+function getPanel(dataPoint) {
+	let panelName = "default";
+	if (groupBy != "none") {
+		panelName = dataPoint[groupBy];
+	}
+	let panel = panels[panelName];
+	if (panel === undefined) {
+		panel = {};
+		panel.panelNum = numPanels;
+		numPanels++;
+		panel.laneOrder = new Array(MAX_LANES);
+		panel.laneOrder[0] = 0;
+		panel.laneMaxX = new Array(MAX_LANES);
+		panel.numLanes = 1;
+		panel.overflows = new Array();
+		panel.currentOverflow = null;
+		panel.minY = NaN;
+		panel.maxY = NaN;
+		panel.midY = NaN;
+		
+		panel.yCoord = function(dataPoint) {
+			return this.midY + dataPoint.__y__;
+		}
+		
+		panels[panelName] = panel;
+	}
+	return panel;
+}
+
+function numGroups() {
+	if (groupBy === "none") {
+		return 1;
+	}
+	const groups = new Object();
+	data.forEach(function(d) {
+		groups[d[groupBy]] = d[groupBy];
+	});
+	let count = 0;
+	Object.keys(groups).forEach(function(key, index) {
+		count++;
+	});
+	return count;
 }
 
 /**
@@ -179,43 +222,36 @@ function getY(x) {
  * @param xScale Conversion from domain values to pixels
  */
 function setYAndComputHeight(data, xScale) {
-	
-	laneOrder = new Array(MAX_LANES);
-	laneMaxX = new Array(MAX_LANES);
-	numLanes = 1;
-	laneOrder[0] = 0;
-	overflows = new Array();
-	currentOverflow = null;
-	
+	panels = new Object();
+	numPanels = 0;
 	let minY = 0;
 	let maxY = 0;
 	let count = 0;
 	data.forEach(function(d) {
 		if (passesFilter(d)) {
-			let y = getY(xScale(d[fieldToPlot]));
-			d.__y__ = y;
-			if (!isNaN(y)) {
-				count++;
-				if (count == 1) {
-					minY = y;
-					maxY = y;
-				}
-				if (y < minY) {
-					minY = y;
-				}
-				if (y > maxY) {
-					maxY = y;
-				}
-			}
+			setY(d);
 		}
 	});
-
-	return maxY - minY;
+	count = 0;
+	let height = 0;
+	Object.keys(panels).forEach(function(key, index) {
+		count++;
+		if (count > 1) {
+			height += PADDING;
+		}
+		let panel = panels[key];
+		panel.height = panel.maxY - panel.minY;
+		panel.y = height + BORDER;
+		panel.midY = panel.y + panel.height / 2;
+		height += panel.height;
+	});
+	return height;
 }
 
 function isBrushed(brushCoords, dataPoint) {
-	const x = parseInt(dataPoint.attr("cx")) + BORDER;
-	const y = parseInt(dataPoint.attr("cy")) + dataMidPoint;
+	const panel = getPanel(dataPoint);
+	const x = parseInt(dataPoint.attr("cx"));
+	const y = parseInt(dataPoint.attr("cy"));
 	const x1 = brushCoords[0][0];
 	const y1 = brushCoords[0][1];
 	const x2 = brushCoords[1][0];
@@ -309,16 +345,23 @@ function passesFilter(dataPoint) {
 	return passes;
 }
 
+function yCoordinate(dataPoint) {
+	let panel = getPanel(dataPoint);
+	return panel.yCoord(dataPoint);
+}
+
 function drawDataPoints() {
-	const selection = dataArea.selectAll("circle")
+	const selection = svg.selectAll("circle")
 		.data(data.filter(function(d) {
 			return !isNaN(d.__y__) && passesFilter(d);
 		}), function(d) {return d[recordIdField];});
 	dataPoints = selection
 		.enter()
 		.append("circle")
-		.attr("cx", function(d) {return xScale(d[fieldToPlot]);})
-		.attr("cy", function(d) {return d.__y__;})
+		.attr("cx", function(d) {return BORDER + xScale(d[fieldToPlot]);})
+		.attr("cy", function(d) {
+			return yCoordinate(d);
+		})
 		.attr("r", CIRCUMFERENCE)
 		.classed("deselected", true)
 		.classed("outlier", isOutlier)
@@ -327,45 +370,52 @@ function drawDataPoints() {
 	selection.exit().remove();
 }
 
-function drawOverflowMarks(dataHeight) {
-	const topOverflowMarks = 
-	svg.selectAll(".overflow-mark-top")
-		.data(overflows, function(d) {return d.x;});
-	topOverflowMarks.exit().remove();
-	topOverflowMarks
-		.enter()
-		.append("polygon")
-		.attr("points", function(d) {
-			let points = (BORDER + d.x - CIRCUMFERENCE) + "," + (BORDER - 3 * CIRCUMFERENCE) + " " + (BORDER + d.x) + ","
-				+ (BORDER - 3 * CIRCUMFERENCE - 5) + " " + (d.x + CIRCUMFERENCE + BORDER) + "," + (BORDER - 3 * CIRCUMFERENCE);
-			return points;
-		})
-		.attr("x1", function(d) {return d.x + BORDER;})
-		.attr("y1", BORDER - 20)
-		.attr("x2", function(d) {return d.x + BORDER;})
-		.attr("class", "overflow-mark-top")
-		.attr("y2", BORDER - CIRCUMFERENCE * 2)
-		.style("fill", "green");
-	
-	const bottomOverflowMarks = svg.selectAll(".overflow-mark-bottom")
-		.data(overflows, function(d) {return d.x;});
-	bottomOverflowMarks.exit().remove();
-	bottomOverflowMarks
-		.enter()
-		.append("polygon")
-		.attr("points", function(d) {
-			let points = (
-					BORDER + d.x - CIRCUMFERENCE) + "," + (BORDER + dataHeight + CIRCUMFERENCE) + " " + 
-					(BORDER + d.x) + "," + (BORDER + dataHeight + CIRCUMFERENCE + 5) + " " + 
-					(d.x + CIRCUMFERENCE + BORDER) + "," + (BORDER + dataHeight + CIRCUMFERENCE);
-			return points;
-		})
-		.attr("x1", function(d) {return d.x + BORDER;})
-		.attr("y1", BORDER - 20)
-		.attr("x2", function(d) {return d.x + BORDER;})
-		.attr("class", "overflow-mark-bottom")
-		.attr("y2", BORDER - CIRCUMFERENCE * 2)
-		.style("fill", "green");
+function drawOverflowMarks() {
+	Object.keys(panels).forEach(function(key, index) {
+		let panel = panels[key];
+		let className = "overflow-mark-top-" + panel.panelNum;
+		const topOverflowMarks = 
+			svg.selectAll("." + className)
+				.data(panel.overflows, function(d) {
+					return d.x;
+				});
+		topOverflowMarks.exit().remove();
+		topOverflowMarks
+			.enter()
+			.append("polygon")
+			.attr("points", function(d) {
+				let points = (BORDER + d.x - CIRCUMFERENCE) + "," + (panel.y - 3 * CIRCUMFERENCE) + " " + (BORDER + d.x) + ","
+					+ (panel.y - 3 * CIRCUMFERENCE - 5) + " " + (d.x + CIRCUMFERENCE + BORDER) + "," + (panel.y - 3 * CIRCUMFERENCE);
+				return points;
+			})
+			.attr("x1", function(d) {return d.x + BORDER;})
+			.attr("y1", BORDER - 20)
+			.attr("x2", function(d) {return d.x + BORDER;})
+			.attr("class", className)
+			.attr("y2", BORDER - CIRCUMFERENCE * 2)
+			.style("fill", "green");
+		
+		className = "overflow-mark-bottom-" + panel.panelNum;
+		const bottomOverflowMarks = svg.selectAll("." + className)
+			.data(panel.overflows, function(d) {return d.x;});
+		bottomOverflowMarks.exit().remove();
+		bottomOverflowMarks
+			.enter()
+			.append("polygon")
+			.attr("points", function(d) {
+				let points = (
+						BORDER + d.x - CIRCUMFERENCE) + "," + (panel.y + panel.height + CIRCUMFERENCE) + " " + 
+						(BORDER + d.x) + "," + (panel.y + panel.height + CIRCUMFERENCE + 5) + " " + 
+						(d.x + CIRCUMFERENCE + BORDER) + "," + (panel.y + panel.height + CIRCUMFERENCE);
+				return points;
+			})
+			.attr("x1", function(d) {return d.x + BORDER;})
+			.attr("y1", BORDER - 20)
+			.attr("x2", function(d) {return d.x + BORDER;})
+			.attr("class", className)
+			.attr("y2", BORDER - CIRCUMFERENCE * 2)
+			.style("fill", "green");
+	});
 }
 
 /**
@@ -398,14 +448,10 @@ function renderBeeswarm(dataUrl, fieldName, idField, mean, sd, numSd, handler) {
 			.domain([min, max])
 			.range([0, dataAreaWidth]);
 		let dataHeight = setYAndComputHeight(data, xScale);
-		laneMaxX[0] = min - 100;
 		const svgHeight = dataHeight + 2 * BORDER + PADDING + AXIS_HEIGHT;
 		svg = d3.select("svg")
 			.attr("width", SVG_WIDTH)
 			.attr("height", svgHeight);
-		dataMidPoint = BORDER + dataHeight / 2;
-		dataArea = svg.append("g")
-			.attr("transform", "translate(" + BORDER + ", " + dataMidPoint + ")");
 		const axisY = dataHeight + BORDER + PADDING;
 		axisArea = svg.append("g")
 			.attr("transform", "translate(" + BORDER + ", " + axisY + ")");
@@ -424,7 +470,7 @@ function renderBeeswarm(dataUrl, fieldName, idField, mean, sd, numSd, handler) {
 		drawDataPoints();
 		
 		// Drawn any overflows
-		drawOverflowMarks(dataHeight);
+		drawOverflowMarks();
 		
 		// Draw threshold lines
 		lowerThresh = mean - numSd * sd;
@@ -446,11 +492,8 @@ function reRenderBeeswarm() {
 	
 	// Set extent of data and chart areas on the screen
 	let dataHeight = setYAndComputHeight(data, xScale);
-	laneMaxX[0] = min - 100;
 	const svgHeight = dataHeight + 2 * BORDER + PADDING + AXIS_HEIGHT;
 	svg.attr("height", svgHeight);
-	dataMidPoint = BORDER + dataHeight / 2;
-	dataArea.attr("transform", "translate(" + BORDER + ", " + dataMidPoint + ")");
 	const axisY = dataHeight + BORDER + PADDING;
 	axisArea.attr("transform", "translate(" + BORDER + ", " + axisY + ")");
 				
