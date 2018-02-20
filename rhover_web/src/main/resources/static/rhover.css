@@ -276,6 +276,7 @@ div.filters {
 	flex-direction: row;
 	justify-content: flex-start;
 	color: black;
+	height: 40px;
 }
 
 .filter_button {

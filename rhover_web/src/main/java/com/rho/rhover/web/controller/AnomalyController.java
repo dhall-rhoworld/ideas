@@ -148,18 +148,12 @@ public class AnomalyController {
 		    @RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
 		    @RequestParam("dataset_id") Long datasetId,
 			Model model) {
-    	logger.debug("siteID: " + siteId);
-    	logger.debug("subjectId: " + subjectId);
-    	logger.debug("fieldId: " + fieldId);
     	Field field = dataFieldRepository.findOne(fieldId);
     	Dataset dataset = datasetRepository.findOne(datasetId);
     	model.addAttribute("field", field);
     	DatasetVersion datasetVersion = field.getCurrentDatasetVersion(dataset);
     	model.addAttribute("dataset", datasetVersion.getDataset());
-    	logger.debug("datasetVersionId: " + datasetVersion.getDatasetVersionId());
-    	logger.debug("dataset: " + datasetVersion.getDataset().getDatasetName());
     	Check check = checkRepository.findByCheckName("UNIVARIATE_OUTLIER");
-    	logger.debug("check ID: " + check.getCheckId());
     	CheckRun checkRun = checkRunRepository.findByCheckAndDatasetVersionAndFieldAndIsLatest(check, datasetVersion, field, Boolean.TRUE);
     	if (checkRun == null) {
     		logger.debug("checkRun is null");
@@ -176,6 +170,7 @@ public class AnomalyController {
     	model.addAttribute("subject_field_name", study.getSubjectField().getDisplayName());
     	model.addAttribute("site_field_name", study.getSiteField().getDisplayName());
     	model.addAttribute("phase_field_name", study.getPhaseField().getDisplayName());
+    	model.addAttribute("record_id_field_name", study.getRecordIdFieldName());
     	model.addAttribute("field", field);
     	if (siteId == -1 && subjectId == -1) {
     		model.addAttribute("site_name", "-1");
@@ -204,7 +199,7 @@ public class AnomalyController {
     	List<Phase> phases = phaseRepository.findByStudy(study);
     	Collections.sort(phases);
     	model.addAttribute("phases", phases);
-    	return "anomaly/beeswarm";
+    	return "chart/univariate_beeswarm";
     }
     
     @RequestMapping("/bivariate_scatter")

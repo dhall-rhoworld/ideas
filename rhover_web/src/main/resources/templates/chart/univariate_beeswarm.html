@@ -9,7 +9,8 @@
     <script src="/d3.min.js"></script>
     <script src="/jquery-3.2.1.min.js"></script>
     <script src="/jquery-ui.js"></script>
-    <script src="/beeswarm.js"></script>
+    <script src="/chart/beeswarm.js"></script>
+    <script src="/page/univariate_beeswarm.js"></script>
     
     <script src="/jquery.contextMenu.min.js"></script>
     <script src="/jquery.ui.position.min.js"></script>
@@ -138,11 +139,11 @@
 						<td align="left">Do not group</td>
 					</tr>
 				 	<tr>
-						<td><input type="radio" name="group_by" value="site"/></td>
+						<td><input type="radio" name="group_by" th:value="${site_field_name}"/></td>
 						<td align="left" th:text="${site_field_name}"/>
 					</tr>
 					<tr>
-						<td><input type="radio" name="group_by" value="phase"/></td>
+						<td><input type="radio" name="group_by" th:value="${phase_field_name}"/></td>
 						<td align="left" th:text="${phase_field_name}"/>
 					</tr>
 				</table>
@@ -189,6 +190,7 @@
 	const siteFieldName = [[${site_field_name}]];
 	const phaseFieldName = [[${phase_field_name}]];
 	const subjectFieldName = [[${subject_field_name}]];
+	const recordIdFieldName = [[${record_id_field_name}]];
 	const studyId = [[${field.study.studyId}]];
 	const datasetName = [[${dataset.datasetName}]];
 	const datasetId = [[${dataset.datasetId}]];
