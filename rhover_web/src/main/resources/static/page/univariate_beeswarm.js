@@ -25,13 +25,13 @@ function initializeOptionsDialogFields() {
 function synchronizeHighlightsBar(criteria) {
 	$("#highlights_bar").empty();
 	if (criteria.length > 0) {
-		let html = "<span class='filter_label'>Highlight:</span>";
+		let html = "<span class='filter_label'>Highlights:</span>";
 		for (let i = 0; i < criteria.length; i++) {
 			let propName = criteria[i].name;
 			let propValues = criteria[i].values;
 			for (let j = 0; j < propValues.length; j++) {
 				let propValue = propValues[j];
-				html += "<span class='filter_button'><img src='/images/close.png' height='20' width='20' onclick=\"removeHighlightFromDialog('";
+				html += "<span class='highlight_button'><img src='/images/close.png' height='20' width='20' onclick=\"removeHighlightFromDialog('";
 				html += propName;
 				html += "', '";
 				html += propValue;
@@ -43,6 +43,30 @@ function synchronizeHighlightsBar(criteria) {
 			}
 		}
 		$("#highlights_bar").html(html);
+	}
+}
+
+function synchronizeFiltersBar(criteria) {
+	$("#filters_bar").empty();
+	if (criteria.length > 0) {
+		let html = "<span class='filter_label'>Filters:</span>";
+		for (let i = 0; i < criteria.length; i++) {
+			let propName = criteria[i].name;
+			let propValues = criteria[i].values;
+			for (let j = 0; j < propValues.length; j++) {
+				let propValue = propValues[j];
+				html += "<span class='filter_button'><img src='/images/close.png' height='20' width='20' onclick=\"removeFilterFromDialog('";
+				html += propName;
+				html += "', '";
+				html += propValue;
+				html += "');\"/>&nbsp;";
+				html += propName;
+				html += " = ";
+				html += propValue;
+				html += "</span>";
+			}
+		}
+		$("#filters_bar").html(html);
 	}
 }
 
@@ -58,6 +82,14 @@ function removeHighlightFromDialog(propName, propValue) {
 		$("select[name='highlight-" + propName + "']").val(values);
 	}
 	onHighlightChange();
+}
+
+function removeFilterFromDialog(propName, propValue) {
+	const values = $("select[name='filter-" + propName + "']").val();
+	const p = values.indexOf(propValue);
+	values.splice(p, 1);
+	$("select[name='filter-" + propName + "']").val(values);
+	onFilterChange();
 }
 
 function onHighlightChange() {
@@ -103,6 +135,7 @@ function onFilterChange() {
 		criteria.push(criterion);
 	}
 	setFilterCriteria(criteria);
+	synchronizeFiltersBar(criteria);
 }
 
 function isHighlighted(propName, propValue) {

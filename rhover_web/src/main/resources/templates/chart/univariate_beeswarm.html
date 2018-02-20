@@ -58,7 +58,10 @@
 	<!-- Main content -->
 	<div id="content">
 	
-		<div id="highlights_bar" class="container"/>
+		<div class="container">
+			<div id="filters_bar" class="container"/>
+			<div id="highlights_bar" class="container"/>
+		</div>
 	
 		<!-- Data check parameters -->
 		<img id="img_boundary" src="/images/info.png" width="20" height="20" 
@@ -117,12 +120,12 @@
 					</tr>
 					<tr>
 						<td>
-							<select multiple="true" id="filter_site">
+							<select multiple="true" id="filter_site" th:name="'filter-' + ${site_field_name}">
 								<option th:each="site : ${sites}" th:text="${site.siteName}"/>
 							</select>
 						</td>
 						<td>
-							<select multiple="true" id="filter_phase">
+							<select multiple="true" id="filter_phase" th:name="'filter-' + ${phase_field_name}">
 								<option th:each="phase : ${phases}" th:text="${phase.phaseName}"/>
 							</select>
 						</td>

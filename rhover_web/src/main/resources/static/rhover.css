@@ -289,6 +289,16 @@ div.filters {
 	margin: 3px;
 }
 
+.highlight_button {
+	display: flex;
+	flex-direction: row;
+	border: 1px solid black;
+	padding: 5px;
+	color: black;
+	background-color: RosyBrown;
+	margin: 3px;
+}
+
 .filter_label {
 	display: flex;
 	flex-direction: row;
