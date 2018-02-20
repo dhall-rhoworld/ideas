@@ -310,11 +310,11 @@ function passesFilter(dataPoint) {
 }
 
 function drawDataPoints() {
-	dataPoints = dataArea.selectAll("circle")
+	const selection = dataArea.selectAll("circle")
 		.data(data.filter(function(d) {
 			return !isNaN(d.__y__) && passesFilter(d);
 		}), function(d) {return d[recordIdField];});
-	dataPoints
+	dataPoints = selection
 		.enter()
 		.append("circle")
 		.attr("cx", function(d) {return xScale(d[fieldToPlot]);})
@@ -324,7 +324,7 @@ function drawDataPoints() {
 		.classed("outlier", isOutlier)
 		.classed("inlier", isInlier)
 		.classed("background", isBackground);
-	dataPoints.exit().remove();
+	selection.exit().remove();
 }
 
 function drawOverflowMarks(dataHeight) {
@@ -409,6 +409,12 @@ function renderBeeswarm(dataUrl, fieldName, idField, mean, sd, numSd, handler) {
 		const axisY = dataHeight + BORDER + PADDING;
 		axisArea = svg.append("g")
 			.attr("transform", "translate(" + BORDER + ", " + axisY + ")");
+		
+		brush = d3.brush()
+			.on("start", onBrushStart)
+			.on("brush", onBrush)
+			.on("end", onBrushEnd);
+		brushGroup = svg.append("g").call(brush);
 					
 		// Draw axis
 		const xAxis = d3.axisBottom().scale(xScale);
@@ -433,12 +439,6 @@ function renderBeeswarm(dataUrl, fieldName, idField, mean, sd, numSd, handler) {
 		line2 = svg.append("line")
 			.attr("x1", xUpper).attr("y1", y1).attr("x2", xUpper).attr("y2", y2)
 			.attr("stroke", "black").attr("stroke-width", 1).attr("stroke-dasharray", "5, 5");
-		
-		brush = d3.brush()
-			.on("start", onBrushStart)
-			.on("brush", onBrush)
-			.on("end", onBrushEnd)
-		brushGroup = svg.append("g").call(brush);
 	});
 }
 
