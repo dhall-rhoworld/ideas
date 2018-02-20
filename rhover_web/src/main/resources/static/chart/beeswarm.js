@@ -327,6 +327,47 @@ function drawDataPoints() {
 	dataPoints.exit().remove();
 }
 
+function drawOverflowMarks(dataHeight) {
+	const topOverflowMarks = 
+	svg.selectAll(".overflow-mark-top")
+		.data(overflows, function(d) {return d.x;});
+	topOverflowMarks.exit().remove();
+	topOverflowMarks
+		.enter()
+		.append("polygon")
+		.attr("points", function(d) {
+			let points = (BORDER + d.x - CIRCUMFERENCE) + "," + (BORDER - 3 * CIRCUMFERENCE) + " " + (BORDER + d.x) + ","
+				+ (BORDER - 3 * CIRCUMFERENCE - 5) + " " + (d.x + CIRCUMFERENCE + BORDER) + "," + (BORDER - 3 * CIRCUMFERENCE);
+			return points;
+		})
+		.attr("x1", function(d) {return d.x + BORDER;})
+		.attr("y1", BORDER - 20)
+		.attr("x2", function(d) {return d.x + BORDER;})
+		.attr("class", "overflow-mark-top")
+		.attr("y2", BORDER - CIRCUMFERENCE * 2)
+		.style("fill", "green");
+	
+	const bottomOverflowMarks = svg.selectAll(".overflow-mark-bottom")
+		.data(overflows, function(d) {return d.x;});
+	bottomOverflowMarks.exit().remove();
+	bottomOverflowMarks
+		.enter()
+		.append("polygon")
+		.attr("points", function(d) {
+			let points = (
+					BORDER + d.x - CIRCUMFERENCE) + "," + (BORDER + dataHeight + CIRCUMFERENCE) + " " + 
+					(BORDER + d.x) + "," + (BORDER + dataHeight + CIRCUMFERENCE + 5) + " " + 
+					(d.x + CIRCUMFERENCE + BORDER) + "," + (BORDER + dataHeight + CIRCUMFERENCE);
+			return points;
+		})
+		.attr("x1", function(d) {return d.x + BORDER;})
+		.attr("y1", BORDER - 20)
+		.attr("x2", function(d) {return d.x + BORDER;})
+		.attr("class", "overflow-mark-bottom")
+		.attr("y2", BORDER - CIRCUMFERENCE * 2)
+		.style("fill", "green");
+}
+
 /**
  * Render the beeswarm
  * @param dataUrl URL to retrieve data
@@ -377,38 +418,7 @@ function renderBeeswarm(dataUrl, fieldName, idField, mean, sd, numSd, handler) {
 		drawDataPoints();
 		
 		// Drawn any overflows
-		svg.selectAll(".overflow-mark-top")
-			.data(overflows)
-			.enter()
-			.append("polygon")
-			.attr("points", function(d) {
-				let points = (BORDER + d.x - CIRCUMFERENCE) + "," + (BORDER - 3 * CIRCUMFERENCE) + " " + (BORDER + d.x) + ","
-					+ (BORDER - 3 * CIRCUMFERENCE - 5) + " " + (d.x + CIRCUMFERENCE + BORDER) + "," + (BORDER - 3 * CIRCUMFERENCE);
-				return points;
-			})
-			.attr("x1", function(d) {return d.x + BORDER;})
-			.attr("y1", BORDER - 20)
-			.attr("x2", function(d) {return d.x + BORDER;})
-			.attr("class", "overflow-mark-top")
-			.attr("y2", BORDER - CIRCUMFERENCE * 2)
-			.style("fill", "green");
-		svg.selectAll(".overflow-mark-bottom")
-			.data(overflows)
-			.enter()
-			.append("polygon")
-			.attr("points", function(d) {
-				let points = (
-						BORDER + d.x - CIRCUMFERENCE) + "," + (BORDER + dataHeight + CIRCUMFERENCE) + " " + 
-						(BORDER + d.x) + "," + (BORDER + dataHeight + CIRCUMFERENCE + 5) + " " + 
-						(d.x + CIRCUMFERENCE + BORDER) + "," + (BORDER + dataHeight + CIRCUMFERENCE);
-				return points;
-			})
-			.attr("x1", function(d) {return d.x + BORDER;})
-			.attr("y1", BORDER - 20)
-			.attr("x2", function(d) {return d.x + BORDER;})
-			.attr("class", "overflow-mark-bottom")
-			.attr("y2", BORDER - CIRCUMFERENCE * 2)
-			.style("fill", "green");
+		drawOverflowMarks(dataHeight);
 		
 		// Draw threshold lines
 		lowerThresh = mean - numSd * sd;
@@ -433,7 +443,6 @@ function renderBeeswarm(dataUrl, fieldName, idField, mean, sd, numSd, handler) {
 }
 
 function reRenderBeeswarm() {
-	console.log("Re-rendering")
 	
 	// Set extent of data and chart areas on the screen
 	let dataHeight = setYAndComputHeight(data, xScale);
@@ -445,61 +454,16 @@ function reRenderBeeswarm() {
 	const axisY = dataHeight + BORDER + PADDING;
 	axisArea.attr("transform", "translate(" + BORDER + ", " + axisY + ")");
 				
-	// Draw data points
+	// Update data points
 	drawDataPoints();
+	
+	// Update overflow marks
+	drawOverflowMarks(dataHeight);
 	
 	// Update threshold lines
 	let y2 = BORDER + dataHeight;
 	line1.attr("y2", y2);
 	line1.attr("y2", y2);
 	line2.attr("y2", y2);
-	
-	/*
-	// Drawn any overflows
-	svg.selectAll(".overflow-mark-top")
-		.data(overflows)
-		.enter()
-		.append("polygon")
-		.attr("points", function(d) {
-			let points = (BORDER + d.x - CIRCUMFERENCE) + "," + (BORDER - 3 * CIRCUMFERENCE) + " " + (BORDER + d.x) + ","
-				+ (BORDER - 3 * CIRCUMFERENCE - 5) + " " + (d.x + CIRCUMFERENCE + BORDER) + "," + (BORDER - 3 * CIRCUMFERENCE);
-			return points;
-		})
-		.attr("x1", function(d) {return d.x + BORDER;})
-		.attr("y1", BORDER - 20)
-		.attr("x2", function(d) {return d.x + BORDER;})
-		.attr("class", "overflow-mark-top")
-		.attr("y2", BORDER - CIRCUMFERENCE * 2)
-		.style("fill", "green");
-	svg.selectAll(".overflow-mark-bottom")
-		.data(overflows)
-		.enter()
-		.append("polygon")
-		.attr("points", function(d) {
-			let points = (
-					BORDER + d.x - CIRCUMFERENCE) + "," + (BORDER + dataHeight + CIRCUMFERENCE) + " " + 
-					(BORDER + d.x) + "," + (BORDER + dataHeight + CIRCUMFERENCE + 5) + " " + 
-					(d.x + CIRCUMFERENCE + BORDER) + "," + (BORDER + dataHeight + CIRCUMFERENCE);
-			return points;
-		})
-		.attr("x1", function(d) {return d.x + BORDER;})
-		.attr("y1", BORDER - 20)
-		.attr("x2", function(d) {return d.x + BORDER;})
-		.attr("class", "overflow-mark-bottom")
-		.attr("y2", BORDER - CIRCUMFERENCE * 2)
-		.style("fill", "green");
-	
-	// Draw threshold lines
-	let xLower = xScale(lowerThresh) + BORDER;
-	let xUpper = xScale(upperThresh) + BORDER;
-	let y1 = BORDER;
-	let y2 = BORDER + dataHeight;
-	line1 = svg.append("line")
-		.attr("x1", xLower).attr("y1", y1).attr("x2", xLower).attr("y2", y2)
-		.attr("stroke", "black").attr("stroke-width", 1).attr("stroke-dasharray", "5, 5");
-	line2 = svg.append("line")
-		.attr("x1", xUpper).attr("y1", y1).attr("x2", xUpper).attr("y2", y2)
-		.attr("stroke", "black").attr("stroke-width", 1).attr("stroke-dasharray", "5, 5");
-		*/
 }
 
