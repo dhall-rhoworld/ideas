@@ -323,3 +323,9 @@ div.filters {
 	background-color: LightSteelBlue;
 	width: 25px;
 }
+
+.panel-label {
+	color: black;
+	font-size: 11pt;
+	text-anchor: left;
+}

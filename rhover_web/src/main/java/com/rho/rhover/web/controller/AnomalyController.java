@@ -170,7 +170,7 @@ public class AnomalyController {
     	model.addAttribute("subject_field_name", study.getSubjectField().getDisplayName());
     	model.addAttribute("site_field_name", study.getSiteField().getDisplayName());
     	model.addAttribute("phase_field_name", study.getPhaseField().getDisplayName());
-    	model.addAttribute("record_id_field_name", study.getRecordIdFieldName());
+    	model.addAttribute("record_id_field_name", study.getRecordIdField().getDisplayName());
     	model.addAttribute("field", field);
     	if (siteId == -1 && subjectId == -1) {
     		model.addAttribute("site_name", "-1");

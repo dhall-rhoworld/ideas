@@ -5,6 +5,7 @@ const PADDING = 40;
 const BORDER = 25;
 const SVG_WIDTH = 800;
 const MAX_LANES = 100;
+const TRANS_DURATION = 750;
 		
 // Helper variables for laying out data points in beeswarm configuration
 let panels = {};
@@ -42,7 +43,6 @@ let svg = null;
 
 let brush = null;
 let brushGroup = null;
-let dataPoints = null;
 
 let highlightedSubjects = [];
 
@@ -81,7 +81,7 @@ function setFilterCriteria(criteria) {
 
 function setHighlightCriteria(criteria) {
 	highlightCriteria = criteria;
-	dataPoints.classed("background", isBackground);
+	svg.selectAll(".data-point").classed("background", isBackground);
 }
 
 function setGroupBy(attribute) {
@@ -180,6 +180,7 @@ function getPanel(dataPoint) {
 	let panel = panels[panelName];
 	if (panel === undefined) {
 		panel = {};
+		panel.panelName = panelName;
 		panel.panelNum = numPanels;
 		numPanels++;
 		panel.laneOrder = new Array(MAX_LANES);
@@ -263,22 +264,24 @@ function onBrushStart() {
 	if (!d3.event.selection) {
 		return;
 	}
-	dataPoints.classed("selected", false);
-	dataPoints.classed("inlier-selected", false);
-	dataPoints.classed("outlier-selected", false);
-	dataPoints.classed("deselected", true);
+	svg.selectAll(".data-point")
+		.classed("selected", false)
+		.classed("inlier-selected", false)
+		.classed("outlier-selected", false)
+		.classed("deselected", true);
 }
 
 function onBrush() {
 	if (d3.event.selection == null) {
 		return;
 	}
-	dataPoints.classed("selected", false);
-	dataPoints.classed("inlier-selected", false);
-	dataPoints.classed("outlier-selected", false);
-	dataPoints.classed("deselected", true);
+	svg.selectAll(".data-point")
+		.classed("selected", false)
+		.classed("inlier-selected", false)
+		.classed("outlier-selected", false)
+		.classed("deselected", true);
 	const brushCoords = d3.brushSelection(this);
-	const selectedPoints = dataPoints.filter(function() {
+	const selectedPoints = svg.selectAll(".data-point").filter(function() {
 		return isBrushed(brushCoords, d3.select(this));
 	});
 	selectedPoints.classed("deselected", false);
@@ -351,23 +354,41 @@ function yCoordinate(dataPoint) {
 }
 
 function drawDataPoints() {
-	const selection = svg.selectAll("circle")
+	const selection = svg.selectAll(".data-point")
 		.data(data.filter(function(d) {
 			return !isNaN(d.__y__) && passesFilter(d);
-		}), function(d) {return d[recordIdField];});
-	dataPoints = selection
-		.enter()
+		}), function(d) {
+			const key = d[recordIdField];
+			return key;
+		});
+	
+	// Exit
+	selection.exit()
+		.transition(TRANS_DURATION)
+		.attr("cx", -CIRCUMFERENCE)
+		.remove();
+	
+	// Enter
+	selection.enter()
 		.append("circle")
 		.attr("cx", function(d) {return BORDER + xScale(d[fieldToPlot]);})
 		.attr("cy", function(d) {
 			return yCoordinate(d);
 		})
 		.attr("r", CIRCUMFERENCE)
+		.classed("data-point", true)
 		.classed("deselected", true)
 		.classed("outlier", isOutlier)
 		.classed("inlier", isInlier)
 		.classed("background", isBackground);
-	selection.exit().remove();
+
+	// Update
+	selection
+		.transition()
+		.duration(TRANS_DURATION)
+		.attr("cy", function(d) {
+			return yCoordinate(d);
+		});
 }
 
 function drawOverflowMarks() {
@@ -467,7 +488,25 @@ function renderBeeswarm(dataUrl, fieldName, idField, mean, sd, numSd, handler) {
 		axisArea.call(xAxis);
 		
 		// Draw data points
-		drawDataPoints();
+		svg.selectAll(".data-point")
+			.data(data.filter(function(d) {
+				return !isNaN(d.__y__) && passesFilter(d);
+			}), function(d) {
+				const key = d[recordIdField];
+				return key;
+			})
+			.enter()
+			.append("circle")
+			.attr("cx", function(d) {return BORDER + xScale(d[fieldToPlot]);})
+			.attr("cy", function(d) {
+				return yCoordinate(d);
+			})
+			.attr("r", CIRCUMFERENCE)
+			.classed("data-point", true)
+			.classed("deselected", true)
+			.classed("outlier", isOutlier)
+			.classed("inlier", isInlier)
+			.classed("background", isBackground);
 		
 		// Drawn any overflows
 		drawOverflowMarks();
@@ -493,20 +532,113 @@ function reRenderBeeswarm() {
 	// Set extent of data and chart areas on the screen
 	let dataHeight = setYAndComputHeight(data, xScale);
 	const svgHeight = dataHeight + 2 * BORDER + PADDING + AXIS_HEIGHT;
-	svg.attr("height", svgHeight);
 	const axisY = dataHeight + BORDER + PADDING;
-	axisArea.attr("transform", "translate(" + BORDER + ", " + axisY + ")");
 				
 	// Update data points
-	drawDataPoints();
+	//drawDataPoints(false);
+	
+	let selection = svg.selectAll(".data-point")
+	.data(data.filter(function(d) {
+		return !isNaN(d.__y__) && passesFilter(d);
+	}), function(d) {
+		const key = d[recordIdField];
+		return key;
+	});
+
+	// Exit
+	selection.exit()
+		.transition()
+		.duration(TRANS_DURATION)
+		.attr("cx", -CIRCUMFERENCE)
+		.attr("cy", -CIRCUMFERENCE)
+		.remove();
+	
+	// Enter
+	const enteringPoints = selection.enter()
+		.append("circle")
+		.attr("cx", -CIRCUMFERENCE)
+		.attr("cy", function(d) {
+			let panel = getPanel(d);
+			return panel.midY;
+		})
+		.attr("r", CIRCUMFERENCE)
+		.classed("data-point", true)
+		.classed("deselected", true)
+		.classed("outlier", isOutlier)
+		.classed("inlier", isInlier)
+		.classed("background", isBackground);
+	
+	enteringPoints
+		.transition()
+		.duration(TRANS_DURATION)
+		.attr("cx", function(d) {return BORDER + xScale(d[fieldToPlot]);})
+		.attr("cy", function(d) {return yCoordinate(d);});
+	
+	// Update
+	selection
+		.transition()
+		.duration(TRANS_DURATION)
+		.attr("cy", function(d) {return yCoordinate(d);});
 	
 	// Update overflow marks
 	drawOverflowMarks(dataHeight);
 	
 	// Update threshold lines
 	let y2 = BORDER + dataHeight;
-	line1.attr("y2", y2);
-	line1.attr("y2", y2);
-	line2.attr("y2", y2);
+	line1
+		.transition()
+		.duration(TRANS_DURATION)
+		.attr("y2", y2);
+	line2
+		.transition()
+		.duration(TRANS_DURATION)
+		.attr("y2", y2);
+	
+	axisArea
+		.transition()
+		.duration(TRANS_DURATION)
+		.attr("transform", "translate(" + BORDER + ", " + axisY + ")");
+	
+	// Panel labels
+	const panelKeys = Object.keys(panels);
+	selection = svg.selectAll(".panel-label")
+		.data(panelKeys, function(d) {return d;});
+	
+	selection
+		.transition()
+		.duration(TRANS_DURATION)
+		.attr("y", function(d) {
+			let panel = panels[d];
+			return Math.floor(panel.midY - panel.height / 2);
+		});
+	
+	selection.exit()
+		.transition()
+		.duration(TRANS_DURATION)
+		.attr("x", -200)
+		.attr("y", -20)
+		.remove();
+	
+	const enteringText = selection.enter()
+		.append("text")
+		.filter(function(d) {return d != "default";})
+		.attr("x", -200)
+		.attr("y", -20)
+		.classed("panel-label", true)
+		.text(function(d) {return d;});
+	
+	enteringText
+		.transition()
+		.duration(TRANS_DURATION)
+		.attr("x", BORDER)
+		.attr("y", function(d) {
+			let panel = panels[d];
+			return Math.floor(panel.midY - panel.height / 2);
+		});
+	
+	svg
+		.transition()
+		.duration(TRANS_DURATION)
+		.attr("height", svgHeight);
 }
 
