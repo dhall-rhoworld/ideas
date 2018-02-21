@@ -299,6 +299,16 @@ div.filters {
 	margin: 3px;
 }
 
+.groupby_button {
+	display: flex;
+	flex-direction: row;
+	border: 1px solid black;
+	padding: 5px;
+	color: black;
+	background-color: PaleTurquoise;
+	margin: 3px;
+}
+
 .filter_label {
 	display: flex;
 	flex-direction: row;

@@ -147,7 +147,8 @@ function setY(dataPoint) {
 			panel.currentOverflow.count = 1;
 			panel.overflows.push(panel.currentOverflow);
 		}
-		return NaN;
+		dataPoint.__y__ = NaN;
+		return;
 	}
 	panel.laneMaxX[lane] = x;
 	if (lane == panel.numLanes) {
@@ -392,15 +393,26 @@ function drawDataPoints() {
 }
 
 function drawOverflowMarks() {
+	
+	// Iterate over each panel
 	Object.keys(panels).forEach(function(key, index) {
 		let panel = panels[key];
+		
+		// Top overflow marks
 		let className = "overflow-mark-top-" + panel.panelNum;
 		const topOverflowMarks = 
 			svg.selectAll("." + className)
 				.data(panel.overflows, function(d) {
-					return d.x;
+					return panel.panelName + "-" + d.x;
 				});
+		
+		// Top: Exit
 		topOverflowMarks.exit().remove();
+		
+		// Top: Update
+		//topOverflowMarks
+		
+		// Top: Enter
 		topOverflowMarks
 			.enter()
 			.append("polygon")
@@ -409,17 +421,20 @@ function drawOverflowMarks() {
 					+ (panel.y - 3 * CIRCUMFERENCE - 5) + " " + (d.x + CIRCUMFERENCE + BORDER) + "," + (panel.y - 3 * CIRCUMFERENCE);
 				return points;
 			})
-			.attr("x1", function(d) {return d.x + BORDER;})
-			.attr("y1", BORDER - 20)
-			.attr("x2", function(d) {return d.x + BORDER;})
 			.attr("class", className)
-			.attr("y2", BORDER - CIRCUMFERENCE * 2)
 			.style("fill", "green");
 		
+		// Bottom overflow marks
 		className = "overflow-mark-bottom-" + panel.panelNum;
 		const bottomOverflowMarks = svg.selectAll("." + className)
-			.data(panel.overflows, function(d) {return d.x;});
+			.data(panel.overflows, function(d) {return panel.panelName + "-" + d.x;});
+		
+		// Bottom: Exit
 		bottomOverflowMarks.exit().remove();
+		
+		// Bottom: Update
+		
+		// Bottom: Enter
 		bottomOverflowMarks
 			.enter()
 			.append("polygon")
@@ -430,11 +445,7 @@ function drawOverflowMarks() {
 						(d.x + CIRCUMFERENCE + BORDER) + "," + (panel.y + panel.height + CIRCUMFERENCE);
 				return points;
 			})
-			.attr("x1", function(d) {return d.x + BORDER;})
-			.attr("y1", BORDER - 20)
-			.attr("x2", function(d) {return d.x + BORDER;})
 			.attr("class", className)
-			.attr("y2", BORDER - CIRCUMFERENCE * 2)
 			.style("fill", "green");
 	});
 }
@@ -581,7 +592,7 @@ function reRenderBeeswarm() {
 		.attr("cy", function(d) {return yCoordinate(d);});
 	
 	// Update overflow marks
-	drawOverflowMarks(dataHeight);
+	drawOverflowMarks();
 	
 	// Update threshold lines
 	let y2 = BORDER + dataHeight;

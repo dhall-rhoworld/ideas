@@ -18,6 +18,7 @@ function initializeOptionsDialogFields() {
 	// Group by
 	$("input[name='group_by']").click(function() {
 		const value = $("input[name='group_by']:checked").val();
+		synchronizeGroupbyBar();
 		setGroupBy(value);
 	});
 }
@@ -68,6 +69,26 @@ function synchronizeFiltersBar(criteria) {
 		}
 		$("#filters_bar").html(html);
 	}
+}
+
+function synchronizeGroupbyBar() {
+	$("#groupby_bar").empty();
+	const value = $("input[name='group_by']:checked").val();
+	if (value != "none") {
+		let html =
+			"<span class='filter_label'>Group by:</span>" +
+			"<span class='groupby_button'>" +
+			"<img src='/images/close.png' height='20' width='20' onclick='removeGroupBy()'/>" +
+			value +
+			"</span>";
+		$("#groupby_bar").html(html);
+	}
+}
+
+function removeGroupBy() {
+	$("input[name='group_by'][value='none']").prop("checked", true);
+	$("#groupby_bar").empty();
+	setGroupBy("none");
 }
 
 function removeHighlightFromDialog(propName, propValue) {
