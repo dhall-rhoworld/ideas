@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" href="/images/rover-favicon.png" />
 </head>
 <body>
-	<div class="page-header">RhoVer (Prototype)</div>
+	<div class="page-header">RhoVer</div>
 	
 	<div class="menu-bar">
 		<ul>
@@ -16,32 +16,29 @@
 			<li><a href="/admin/study/all">Configuration</a></li>
 		</ul>
 	</div>
-	
-    <div class="content-left-align">
-    	<div style="position: relative; left: 10%; top: 10px;">
-	    	<h3>RhoVer Prototype will Include</h3>
-	    	<ul class="paws">
-	    		<li>At least 3 data checks</li>
-	    		<li>At least 3 studies</li>
-	    		<li>Traditional listings and interactive charts for anomalies</li>
-	    		<li>GUI-based configuration of new studies</li>
-	    		<li>GUI-based configuration of checks</li>
-	    		<li>Labeling of anomalies</li>
-	    		<li>Auditing and traceability of all changes caused by user action or data changes</li>
-	    		<li>Scheduled and on-demand execution of checks</li>
-	    		<li>Basic log-on</li>
-	    	</ul>
-	    	
-	    	<h3>Out of Scope for Prototype</h3>
-	    	<ul>
-	    		<li>Full quiver of data checks</li>
-	    		<li>Fine-grained permissions</li>
-	    		<li>Robust error handling</li>
-	    		<li>System monitoring tools</li>
-	    		<li>User notifications</li>
-	    		<li>Polished user interface</li>
-	    	</ul>
-   		</div>
+	<div id="content">
+   		<h2>Data Anomaly Summary</h2>
+   		<table class="wide">
+   			<tr>
+   				<th>Study</th>
+   				<th>Total Anomalies</th>
+   				<th>View Anomalies By</th>
+   			</tr>
+   			<tr th:each="summary : ${summaries}">
+   				<td><span th:text="${summary.entityName}"/></td>
+   				<td>
+   					<span th:text="${summary.numAnomalies}"/>
+   					<span th:if="${summary.numUnviewedAnomalies > 0}">
+   						&nbsp; (<span class="attention" th:text="${summary.numUnviewedAnomalies}"/> unviewed)
+   					</span>
+   				</td>
+   				<td>
+   					<a th:href="@{/browse/datasets(study_id=${summary.entityId})}">All</a> |
+   					<a th:href="@{/browse/sites(study_id=${summary.entityId})}">Site</a> |
+   					<a th:href="@{/browse/subjects(study_id=${summary.entityId})}">Subject</a>
+   				</td>
+   			</tr>
+   		</table>
     </div>
 </body>
 </html>
