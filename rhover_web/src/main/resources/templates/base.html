@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" href="/rhover.css"/>
+		<link rel="icon" type="image/png" href="/images/rover-favicon.png" />
+	</head>
+	
+	<body>
+	
+		<!-- Header -->
+		<div class="page-header"><img src="/images/green-dog.png"/>RhoVer</div>
+		
+		<!-- Menu bar -->
+		<div class="menu-bar">
+		<ul>
+			<li><a href="/" class="active-menu-item">Home</a></li>
+			<li><a href="/browse/studies">Anomalies</a></li>
+			<li><a href="/admin/study/all">Configuration</a></li>
+		</ul>
+	</div>
+		
+		<!-- Content -->
+		<div id="content">
+			<div layout:fragment="page_content"></div>
+		</div>
+	</body>
+</html>

@@ -19,4 +19,9 @@ public class DataController {
 		model.addAttribute("summaries", anomalySummaryBuilder.getStudySummaries());
 		return "home";
 	}
+	
+	@RequestMapping("/test_ui")
+	public String testUi() {
+		return "test_ui";
+	}
 }

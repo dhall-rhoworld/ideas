@@ -1,22 +1,13 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
-<head> 
-    <title>RhoVer Home</title> 
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <link rel="stylesheet" href="/rhover.css"/>
-    <link rel="icon" type="image/png" href="/images/rover-favicon.png" />
-</head>
-<body>
-	<div class="page-header">RhoVer</div>
-	
-	<div class="menu-bar">
-		<ul>
-			<li><a href="/" class="active-menu-item">Home</a></li>
-			<li><a href="/browse/studies">Anomalies</a></li>
-			<li><a href="/admin/study/all">Configuration</a></li>
-		</ul>
-	</div>
-	<div id="content">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="/base">
+	<head> 
+	    <title>RhoVer Home</title> 
+	</head>
+
+	<div layout:fragment="page_content" id="page_content">
    		<h2>Data Anomaly Summary</h2>
    		<table class="wide">
    			<tr>
@@ -40,5 +31,4 @@
    			</tr>
    		</table>
     </div>
-</body>
 </html>
