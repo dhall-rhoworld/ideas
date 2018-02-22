@@ -1,64 +1,27 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
-<head> 
-    <title>RhoVer Anomaly Table</title> 
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <link rel="stylesheet" href="/rhover.css"/>
-    <link rel="icon" type="image/png" href="/images/rover-favicon.png" />
-</head>
-<body>
-	<div class="page-header">RhoVer (Prototype)</div>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="/base"
+      th:with="currentPage='anomalies'">
+      
+	<!-- Title -->
+	<head> 
+	    <title>Anomaly Table</title> 
+	</head>
 	
-	<div id="breadcrumbs">
-		<a href="/browse/studies">Studies</a>
-		>
-		
-		<!-- Showing all anomalies from study -->
-		<span th:if="${site == null and subject == null}">
-			<a th:href="@{/browse/datasets(study_id=${field.study.studyId})}" th:text="${field.study.studyName}"/>
-			>
-			<a th:href="@{/browse/data_fields(dataset_id=${dataset.datasetId})}" th:text="${dataset.datasetName}"/>
-		</span>
-		
-		<!-- Showing anomalies from one site -->
-		<span th:if="${site}">
-			<a th:href="@{/browse/sites(study_id=${site.study.studyId})}" th:text="${site.study.studyName}"/>
-			>
-			<a th:href="@{/browse/datasets(site_id=${site.siteId})}" th:text="'Site ' + ${site.siteName}"/>
-			>
-			<a th:href="@{/browse/data_fields(dataset_id=${dataset.datasetId}, site_id=${site.siteId})}" th:text="${dataset.datasetName}"/>
-		</span>
-		
-		<!-- Showing anomalies from one subject -->
-		<span th:if="${subject}">
-			<a th:href="@{/browse/subjects(study_id=${subject.site.study.studyId})}" th:text="${subject.site.study.studyName}"/>
-			>
-			<a th:href="@{/browse/datasets(subject_id=${subject.subjectId})}" th:text="'Subject ' + ${subject.subjectName}"/>
-			>
-			<a th:href="@{/browse/data_fields(dataset_id=${dataset.datasetId}, subject_id=${subject.subjectId})}" th:text="${dataset.datasetName}"/>
-		</span>
-		>
-		<strong><span th:text="${field.fieldName}"/></strong>
+	<!-- Breadcrumbs -->
+	<div layout:fragment="breadcrumbs" id="breadcrumbs">
+		<ul class="breadcrumb">
+			<li><a href="/anomaly/global_summary">All Anomalies</a></li>
+			<li><a th:href="@{/anomaly/study_summary(study_id=${dataset.study.studyId})}" th:text="${dataset.study.studyName}"/></li>
+			<li><a th:href="@{/anomaly/dataset_summary(dataset_id=${dataset.datasetId})}" th:text="${dataset.datasetName}"/></li>
+			<li th:text="${field.fieldName}"/>
+		</ul>
 	</div>
-		
-    <div id="content">
-   		<p>
-   		   	For selected rows:
-	    	<button type="button">Export Data</button>
-	    	<button type="button">Open Query</button>&nbsp;&nbsp;&nbsp;
-	    	<select>
-	    		<option>Is an issue</option>
-	    		<option>Not an issue</option>
-	    	</select>
-	    	<button type="button">Change</button>&nbsp;&nbsp;&nbsp;
-	    	<input type="text" size="2"/>
-	    	<select>
-	    		<option>Days</option>
-	    		<option>Weeks</option>
-	    		<option>Months</option>
-	    	</select>
-	    	<button type="button">Suppress</button>
-	    </p>
+	
+	<!--  Content -->
+    <div layout:fragment="page_content" id="page_content">
    		<table class="wide">
    			<tr>
    				<th th:text="${study.subjectField.displayName}"/>
@@ -76,5 +39,4 @@
    			</tr>
    		</table>
     </div>
-</body>
 </html>

@@ -4,39 +4,24 @@ body {
 }
 
 .page-header {
-	/*
-	width: 1000px;
-	margin: 0 auto;
-	background-color: #4caf50;
-	color: white;
-	*/
 	font-size: 28px;
 	padding: 10px 0px 10px 10px;
 	font-family: Verdana, Geneva, sans-serif;
 }
 
+/*
 #breadcrumbs {
-	/*
-	width: 1010px;
-	margin: 0 auto;
-	*/
 	text-align: left;
 	padding: 10px 0px 0px 0px;
 }
+*/
 
 #content {
-	/*
-	width: 1010px;
-	margin: 0 auto;*/
 	text-align: center;
-	padding: 10px 0px 0px 0px;
+	padding: 0px 0px 0px 0px;
 }
 
 .content-left-align {
-	/*
-	width: 1010px;
-	margin: 0 auto;
-	*/
 	text-align: left;
 	position: relative;
 }
@@ -45,7 +30,6 @@ table.wide {
 	border-collapse: collapse;
 	width: 100%;
 	border: 1px solid #d3d3d3;
-	/*margin: auto;*/
 }
 
 table.wide th {
@@ -61,7 +45,7 @@ table.wide th, table.wide td {
 	padding: 5px;
 }
 
-table.wide tr:nth-child(even) {
+table.wide tr:nth-child(odd) {
 	background-color: #f2f2f2;
 }
 
@@ -124,12 +108,7 @@ table.half-wide tr:nth-child(even) {
 }
 
 .menu-bar {
-	/*
-	width: 810px;
-	margin: 0 auto;
-	*/
-	background-color: #f2f2f2;
-	/*border-bottom: 1px solid gray;*/
+	background-color: #dddd;
 }
 
 .menu-bar ul {
@@ -295,7 +274,6 @@ div.filters {
 	flex-direction: row;
 	justify-content: flex-start;
 	color: black;
-	height: 40px;
 }
 
 .filter_button {
@@ -357,4 +335,30 @@ div.filters {
 	color: black;
 	font-size: 11pt;
 	text-anchor: left;
+}
+
+ul.breadcrumb {
+    padding: 0px 16px;
+    list-style: none;
+}
+
+ul.breadcrumb li {
+    display: inline;
+    font-size: 12pt;
+}
+
+ul.breadcrumb li+li:before {
+    padding: 8px;
+    color: black;
+    content: "/\00a0";
+}
+
+ul.breadcrumb li a {
+    color: #0275d8;
+    text-decoration: none;
+}
+
+ul.breadcrumb li a:hover {
+    color: #01447e;
+    text-decoration: underline;
 }

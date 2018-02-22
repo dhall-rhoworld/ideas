@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="/base"
+      th:with="currentPage='anomalies'">
+      
+    <!-- Title -->
+	<head> 
+	    <title>Study Anomalies Summary</title> 
+	</head>
+	
+	<!-- Breadcrumbs -->
+	<div layout:fragment="breadcrumbs" id="breadcrumbs">
+		<ul class="breadcrumb">
+			<li><a href="/anomaly/global_summary">All Anomalies</a></li>
+			<li th:text="${study.studyName}"/>
+		</ul>
+	</div>
+	
+	<!-- Content -->
+    <div layout:fragment="page_content" id="page_content">
+   		<table class="wide">
+   			<tr>
+   				<th>Data Stream</th>
+   				<th th:if="${study}" th:text="'Total ' + ${study.studyName} + ' Anomalies'"/>
+   				<th th:if="${site}" th:text="'Total Site ' + ${site.siteName} + ' Anomalies'"/>
+   				<th th:if="${subject}" th:text="'Subject ' + ${subject.subjectName} + ' Anomalies'"/>
+   			</tr>
+   			<tr th:each="summary : ${summaries}">
+   				<td>
+   					<a th:if="${study}" th:href="@{/anomaly/dataset_summary(dataset_id=${summary.entityId})}" th:text="${summary.entityName}"/>
+   					<a th:if="${site}" th:href="@{/anomaly/fields(dataset_id=${summary.entityId}, site_id=${site.siteId})}" th:text="${summary.entityName}"/>
+   					<a th:if="${subject}" th:href="@{/anomaly/fields(dataset_id=${summary.entityId}, subject_id=${subject.subjectId})}" th:text="${summary.entityName}"/>
+   				</td>
+   				<td>
+   					<span th:text="${summary.numAnomalies}"/>
+   					<span th:if="${summary.numUnviewedAnomalies > 0}">
+   						&nbsp; (<span class="attention" th:text="${summary.numUnviewedAnomalies}"/> unviewed)
+   					</span>
+   				</td>
+   			</tr>
+   		</table>
+    </div>
+</html>

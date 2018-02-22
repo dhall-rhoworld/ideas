@@ -1,0 +1,35 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="/base"
+      th:with="currentPage='anomalies'">
+	<head> 
+	    <title>Anomalies Summary</title> 
+	</head>
+
+	<div layout:fragment="page_content" id="page_content">
+   		<h2>Data Anomaly Summary by Study</h2>
+   		<table class="wide">
+   			<tr>
+   				<th>Study</th>
+   				<th>Total Anomalies</th>
+   				<th>View Anomalies By</th>
+   			</tr>
+   			<tr th:each="summary : ${summaries}">
+   				<td><span th:text="${summary.entityName}"/></td>
+   				<td>
+   					<span th:text="${summary.numAnomalies}"/>
+   					<span th:if="${summary.numUnviewedAnomalies > 0}">
+   						&nbsp; (<span class="attention" th:text="${summary.numUnviewedAnomalies}"/> unviewed)
+   					</span>
+   				</td>
+   				<td>
+   					<a th:href="@{/anomaly/study_summary(study_id=${summary.entityId})}">Data Stream</a> |
+   					<a th:href="@{/browse/sites(study_id=${summary.entityId})}">Site</a> |
+   					<a th:href="@{/browse/subjects(study_id=${summary.entityId})}">Subject</a>
+   				</td>
+   			</tr>
+   		</table>
+    </div>
+</html>

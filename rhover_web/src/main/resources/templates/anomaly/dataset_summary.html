@@ -1,0 +1,86 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="/base"
+      th:with="currentPage='anomalies'">
+      
+    <!-- Title -->
+	<head> 
+	    <title>Data Stream Anomalies Summary</title> 
+	</head>
+
+	<!-- Breadcrumbs -->
+	<div layout:fragment="breadcrumbs" id="breadcrumbs">
+		<ul class="breadcrumb">
+			<li><a href="/anomaly/global_summary">All Anomalies</a></li>
+			<li><a th:href="@{/anomaly/study_summary(study_id=${dataset.study.studyId})}" th:text="${dataset.study.studyName}"/></li>
+			<li th:text="${dataset.datasetName}"/>
+		</ul>
+	</div>
+		
+	<!-- Content -->
+    <div layout:fragment="page_content" id="page_content">
+    	<h2>Univariate Outliers</h2>
+   		<table class="wide">
+   			<tr>
+   				<th>Label</th>
+   				<th th:if="${site == null and subject == null}" th:text="'Total ' + ${dataset.study.studyName} + ' Anomalies'"/>
+   				<th th:if="${site}" th:text="'Site ' + ${site.siteName} + ' Anomalies'"/>
+   				<th th:if="${subject}" th:text="'Subject ' + ${subject.subjectName} + ' Anomalies'"/>
+   				<th>View</th>
+   			</tr>
+   			<tr th:each="summary : ${univariateSummaries}">
+   				<td>
+   					<span th:text="${summary.entityName}"/>
+   				</td>
+   				<td>
+   					<span th:text="${summary.numAnomalies}"/>
+   					<span th:if="${summary.numUnviewedAnomalies > 0}">
+   						&nbsp; (<span class="attention" th:text="${summary.numUnviewedAnomalies}"/> unviewed)
+   					</span>
+   				</td>
+   				<td>
+   					<a th:if="${site == null and subject == null}" th:href="@{/anomaly/table(field_id=${summary.entityId}, dataset_id=${dataset.datasetId})}">Table</a>
+   					<a th:if="${site}" th:href="@{/anomaly/table(field_id=${summary.entityId}, site_id=${site.siteId}, dataset_id=${dataset.datasetId})}">Table</a>
+   					<a th:if="${subject}" th:href="@{/anomaly/table(field_id=${summary.entityId}, subject_id=${subject.subjectId}, dataset_id=${dataset.datasetId})}">Table</a>
+   					|
+   					<a th:if="${site == null and subject == null}" th:href="@{/chart/univariate_beeswarm(field_id=${summary.entityId}, dataset_id=${dataset.datasetId})}">Chart</a>
+   					<a th:if="${site}" th:href="@{/anomaly/beeswarm(field_id=${summary.entityId}, site_id=${site.siteId}, dataset_id=${dataset.datasetId})}">Chart</a>
+   					<a th:if="${subject}" th:href="@{/anomaly/beeswarm(field_id=${summary.entityId}, subject_id=${subject.subjectId}, dataset_id=${dataset.datasetId})}">Chart</a>
+   				</td>
+   			</tr>
+   		</table>
+   		
+   		<h2>Bivariate Outliers</h2>
+   		<table class="wide">
+   			<tr>
+   				<th>Variable 1</th>
+   				<th>Variable 2</th>
+   				<th>Total Anomalies</th>
+   				<th>View</th>
+   			</tr>
+   			<tr th:each="summary : ${bivariateSummaries}">
+   				<td th:text="${summary.entityName}"/>
+   				<td th:text="${summary.entityName2}"/>
+   				<td>
+   					<span th:text="${summary.numAnomalies}"/>
+   					<span th:if="${summary.numUnviewedAnomalies > 0}">
+   						&nbsp; (<span class="attention" th:text="${summary.numUnviewedAnomalies}"/> unviewed)
+   					</span>
+   				</td>
+   				<td>
+   					<a th:if="${site == null and subject == null}"
+   						th:href="@{/anomaly/bivariate_table(field_instance_id_1=${summary.entityId}, field_instance_id_2=${summary.entityId2}, dataset_id=${dataset.datasetId})}">
+   						Table
+   					</a>
+   					|
+   					<a th:if="${site == null and subject == null}"
+   						th:href="@{/anomaly/bivariate_scatter(field_instance_id_1=${summary.entityId}, field_instance_id_2=${summary.entityId2}, dataset_id=${dataset.datasetId})}">
+   						Chart
+   					</a>
+   				</td>
+   			</tr>
+   		</table>
+    </div>
+</html>

@@ -15,16 +15,26 @@
 		
 		<!-- Menu bar -->
 		<div class="menu-bar">
-		<ul>
-			<li><a href="/" class="active-menu-item">Home</a></li>
-			<li><a href="/browse/studies">Anomalies</a></li>
-			<li><a href="/admin/study/all">Configuration</a></li>
-		</ul>
-	</div>
+			<ul>
+				<li><a href="/" th:classappend="${currentPage=='home'}? 'active-menu-item'">Home</a></li>
+				<li><a href="/anomaly/global_summary" th:classappend="${currentPage=='anomalies'}? 'active-menu-item'">Anomalies</a></li>
+				<li><a href="/browse/studies" th:classappend="${currentPage=='data'}? 'active-menu-item'">Data</a></li>
+				<li><a href="/admin/study/all" th:classappend="${currentPage=='configuration'}? 'active-menu-item'">Configuration</a></li>
+			</ul>
+		</div>
+		
+		<!-- Breadcrumbs -->
+		<div layout:fragment="breadcrumbs"></div>
 		
 		<!-- Content -->
 		<div id="content">
 			<div layout:fragment="page_content"></div>
 		</div>
+		
+		<!-- jquerui dialog markup -->
+		<div layout:fragment="dialogs"/>
+		
+		<!-- Inline scripts -->
+		<th:block layout:fragment="scripts"/>
 	</body>
 </html>

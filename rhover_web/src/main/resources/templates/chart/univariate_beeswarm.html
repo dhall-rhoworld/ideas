@@ -1,62 +1,37 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
-<head> 
-    <title>RhoVer Beeswarm Chart</title> 
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <link rel="stylesheet" href="/rhover.css"/>
-    <link rel="stylesheet" href="/jquery-ui.css"/>
-    <link rel="icon" type="image/png" href="/images/rover-favicon.png" />
-    <script src="/d3.min.js"></script>
-    <script src="/jquery-3.2.1.min.js"></script>
-    <script src="/jquery-ui.js"></script>
-    <script src="/chart/beeswarm.js"></script>
-    <script src="/page/univariate_beeswarm.js"></script>
-    
-    <script src="/jquery.contextMenu.min.js"></script>
-    <script src="/jquery.ui.position.min.js"></script>
-    <link rel="stylesheet" href="/jquery.contextMenu.min.css"/>
-    
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"/>
-</head>
-<body>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="/base"
+      th:with="currentPage='anomalies'">
+	<head>
+	    <title>RhoVer Beeswarm Chart</title> 
+	    <link rel="stylesheet" href="/rhover.css"/>
+	    <link rel="stylesheet" href="/jquery-ui.css"/>
+	    <script src="/d3.min.js"></script>
+	    <script src="/jquery-3.2.1.min.js"></script>
+	    <script src="/jquery-ui.js"></script>
+	    <script src="/chart/beeswarm.js"></script>
+	    <script src="/page/univariate_beeswarm.js"></script>
+	    <script src="/jquery.contextMenu.min.js"></script>
+	    <script src="/jquery.ui.position.min.js"></script>
+	    <link rel="stylesheet" href="/jquery.contextMenu.min.css"/>
+	    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"/>
+	</head>
 
-	<!-- Bread crumbs -->
-	<div id="breadcrumbs">
-		<a href="/browse/studies">Studies</a>
-		>
-		
-		<!-- Showing all anomalies from study -->
-		<span th:if="${site == null and subject == null}">
-			<a th:href="@{/browse/datasets(study_id=${field.study.studyId})}" th:text="${field.study.studyName}"/>
-			>
-			<a th:href="@{/browse/data_fields(dataset_id=${dataset.datasetId})}" th:text="${dataset.datasetName}"/>
-		</span>
-		
-		<!-- Showing anomalies from one site -->
-		<span th:if="${site}">
-			<a th:href="@{/browse/sites(study_id=${site.study.studyId})}" th:text="${site.study.studyName}"/>
-			>
-			<a th:href="@{/browse/datasets(site_id=${site.siteId})}" th:text="'Site ' + ${site.siteName}"/>
-			>
-			<a th:href="@{/browse/data_fields(dataset_id=${dataset.datasetId}, site_id=${site.siteId})}" th:text="${dataset.datasetName}"/>
-		</span>
-		
-		<!-- Showing anomalies from one subject -->
-		<span th:if="${subject}">
-			<a th:href="@{/browse/subjects(study_id=${subject.site.study.studyId})}" th:text="${subject.site.study.studyName}"/>
-			>
-			<a th:href="@{/browse/datasets(subject_id=${subject.subjectId})}" th:text="'Subject ' + ${subject.subjectName}"/>
-			>
-			<a th:href="@{/browse/data_fields(dataset_id=${dataset.datasetId}, subject_id=${subject.subjectId})}" th:text="${dataset.datasetName}"/>
-		</span>
-		>
-		<strong><span th:text="${field.fieldLabel}"/></strong>
+
+	<!-- Breadcrumbs -->
+	<div layout:fragment="breadcrumbs" id="breadcrumbs">
+		<ul class="breadcrumb">
+			<li><a href="/anomaly/global_summary">All Anomalies</a></li>
+			<li><a th:href="@{/anomaly/study_summary(study_id=${dataset.study.studyId})}" th:text="${dataset.study.studyName}"/></li>
+			<li><a th:href="@{/anomaly/dataset_summary(dataset_id=${dataset.datasetId})}" th:text="${dataset.datasetName}"/></li>
+			<li th:text="${field.fieldName}"/>
+		</ul>
 	</div>
-	<!-- End bread cumbs -->
 	
 	<!-- Main content -->
-	<div id="content">
+	<div layout:fragment="page_content" id="page_content">
 	
 		<div class="container">
 			<div id="filters_bar" class="container"/>
@@ -83,7 +58,7 @@
 	<!-- End main content -->
 		
 	<!-- Dialogs -->
-	<div>
+	<div layout:fragment="dialogs" id="dialogs">
 	
 		<!-- Dialog for showing data selected by user -->
 		<div id="dialog_data">
@@ -181,27 +156,29 @@
 		
 	</div>
     <!-- End dialogs -->
-</body>
 
-<!-- Script to initialize Javascript variables -->
-<script th:inline="javascript">
-	const url = "/rest/anomaly/data/univariate_outliers?check_run_id=" + [[${check_run_id}]];
-	const mean = parseFloat([[${mean}]]);
-	const sd = parseFloat([[${sd}]]);
-	const siteName = [[${site_name}]];
-	const subjectName = [[${subject_name}]];
-	const numSd = parseFloat([[${num_sd}]]);
-	const siteFieldName = [[${site_field_name}]];
-	const phaseFieldName = [[${phase_field_name}]];
-	const subjectFieldName = [[${subject_field_name}]];
-	const recordIdFieldName = [[${record_id_field_name}]];
-	const studyId = [[${field.study.studyId}]];
-	const datasetName = [[${dataset.datasetName}]];
-	const datasetId = [[${dataset.datasetId}]];
-	const fieldName1 = [[${field.fieldName}]];
+	<!-- Scripts -->
+	<th:block layout:fragment="scripts">
 	
-	// TODO: Consider consolidating this variable with fieldName1 below
-	const fieldName = [[${field_name}]];
-</script>
-
+		<!-- Script to initialize Javascript variables -->
+		<script th:inline="javascript">
+			const url = "/rest/anomaly/data/univariate_outliers?check_run_id=" + [[${check_run_id}]];
+			const mean = parseFloat([[${mean}]]);
+			const sd = parseFloat([[${sd}]]);
+			const siteName = [[${site_name}]];
+			const subjectName = [[${subject_name}]];
+			const numSd = parseFloat([[${num_sd}]]);
+			const siteFieldName = [[${site_field_name}]];
+			const phaseFieldName = [[${phase_field_name}]];
+			const subjectFieldName = [[${subject_field_name}]];
+			const recordIdFieldName = [[${record_id_field_name}]];
+			const studyId = [[${field.study.studyId}]];
+			const datasetName = [[${dataset.datasetName}]];
+			const datasetId = [[${dataset.datasetId}]];
+			const fieldName1 = [[${field.fieldName}]];
+			
+			// TODO: Consider consolidating this variable with fieldName1 below
+			const fieldName = [[${field_name}]];
+		</script>
+	</th:block>
 </html>
