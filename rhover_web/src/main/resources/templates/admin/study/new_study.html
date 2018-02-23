@@ -1,32 +1,25 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
-<head> 
-    <title>RhoVer Edit Study</title> 
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <link rel="stylesheet" href="/rhover.css"/>
-    <link rel="stylesheet" href="/jquery-ui.css"/>
-    <link rel="icon" type="image/png" href="/images/rover-favicon.png" />
-    <script src="/jquery-3.2.1.min.js"></script>
-    <script src="/jquery-ui.js"></script>
-</head>
-<body>
-	<div class="page-header">RhoVer (Prototype)</div>
-	
-	<div class="menu-bar">
-		<ul>
-			<li><a href="/">Home</a></li>
-			<li><a href="/browse/studies">Anomalies</a></li>
-			<li><a href="/admin/study/all" class="active-menu-item">Configuration</a></li>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="/base"
+      th:with="currentPage='configuration'">
+	<head> 
+	    <title>RhoVer Edit Study</title> 
+	    <link rel="stylesheet" href="/jquery-ui.css"/>
+	    <script src="/jquery-3.2.1.min.js"></script>
+	    <script src="/jquery-ui.js"></script>
+	</head>
+
+	<!-- Breadcrumbs -->
+	<div layout:fragment="breadcrumbs" id="breadcrumbs">
+		<ul class="breadcrumb">
+			<li><a href="/admin/study/all">Configure Studies</a></li>
+			<li>New Study</li>
 		</ul>
 	</div>
 	
-	<div id="breadcrumbs">
-		<a href="/admin/study/all">Studies</a>
-		>
-		<bold>New Study</bold>
-	</div>
-		
-    <div id="content">
+    <div layout:fragment="page_content" id="page_content">
    		<form action="/admin/study/save" method="post">
    			<table class="invisible">
 	   			<tr>
@@ -97,11 +90,14 @@
    			</p>
    		</form>
     </div>
-</body>
-<script>
-	$("#img_stream").tooltip();
-	$("#img_site").tooltip();
-	$("#img_subject").tooltip();
-	$("#img_query").tooltip();
-</script>
+
+	<!-- Scripts -->
+	<th:block layout:fragment="scripts">
+		<script>
+			$("#img_stream").tooltip();
+			$("#img_site").tooltip();
+			$("#img_subject").tooltip();
+			$("#img_query").tooltip();
+		</script>
+	</th:block>
 </html>

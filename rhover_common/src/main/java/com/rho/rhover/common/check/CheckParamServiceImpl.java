@@ -5,24 +5,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.rho.rhover.common.study.Dataset;
-import com.rho.rhover.common.study.DatasetVersion;
-import com.rho.rhover.common.study.DatasetVersionRepository;
 import com.rho.rhover.common.study.Field;
 import com.rho.rhover.common.study.Study;
 
 @Service
 public class CheckParamServiceImpl implements CheckParamService {
 	
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+	
 	@Autowired
 	private CheckParamRepository checkParamRepository;
 	
-	@Autowired
-	private DatasetVersionRepository datasetVersionRepository;
-
 	@Override
 	public CheckParam getCheckParam(Check check, String paramName, Study study) {
 		CheckParam param = checkParamRepository.findByCheckAndStudyAndParamName(check, study, paramName);
@@ -55,6 +54,7 @@ public class CheckParamServiceImpl implements CheckParamService {
 		List<CheckParam> globalParams = checkParamRepository.findByCheckAndParamScope(check, "GLOBAL");
 		Set<CheckParam> params = new HashSet<>();
 		for (CheckParam globalParam : globalParams) {
+			logger.debug(globalParam.getParamName() + " -> " + globalParam.getParamValue());
 			CheckParam studyParam = getCheckParam(check, globalParam.getParamName(), study);
 			if (studyParam != null) {
 				params.add(studyParam);

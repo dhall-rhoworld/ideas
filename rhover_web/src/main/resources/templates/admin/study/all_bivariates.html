@@ -1,32 +1,31 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
-<head> 
-    <title>RhoVer Add Bivariate Check</title> 
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <link rel="stylesheet" href="/rhover.css"/>
-    <link rel="stylesheet" href="/jquery-ui.css"/>
-    <script src="/jquery-3.2.1.min.js"></script>
-    <script src="/jquery-ui.js"></script>
-    <script src="/d3.v4.min.js"></script>
-    <script src="/all_bivariates.js"></script>
-    <link rel="stylesheet" href="/radial.css" />
-    <link rel="icon" type="image/png" href="/images/rover-favicon.png" />
-</head>
-<body>
-	<div class="page-header">RhoVer (Prototype)</div>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="/base"
+      th:with="currentPage='configuration'">
+	<head> 
+	    <title>Bivariate Checks</title> 
+	    <link rel="stylesheet" href="/jquery-ui.css"/>
+	    <script src="/jquery-3.2.1.min.js"></script>
+	    <script src="/jquery-ui.js"></script>
+	    <script src="/d3.v4.min.js"></script>
+	    <script src="/page/all_bivariates.js"></script>
+	</head>
 	
-	<div class="menu-bar">
-		<ul>
-			<li><a href="/">Home</a></li>
-			<li><a href="/browse/studies">Anomalies</a></li>
-			<li><a href="/admin/study/all" class="active-menu-item">Configuration</a></li>
+	<!-- Breadcrumbs -->
+	<div layout:fragment="breadcrumbs" id="breadcrumbs">
+		<ul class="breadcrumb">
+			<li><a href="/admin/study/all">Configure Studies</a></li>
+			<li th:text="${study.studyName} + ' Bivariate Checks'"/>
 		</ul>
 	</div>
-	
-    <div id="content">
+
+	<!-- Content -->
+    <div layout:fragment="page_content" id="page_content">
     
-    	<strong><a th:href="@{/admin/study/bivariates(study_id=${study_id})}">Bivariate Checks</a></strong> |
-    	<a th:href="@{/admin/study/correlations(study_id=${study_id})}">Explore Correlations</a>
+    	<strong><a th:href="@{/admin/study/bivariates(study_id=${study.studyId})}">Bivariate Checks</a></strong> |
+    	<a th:href="@{/admin/study/correlations(study_id=${study.studyId})}">Explore Correlations</a>
     	
     	<div th:if="${duplicates}" class="message_box">
     		The following duplicate checks were not saved:
@@ -77,16 +76,18 @@
     	</p>
     	
     </div>
-</body>
-
-<script th:inline="javascript">
-
-	const studyId = [[${study_id}]];
-	
-	$("#button_add").click(function() {
-		const url = "/admin/study/add_bivariate?study_id=" + studyId;
-		document.location.href = url;
-	});
-
-</script>
+    
+    <!-- Scripts -->
+	<th:block layout:fragment="scripts">
+		<script th:inline="javascript">
+		
+			const studyId = [[${study.studyId}]];
+			
+			$("#button_add").click(function() {
+				const url = "/admin/study/add_bivariate?study_id=" + studyId;
+				document.location.href = url;
+			});
+		
+		</script>
+	</th:block>
 </html>

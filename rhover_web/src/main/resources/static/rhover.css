@@ -32,7 +32,7 @@ table.wide {
 	border: 1px solid #d3d3d3;
 }
 
-table.wide th {
+table.wide th, table.half-wide th {
 	color: white;
 	background-color: #4CAF50
 }
@@ -64,7 +64,7 @@ table.half-wide th, table.half-wide td {
 	padding: 5px;
 }
 
-table.half-wide tr:nth-child(even) {
+table.half-wide tr:nth-child(odd) {
 	background-color: #f2f2f2;
 }
 
@@ -361,4 +361,9 @@ ul.breadcrumb li a {
 ul.breadcrumb li a:hover {
     color: #01447e;
     text-decoration: underline;
+}
+
+th.alternate-th {
+	background-color: CornflowerBlue;
+	color: white;
 }

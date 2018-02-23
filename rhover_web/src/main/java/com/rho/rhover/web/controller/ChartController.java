@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.rho.rhover.common.anomaly.DataPropertyRepository;
+import com.rho.rhover.common.check.BivariateCheck;
+import com.rho.rhover.common.check.BivariateCheckRepository;
 import com.rho.rhover.common.check.Check;
 import com.rho.rhover.common.check.CheckRepository;
 import com.rho.rhover.common.check.CheckRun;
@@ -21,7 +23,11 @@ import com.rho.rhover.common.study.DataFieldRepository;
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.DatasetRepository;
 import com.rho.rhover.common.study.DatasetVersion;
+import com.rho.rhover.common.study.DatasetVersionRepository;
 import com.rho.rhover.common.study.Field;
+import com.rho.rhover.common.study.FieldInstance;
+import com.rho.rhover.common.study.FieldInstanceRepository;
+import com.rho.rhover.common.study.FieldRepository;
 import com.rho.rhover.common.study.Phase;
 import com.rho.rhover.common.study.PhaseRepository;
 import com.rho.rhover.common.study.Site;
@@ -67,6 +73,18 @@ public class ChartController {
 	
 	@Autowired
 	private PhaseRepository phaseRepository;
+	
+	@Autowired
+	private FieldRepository fieldRepository;
+	
+	@Autowired
+	private FieldInstanceRepository fieldInstanceRepository;
+	
+	@Autowired
+	private BivariateCheckRepository bivariateCheckRepository;
+	
+	@Autowired
+	private DatasetVersionRepository datasetVersionRepository;
 	
 	/**
 	 * Fetch data for creating a univariate beeswarm chart.
@@ -138,4 +156,65 @@ public class ChartController {
     	return "chart/univariate_beeswarm";
     }
 
+    @RequestMapping("/bivariate_scatter")
+    public String bivariateScatterPlot(
+    		@RequestParam(name="field_instance_id_1", required=false, defaultValue="-1") Long fieldInstanceId1,
+    		@RequestParam(name="field_instance_id_2", required=false, defaultValue="-1") Long fieldInstanceId2,
+    		@RequestParam(name="field_name_1", required=false, defaultValue="") String fieldName1,
+    		@RequestParam(name="field_name_2", required=false, defaultValue="") String fieldName2,
+    		@RequestParam(name="dataset_name_1", required=false, defaultValue="") String datasetName1,
+    		@RequestParam(name="dataset_name_2", required=false, defaultValue="") String datasetName2,
+    		@RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
+			@RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
+			@RequestParam("dataset_id") Long datasetId,
+			Model model) {
+    	Dataset dataset = datasetRepository.findOne(datasetId);
+    	Study study = dataset.getStudy();
+    	FieldInstance fieldInstance1 = null;
+    	if (fieldInstanceId1.equals(-1L)) {
+    		Field field1 = fieldRepository.findByStudyAndFieldName(study, fieldName1);
+    		Dataset dataset1 = datasetRepository.findByStudyAndDatasetName(study, datasetName1);
+    		fieldInstance1 = fieldInstanceRepository.findByFieldAndDataset(field1, dataset1);
+    	}
+    	else {
+    		fieldInstance1 = fieldInstanceRepository.findOne(fieldInstanceId1);
+    	}
+    	FieldInstance fieldInstance2 = null;
+    	if (fieldInstanceId2.equals(-1L)) {
+    		Field field2 = fieldRepository.findByStudyAndFieldName(study, fieldName2);
+    		Dataset dataset2 = datasetRepository.findByStudyAndDatasetName(study, datasetName2);
+    		fieldInstance2 = fieldInstanceRepository.findByFieldAndDataset(field2, dataset2);
+    	}
+    	else {
+    		fieldInstance2 = fieldInstanceRepository.findOne(fieldInstanceId2);
+    	}
+    	BivariateCheck biCheck = bivariateCheckRepository.findByXFieldInstanceAndYFieldInstance(fieldInstance1, fieldInstance2);
+    	DatasetVersion datasetVersion1 = datasetVersionRepository.findByDatasetAndIsCurrent(fieldInstance1.getDataset(), Boolean.TRUE);
+    	DatasetVersion datasetVersion2 = datasetVersionRepository.findByDatasetAndIsCurrent(fieldInstance2.getDataset(), Boolean.TRUE);
+    	CheckRun checkRun = checkRunRepository.findByBivariateCheckAndDatasetVersionAndBivariateDatasetVersion2AndIsLatest(biCheck, datasetVersion1, datasetVersion2, Boolean.TRUE);
+    	model.addAttribute("check_run_id", checkRun.getCheckRunId());
+    	model.addAttribute("study", fieldInstance1.getDataset().getStudy());
+    	model.addAttribute("fieldInstance1", fieldInstance1);
+    	model.addAttribute("fieldInstance2", fieldInstance2);
+    	model.addAttribute("dataset", dataset);
+    	model.addAttribute("field_name_1", fieldInstance1.getField().getDisplayName());
+    	model.addAttribute("field_name_2", fieldInstance2.getField().getDisplayName());
+    	model.addAttribute("slope", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "slope").getDataPropertyValue());
+    	model.addAttribute("intercept", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "intercept").getDataPropertyValue());
+    	model.addAttribute("cutoff_residual", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "cutoff_residual").getDataPropertyValue());  	
+    	//model.addAttribute("mean_res", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "mean_res").getDataPropertyValue());
+    	model.addAttribute("sd_res", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "sd_res").getDataPropertyValue());
+    	String heteroschedastic = dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "heteroschedastic").getDataPropertyValue();
+    	model.addAttribute("heteroschedastic", heteroschedastic);
+    	if (heteroschedastic.equals("TRUE")) {
+    		model.addAttribute("lambda", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "lambda").getDataPropertyValue());
+    	}
+    	else {
+    		model.addAttribute("lambda", "null");
+    	}
+    	model.addAttribute("sd_residual", paramUsedRepository.findByCheckRunAndParamName(checkRun, "sd-residual").getParamValue());
+    	model.addAttribute("num_nearest_neighbors", paramUsedRepository.findByCheckRunAndParamName(checkRun, "num-nearest-neighbors").getParamValue());
+    	model.addAttribute("sd_density", paramUsedRepository.findByCheckRunAndParamName(checkRun, "sd-density").getParamValue());
+    	return "chart/bivariate_scatter";
+    }
 }

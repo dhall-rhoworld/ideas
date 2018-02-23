@@ -1,27 +1,28 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
-<head> 
-    <title>RhoVer Univariate Settings</title> 
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <link rel="stylesheet" href="/rhover.css"/>
-    <link rel="stylesheet" href="/jquery-ui.css"/>
-    <link rel="icon" type="image/png" href="/images/rover-favicon.png" />
-    <script src="/jquery-3.2.1.min.js"></script>
-    <script src="/jquery-ui.js"></script>
-    <script src="/dataset_univariate.js"></script>
-</head>
-<body>
-	<div class="page-header">RhoVer (Prototype)</div>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="/base"
+      th:with="currentPage='configuration'">
+	<head> 
+	    <title>RhoVer Univariate Settings</title> 
+	    <link rel="stylesheet" href="/jquery-ui.css"/>
+	    <script src="/jquery-3.2.1.min.js"></script>
+	    <script src="/jquery-ui.js"></script>
+	    <script src="/page/dataset_univariate.js"></script>
+	</head>
 	
-	<div class="menu-bar">
-		<ul>
-			<li><a href="/">Home</a></li>
-			<li><a href="/browse/studies">Anomalies</a></li>
-			<li><a href="/admin/study/all" class="active-menu-item">Configuration</a></li>
+	<!-- Breadcrumbs -->
+	<div layout:fragment="breadcrumbs" id="breadcrumbs">
+		<ul class="breadcrumb">
+			<li><a href="/admin/study/all">Configure Studies</a></li>
+			<li th:text="${study.studyName} + ' Univariate Checks'"/>
+			<li>Individual Dataset Settings</li>
 		</ul>
 	</div>
-		
-    <div id="content">
+
+	<!-- Content -->
+    <div layout:fragment="page_content" id="page_content">
     	<p>
     		<a th:href="@{/admin/study/study_univariate(study_id=${study.studyId})}">Study-Level Settings</a> |
     		<strong>Individual Dataset Settings</strong>
@@ -54,7 +55,7 @@
 		   	
 		   		<table class="wide">
 					<tr>
-						<th colspan="2" style="background-color: CornflowerBlue; color: white">Defaults</th>
+						<th colspan="2">Defaults</th>
 					</tr>
 					<tr>
 						<td colspan="2">
@@ -74,14 +75,11 @@
 						</td>
 					</tr>
 					<tr class="dataset-params deactivated">
-						<td>Additional Filters</td>
+						<td>Minium Number of Data Points</td>
 						<td style="text-align: left">
-							<input type="checkbox" name="param_filter_non_key" id="cb_filter_non_key" class="dataset-params"
-								th:checked="${filter_non_key.paramValue} == 'on'" disabled="true"/> Omit non-key variables<br/>
-							<input type="checkbox" name="param_filter_identifying" id="cb_filter_identifying" class="dataset-params"
-								th:checked="${filter_identifying.paramValue} == 'on'" disabled="true"/> Omit identifying variables
-							<input type="hidden" id="study_filter_non_key" th:value="${study_filter_non_key.paramValue}"/>
-							<input type="hidden" id="study_filter_identifying" th:value="${study_filter_identifying.paramValue}"/>
+							<input type="text" name="param_min-univariate" id="text_min_univariate" size="3" class="dataset-params"
+								th:value="${min_univariate.paramValue}" disabled="true"/>
+							<input type="hidden" id="study_min_univariate" th:value="${study_min_univariate.paramValue}"/>
 						</td>
 					</tr>
 					<tr class="dataset-params deactivated">
@@ -99,11 +97,11 @@
 		   		<h3>Variables</h3>
 		   		<table class="wide">
 		   			<tr>
-		   				<th>Skip</th>
-		   				<th>Variable Name</th>
-		   				<th>Variable Label</th>
-		   				<th>Data Type</th>
-		   				<th>Outlier Boundary</th>
+		   				<th style="background-color: CornflowerBlue; color: white">Skip</th>
+		   				<th style="background-color: CornflowerBlue; color: white">Variable Name</th>
+		   				<th style="background-color: CornflowerBlue; color: white">Variable Label</th>
+		   				<th style="background-color: CornflowerBlue; color: white">Data Type</th>
+		   				<th style="background-color: CornflowerBlue; color: white">Outlier Boundary</th>
 		   			</tr>
 		   			<tr th:each="field : ${fields}" th:id="'field_' + ${field.fieldId}" th:attr="data-data_type=${field.dataType}" class="field deactivated">
 		   				<td>
@@ -125,5 +123,4 @@
 		   	</div>
 	   	</form>
    	</div>
-</body>
 </html>

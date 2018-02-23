@@ -1,26 +1,26 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
-<head> 
-    <title>RhoVer Univariate Settings</title> 
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <link rel="stylesheet" href="/rhover.css"/>
-    <link rel="stylesheet" href="/jquery-ui.css"/>
-    <link rel="icon" type="image/png" href="/images/rover-favicon.png" />
-    <script src="/jquery-3.2.1.min.js"></script>
-    <script src="/jquery-ui.js"></script>
-</head>
-<body>
-	<div class="page-header">RhoVer (Prototype)</div>
-	
-	<div class="menu-bar">
-		<ul>
-			<li><a href="/">Home</a></li>
-			<li><a href="/browse/studies">Anomalies</a></li>
-			<li><a href="/admin/study/all" class="active-menu-item">Configuration</a></li>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="/base"
+      th:with="currentPage='configuration'">
+	<head> 
+	    <title>RhoVer Univariate Settings</title> 
+	    <link rel="stylesheet" href="/jquery-ui.css"/>
+	    <script src="/jquery-3.2.1.min.js"></script>
+	    <script src="/jquery-ui.js"></script>
+	</head>
+
+	<!-- Breadcrumbs -->
+	<div layout:fragment="breadcrumbs" id="breadcrumbs">
+		<ul class="breadcrumb">
+			<li><a href="/admin/study/all">Configure Studies</a></li>
+			<li th:text="${study.studyName} + ' Univariate Checks'"/>
+			<li>Study Level Settings</li>
 		</ul>
 	</div>
-		
-    <div id="content">
+	
+    <div layout:fragment="page_content" id="page_content">
     	<p>
     		<strong>Study-Level Settings</strong> |
     		<a th:href="@{/admin/study/dataset_univariate(study_id=${study.studyId})}">Individual Dataset Settings</a>
@@ -33,7 +33,7 @@
     	
 		<table class="wide">
 			<tr>
-				<th colspan="2" style="background-color: CornflowerBlue; color: white">Study-Level Defaults</th>
+				<th colspan="2">Study-Level Defaults</th>
 			</tr>
 			<tr>
 				<td>Run Checks On</td>
@@ -43,10 +43,9 @@
 				</td>
 			</tr>
 			<tr>
-				<td>Additional Filters</td>
+				<td>Minium Number of Data Points</td>
 				<td style="text-align: left">
-					<input type="checkbox" name="param_filter_non_key" th:checked="${filter_non_key.paramValue} == 'on'"/> Omit non-key variables<br/>
-					<input type="checkbox" name="param_filter_identifying" th:checked="${filter_identifying.paramValue} == 'on'"/> Omit identifying variables
+					<input type="text" name="param_min-univariate" size="3" th:value="${min_univariate.paramValue}"/>
 				</td>
 			</tr>
 			<tr>
@@ -75,23 +74,24 @@
 		</p>
 		</form>
    	</div>
-</body>
 
-<script>
-	$(function() {
-		$(".radio-dataset").checkboxradio();
-		$("#cball").checkboxradio();
-		$("#cball").change(function() {
-			const isChecked = $("#cball").prop("checked");
-			if (isChecked) {
-				$(".radio-dataset").prop("checked", true).change();
-			}
-			else {
-				$(".radio-dataset").prop("checked", false).change();
-			}
-		});
-		$(".dataset-selector").tooltip();
-	});
-</script>
-
+	<!-- Scripts -->
+	<th:block layout:fragment="scripts">
+		<script>
+			$(function() {
+				$(".radio-dataset").checkboxradio();
+				$("#cball").checkboxradio();
+				$("#cball").change(function() {
+					const isChecked = $("#cball").prop("checked");
+					if (isChecked) {
+						$(".radio-dataset").prop("checked", true).change();
+					}
+					else {
+						$(".radio-dataset").prop("checked", false).change();
+					}
+				});
+				$(".dataset-selector").tooltip();
+			});
+		</script>
+	</th:block>
 </html>

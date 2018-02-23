@@ -312,13 +312,10 @@ insert into check_param (param_name, param_value, param_scope, check_id)
 values('data_types', 'continuous', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));
 
 insert into check_param (param_name, param_value, param_scope, check_id)
-values('filter_non_key', 'off', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));
-
-insert into check_param (param_name, param_value, param_scope, check_id)
-values('filter_identifying', 'on', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));
-
-insert into check_param (param_name, param_value, param_scope, check_id)
 values('sd', '2', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));
+
+insert into check_param (param_name, param_value, param_scope, check_id)
+values('min-univariate', '25', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));
 
 insert into check_param (param_name, param_value, param_scope, check_id)
 values('sd-residual', '2', 'GLOBAL', (select check_id from checks where check_name = 'BIVARIATE_OUTLIER'));
@@ -328,6 +325,12 @@ values('num-nearest-neighbors', '5', 'GLOBAL', (select check_id from checks wher
 
 insert into check_param (param_name, param_value, param_scope, check_id)
 values('sd-density', '6', 'GLOBAL', (select check_id from checks where check_name = 'BIVARIATE_OUTLIER'));
+
+insert into check_param (param_name, param_value, param_scope, check_id)
+values('sd-density', '6', 'GLOBAL', (select check_id from checks where check_name = 'BIVARIATE_OUTLIER'));
+
+insert into check_param (param_name, param_value, param_scope, check_id)
+values('min-bivariate', '25', 'GLOBAL', (select check_id from checks where check_name = 'BIVARIATE_OUTLIER'));
 
 create table check_run (
 	check_run_id BIGINT AUTO_INCREMENT NOT NULL,

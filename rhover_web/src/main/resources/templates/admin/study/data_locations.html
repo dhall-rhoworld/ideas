@@ -1,49 +1,27 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
-<head> 
-    <title>RhoVer Edit Study</title> 
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <link rel="stylesheet" href="/rhover.css"/>
-    <script src="/jquery-3.2.1.min.js"></script>
-    
-    <script>
-    	function onDone() {
-    		document.location.href = "/admin/study/all";
-    	}
-    	
-    	// Submit button clicked
-    	$(function() {
-    		$("#button_submit").click(function() {
-    			
-    			// Convert all back-slashes for forward-slashes in folder path field
-    			const oldValue = $("#text_folder_path").val();
-    			const newValue = oldValue.replace(/\\/g, "/");
-    			$("#text_folder_path").val(newValue);
-    			
-    			// Submit form
-    			$("form").submit();
-    		});
-    	});
-    </script>
-</head>
-<body>
-	<div class="page-header">RhoVer (Prototype)</div>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="/base"
+      th:with="currentPage='configuration'">
+	<head> 
+	    <title>RhoVer Edit Study</title> 
+	    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	    <link rel="stylesheet" href="/rhover.css"/>
+	    <script src="/jquery-3.2.1.min.js"></script>
+	</head>
 	
-	<div class="menu-bar">
-		<ul>
-			<li><a href="/">Home</a></li>
-			<li><a href="/browse/studies">Anomalies</a></li>
-			<li><a href="/admin/study/all" class="active-menu-item">Configuration</a></li>
+	
+	<!-- Breadcrumbs -->
+	<div layout:fragment="breadcrumbs" id="breadcrumbs">
+		<ul class="breadcrumb">
+			<li><a href="/admin/study/all">Configure Studies</a></li>
+			<li th:text="${study.studyName} + ' Data Locations'"/>
 		</ul>
 	</div>
 	
-	<div id="breadcrumbs">
-		<a href="/admin/study/all">Studies</a>
-		>
-		<bold><span th:text="${study.studyName}"/></bold>
-	</div>
-		
-    <div id="content">
+	
+    <div layout:fragment="page_content" id="page_content">
     	<div th:if="${message}" class="message_box" th:text="${message}"/>
     
     	<div th:if="${not #lists.isEmpty(study.dataLocations)}">
@@ -67,6 +45,7 @@
 	   			</tr>
 	   		</table>
 	   	</div>
+	   	
 	   	<h4>--- Add new data folder ---</h4>
 	   	<form action="/admin/study/add_data_folder" method="post">
 	   		<input type="hidden" name="study_id" th:value="${study.studyId}"/>
@@ -99,5 +78,27 @@
 	 		</p>
  		</form>
     </div>
-</body>
+
+	<!-- Scripts -->
+	<th:block layout:fragment="scripts">
+	 	<script>
+	    	function onDone() {
+	    		document.location.href = "/admin/study/all";
+	    	}
+	    	
+	    	// Submit button clicked
+	    	$(function() {
+	    		$("#button_submit").click(function() {
+	    			
+	    			// Convert all back-slashes for forward-slashes in folder path field
+	    			const oldValue = $("#text_folder_path").val();
+	    			const newValue = oldValue.replace(/\\/g, "/");
+	    			$("#text_folder_path").val(newValue);
+	    			
+	    			// Submit form
+	    			$("form").submit();
+	    		});
+	    	});
+	    </script>
+	</th:block>
 </html>

@@ -503,7 +503,7 @@ $(function() {
 			let datum = data[i];
 			let html = "<p><table class='half-wide table-merge' data-dataset_2='" + datum.datasetName2
 				+ "'><tr><th/><th>" + datum.datasetName1
-				+ "<span style='color: red;'> &lt;--AND--&gt; </span>" + datum.datasetName2 + "</th></tr>";
+				+ " and " + datum.datasetName2 + "</th></tr>";
 			let fields = datum.fields;
 			for (let j = 0; j < fields.length; j++) {
 				let field = fields[j];

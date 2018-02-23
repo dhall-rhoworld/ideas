@@ -1,45 +1,18 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
-<head> 
-    <title>RhoVer Administer Studies</title> 
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <link rel="stylesheet" href="/rhover.css"/>
-    <link rel="icon" type="image/png" href="/images/rover-favicon.png" />
-    <script src="/jquery-3.2.1.min.js"></script>
-    
-    <script>
-    	function onAddStudy() {
-    		document.location.href = "/admin/study/new_study";
-    	}
-    	
-    	$(function() {
-    		$(".check-runner").click(function() {
-    			const studyId = this.dataset.study_id;
-    			const url = "/rest/admin/study/check_study?study_id=" + studyId;
-    			$.get(url)
-    				.done(function() {
-    					console.log("All done");
-    				})
-    				.fail(function() {
-    					console.log("There was a problem");
-    				});
-    		});
-    	});
-    </script>
-</head>
-<body>
-	<div class="page-header">RhoVer (Prototype)</div>
-	
-	<div class="menu-bar">
-		<ul>
-			<li><a href="/">Home</a></li>
-			<li><a href="/browse/studies">Anomalies</a></li>
-			<li><a href="/admin/study/all" class="active-menu-item">Configuration</a></li>
-		</ul>
-	</div>
-    
-    <div class="content-left-align">
-    	<div style="position: absolute; left: 10%; top: 25px; width: 600px;">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="/base"
+      th:with="currentPage='configuration'">
+	<head> 
+	    <title>RhoVer Studies</title> 
+	    
+	    
+	</head>
+
+	<!-- Content -->
+    <div layout:fragment="page_content" id="page_content">
+    	<div style="position: absolute; left: 20%; top: 125px; width: 600px;">
 	    	<div th:each="study : ${studies}" style="height: 90px; position: relative">
 	    		<img src="/images/research-small.png" style="float:left;"/>
 	    		<div style="position: absolute; left: 85px; top: 15px;">
@@ -54,5 +27,13 @@
 	 		</p>
 	 	</div>
     </div>
-</body>
+    
+    <!-- Scripts -->
+	<th:block layout:fragment="scripts">
+		<script>
+	    	function onAddStudy() {
+	    		document.location.href = "/admin/study/new_study";
+	    	}
+	    </script>
+	</th:block>
 </html>

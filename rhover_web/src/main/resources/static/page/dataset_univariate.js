@@ -54,13 +54,11 @@ $(function() {
 	
 	$("#radio_study_level").click(function() {
 		const studyDataTypes = $("#study_data_types").val();
-		const studyFilterNonKey = $("#study_filter_non_key").val() == "on";
-		const studyFilterIdentifying = $("#study_filter_identifying").val() == "on";
+		const studyMinUnivariate = $("#study_min_univariate").val();
 		const studySd = $("#study_sd").val();
 		$("input[name='param_data_types'][value='" + studyDataTypes + "']").prop("checked", "true");
-		$("#cb_filter_non_key").prop("checked", studyFilterNonKey);
-		$("#cb_filter_identifying").prop("checked", studyFilterIdentifying);
 		$("#text_sd").val(studySd);
+		$("#text_min_univariate").val(studyMinUnivariate);
 		$(".dataset-params").addClass("deactivated");
 		$(".dataset-params").prop("disabled", "true");
 		activateAppropriateFields();

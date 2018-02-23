@@ -1,29 +1,29 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
-<head> 
-    <title>RhoVer Add Bivariate Check</title> 
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <link rel="stylesheet" href="/rhover.css"/>
-    <link rel="stylesheet" href="/jquery-ui.css"/>
-    <script src="/jquery-3.2.1.min.js"></script>
-    <script src="/jquery-ui.js"></script>
-    <script src="/d3.v4.min.js"></script>
-    <link rel="stylesheet" href="/radial.css" />
-    <script src="/radial.js"></script>
-    <link rel="icon" type="image/png" href="/images/rover-favicon.png" />
-</head>
-<body>
-	<div class="page-header">RhoVer (Prototype)</div>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="/base"
+      th:with="currentPage='configuration'">
+	<head> 
+	    <title>Correlations</title> 
+	    <link rel="stylesheet" href="/jquery-ui.css"/>
+	    <script src="/jquery-3.2.1.min.js"></script>
+	    <script src="/jquery-ui.js"></script>
+	    <script src="/d3.v4.min.js"></script>
+	    <link rel="stylesheet" href="/chart/radial.css" />
+	    <script src="/chart/radial.js"></script>
+	</head>
 	
-	<div class="menu-bar">
-		<ul>
-			<li><a href="/">Home</a></li>
-			<li><a href="/browse/studies">Anomalies</a></li>
-			<li><a href="/admin/study/all" class="active-menu-item">Configuration</a></li>
+	<!-- Breadcrumbs -->
+	<div layout:fragment="breadcrumbs" id="breadcrumbs">
+		<ul class="breadcrumb">
+			<li><a href="/admin/study/all">Configure Studies</a></li>
+			<li th:text="${study.studyName} + ' Correlations'"/>
 		</ul>
 	</div>
-	
-    <div id="content">
+
+    <!-- Content -->
+    <div layout:fragment="page_content" id="page_content">
     
     	<a th:href="@{/admin/study/bivariates(study_id=${study.studyId})}">Bivariate Checks</a> |
     	<strong>Explore Correlations</strong>
@@ -42,10 +42,13 @@
     	</div>
     
     </div>
-</body>
 
-<script th:inline="javascript">
-	const studyId = [[${study.studyId}]];
-</script>
+	<!-- Scripts -->
+	<th:block layout:fragment="scripts">
+
+		<script th:inline="javascript">
+			const studyId = [[${study.studyId}]];
+		</script>
+	</th:block>
 
 </html>

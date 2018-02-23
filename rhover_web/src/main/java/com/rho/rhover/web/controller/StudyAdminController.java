@@ -13,7 +13,6 @@ import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.MultiValueMap;
@@ -37,7 +36,6 @@ import com.rho.rhover.common.study.Field;
 import com.rho.rhover.common.study.FieldInstance;
 import com.rho.rhover.common.study.FieldInstanceRepository;
 import com.rho.rhover.common.study.FieldRepository;
-import com.rho.rhover.common.study.FieldService;
 import com.rho.rhover.common.study.MergeField;
 import com.rho.rhover.common.study.MergeFieldRepository;
 import com.rho.rhover.common.study.Study;
@@ -54,9 +52,6 @@ public class StudyAdminController {
 	
 	@Autowired
 	private StudyRepository studyRepository;
-	
-	@Autowired
-	private FieldService fieldService;
 	
 	@Autowired
 	private FieldRepository fieldRepository;
@@ -105,21 +100,7 @@ public class StudyAdminController {
 		return "admin/study/data_locations";
 	}
 	
-	@RequestMapping("/identifying_fields")
-	public String selectIdentifyingVariables(@RequestParam("study_id") Long studyId,
-			Model model) {
-		Study study = studyRepository.findOne(studyId);
-		model.addAttribute("study", study);
-		model.addAttribute("fields", fieldService.findPotentiallyIdentiableFields(study));
-		return "admin/study/identifying_fields";
-	}
-	
-	public String showKeyVariables(
-			@RequestParam("study_id") Long studyId,
-			Model model) {
-		return null;
-	}
-	
+
 	@RequestMapping("/new_study")
 	public String newStudy() {
 		
@@ -152,9 +133,8 @@ public class StudyAdminController {
 		model.addAttribute("dataset_versions", datasetVersions);
 		Check check = checkRepository.findByCheckName("UNIVARIATE_OUTLIER");
 		model.addAttribute("data_types", checkParamService.getCheckParam(check, "data_types", study));
-		model.addAttribute("filter_non_key", checkParamService.getCheckParam(check, "filter_non_key", study));
-		model.addAttribute("filter_identifying", checkParamService.getCheckParam(check, "filter_identifying", study));
 		model.addAttribute("sd", checkParamService.getCheckParam(check, "sd", study));
+		model.addAttribute("min_univariate", checkParamService.getCheckParam(check, "min-univariate", study));
 		return "admin/study/study_univariate";
 	}
 	
@@ -213,13 +193,11 @@ public class StudyAdminController {
 			
 			Check check = checkRepository.findByCheckName("UNIVARIATE_OUTLIER");
 			model.addAttribute("data_types", checkParamService.getCheckParam(check, "data_types", dataset));
-			model.addAttribute("filter_non_key", checkParamService.getCheckParam(check, "filter_non_key", dataset));
-			model.addAttribute("filter_identifying", checkParamService.getCheckParam(check, "filter_identifying", dataset));
+			model.addAttribute("min_univariate", checkParamService.getCheckParam(check, "min-univariate", dataset));
 			model.addAttribute("sd", checkParamService.getCheckParam(check, "sd", dataset));
 			
 			model.addAttribute("study_data_types", checkParamService.getCheckParam(check, "data_types", study));
-			model.addAttribute("study_filter_non_key", checkParamService.getCheckParam(check, "filter_non_key", study));
-			model.addAttribute("study_filter_identifying", checkParamService.getCheckParam(check, "filter_identifying", study));
+			model.addAttribute("study_min_univariate", checkParamService.getCheckParam(check, "min-univariate", study));
 			model.addAttribute("study_sd", checkParamService.getCheckParam(check, "sd", study));
 			
 			model.addAttribute("use_study_defaults", checkParamRepository.findByCheckAndDataset(check, dataset).size() == 0);
@@ -363,10 +341,9 @@ public class StudyAdminController {
 	public String showBivariates(
 			@RequestParam(name="study_id") Long studyId,
 			Model model) {
-		model.addAttribute("study_id", studyId);
 		Study study = studyRepository.findOne(studyId);
 		List<BivariateCheck> checks = bivariateCheckRepository.findByStudy(study);
-		logger.debug("Found " + checks.size() + " bivariate checks");
+		model.addAttribute("study", study);
 		model.addAttribute("checks", checks);
 		return "/admin/study/all_bivariates";
 	}
@@ -376,8 +353,8 @@ public class StudyAdminController {
 			@RequestParam(name="study_id") Long studyId,
 			Model model
 	) {
-		model.addAttribute("study_id", studyId);
 		Study study = studyRepository.findOne(studyId);
+		model.addAttribute("study", study);
 		model.addAttribute("datasets", datasetRepository.findByStudy(study));
 		return "/admin/study/new_bivariate";
 	}
@@ -509,7 +486,6 @@ public class StudyAdminController {
 		}
 		
 		return "forward:/admin/study/bivariates?study_id=" + study.getStudyId();
-		//return "forward:/admin/study/add_bivariate?study_id=1";
 	}
 	
 	private static final class DataTypeComparator implements Comparator<Field> {
