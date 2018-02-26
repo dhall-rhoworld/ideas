@@ -80,13 +80,11 @@
 	    </connectionSource>
 	  </appender>
   	
-  	<!--
 	<logger name="com.rho" level="debug"
 		additivity="false">
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="FILE-AUDIT" />
 	</logger>
-	-->
 	
 	<!--
 	<logger name="com.rho" level="info" additivity="false">

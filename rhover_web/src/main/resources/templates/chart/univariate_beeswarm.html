@@ -6,7 +6,6 @@
       th:with="currentPage='data'">
 	<head>
 	    <title>Beeswarm Chart</title> 
-	    <link rel="stylesheet" href="/rhover.css"/>
 	    <link rel="stylesheet" href="/jquery-ui.css"/>
 	    <script src="/d3.min.js"></script>
 	    <script src="/jquery-3.2.1.min.js"></script>
@@ -38,7 +37,7 @@
 			<div id="highlights_bar" class="container"/>
 			<div id="groupby_bar" class="container"/>
 		</div>
-	
+		
 		<!-- Data check parameters -->
 		<img id="img_boundary" src="/images/info.png" width="20" height="20" 
 			title="Numer of standard deviations from the mean above which a value is considered an outlier. (Current value shown as vertical dashed lines in chart). Changes to this setting will only be applied to this variable. Pressing Apply button will trigger an immediate run of the data check with the specified setting, which will also be saved and used in future data check runs."

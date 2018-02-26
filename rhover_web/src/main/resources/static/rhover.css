@@ -144,6 +144,15 @@ table.half-wide tr:nth-child(odd) {
 	background-color: #4caf50;
 }
 
+.logout-link {
+	color: black;
+	text-align: center;
+	padding: 5px 12px;
+	text-decoration: none;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 11pt;
+}
+
 .quartile-box {
 	fill: none;
 	stroke: black;
@@ -232,12 +241,6 @@ ul.paws {
 
 img.bg {
 	opacity: 0.3;
-}
-
-.container {
-	position: relative;
-	text-align: center;
-	color: white;
 }
 
 .centered-text {
@@ -368,13 +371,4 @@ ul.breadcrumb li a:hover {
 th.alternate-th {
 	background-color: CornflowerBlue;
 	color: white;
-}
-
-.logout-link {
-	color: black;
-	text-align: center;
-	padding: 5px 12px;
-	text-decoration: none;
-	font-family: Arial, Helvetica, sans-serif;
-	font-size: 11pt;
 }

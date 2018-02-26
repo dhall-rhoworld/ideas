@@ -1,5 +1,9 @@
 package com.rho.rhover.web.controller;
 
+import java.security.Principal;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,7 +96,8 @@ public class AnomalyController {
 	 * @return Page name
 	 */
 	@RequestMapping("/global_summary")
-    public String getGlobalAnomalySummary(Model model) {
+    public String getGlobalAnomalySummary(Model model, Principal user, HttpServletRequest request) {
+		//logger.info("[User: " + user.getName() + "]: " + request.getRequestURL().toString());
 		model.addAttribute("summaries", anomalySummaryBuilder.getStudySummaries());
 		return "anomaly/global_summary";
     }
