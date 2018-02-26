@@ -38,3 +38,6 @@ drop table dataset_version;
 drop table dataset;
 drop table data_location;
 drop table study;
+logging_event_exception;
+logging_event_property;
+logging_event;

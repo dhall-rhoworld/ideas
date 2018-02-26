@@ -1,5 +1,41 @@
+CREATE TABLE logging_event 
+  (
+    timestmp         BIGINT NOT NULL,
+    formatted_message  TEXT NOT NULL,
+    logger_name       VARCHAR(254) NOT NULL,
+    level_string      VARCHAR(254) NOT NULL,
+    thread_name       VARCHAR(254),
+    reference_flag    SMALLINT,
+    arg0              VARCHAR(254),
+    arg1              VARCHAR(254),
+    arg2              VARCHAR(254),
+    arg3              VARCHAR(254),
+    caller_filename   VARCHAR(254) NOT NULL,
+    caller_class      VARCHAR(254) NOT NULL,
+    caller_method     VARCHAR(254) NOT NULL,
+    caller_line       CHAR(4) NOT NULL,
+    event_id          BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY
+  );
 
-create table study (
+CREATE TABLE logging_event_property
+  (
+    event_id	      BIGINT NOT NULL,
+    mapped_key        VARCHAR(254) NOT NULL,
+    mapped_value      TEXT,
+    PRIMARY KEY(event_id, mapped_key),
+    FOREIGN KEY (event_id) REFERENCES logging_event(event_id)
+  );
+
+CREATE TABLE logging_event_exception
+  (
+    event_id         BIGINT NOT NULL,
+    i                SMALLINT NOT NULL,
+    trace_line       VARCHAR(254) NOT NULL,
+    PRIMARY KEY(event_id, i),
+    FOREIGN KEY (event_id) REFERENCES logging_event(event_id)
+  );
+  
+CREATE TABLE study (
 	study_id BIGINT AUTO_INCREMENT NOT NULL,
 	study_name VARCHAR(50) NOT NULL,
 	
@@ -23,7 +59,7 @@ create table study (
 	CONSTRAINT u_study_name UNIQUE (study_name)
 );
 
-create table data_location (
+CREATE TABLE data_location (
 	data_location_id BIGINT AUTO_INCREMENT NOT NULL,
 	folder_path VARCHAR(400) NOT NULL,
 	include_sas TINYINT NOT NULL DEFAULT 1,
@@ -36,7 +72,7 @@ create table data_location (
 	CONSTRAINT u_data_location_folder_path_study_id UNIQUE (folder_path, study_id)
 );
 
-create table dataset (
+CREATE TABLE dataset (
 	dataset_id BIGINT AUTO_INCREMENT NOT NULL,
 	dataset_name VARCHAR(50) NOT NULL,
 	file_path VARCHAR(400) NOT NULL,
@@ -53,7 +89,7 @@ create table dataset (
 	CONSTRAINT u_dataset_name_study_id UNIQUE (dataset_name, study_id)
 );
 
-create table dataset_version (
+CREATE TABLE dataset_version (
 	dataset_version_id BIGINT AUTO_INCREMENT NOT NULL,
 	dataset_version_name VARCHAR(50) NOT NULL,
 	is_current TINYINT NOT NULL,
@@ -67,7 +103,7 @@ create table dataset_version (
 	CONSTRAINT u_dataset_version_name_dataset_id UNIQUE (dataset_version_name, dataset_id)
 );
 
-create table data_stream (
+CREATE TABLE data_stream (
 	data_stream_id BIGINT AUTO_INCREMENT NOT NULL,
 	data_stream_name VARCHAR(50) NOT NULL,
 	study_id BIGINT NOT NULL,
@@ -77,7 +113,7 @@ create table data_stream (
 	CONSTRAINT u_data_stream_name_study_id UNIQUE (data_stream_name, study_id)
 );
 
-create table dataset_version_stream (
+CREATE TABLE dataset_version_stream (
 	dataset_version_id BIGINT NOT NULL,
 	data_stream_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -88,7 +124,7 @@ create table dataset_version_stream (
 		FOREIGN KEY (data_stream_id) REFERENCES data_stream(data_stream_id)
 );
 
-create table site (
+CREATE TABLE site (
 	site_id BIGINT AUTO_INCREMENT NOT NULL,
 	site_name VARCHAR(200) NOT NULL,
 	study_id BIGINT NOT NULL,
@@ -98,7 +134,7 @@ create table site (
 	CONSTRAINT u_site_name_study_id UNIQUE (site_name, study_id)
 );
 
-create table subject (
+CREATE TABLE subject (
 	subject_id BIGINT AUTO_INCREMENT NOT NULL,
 	subject_name VARCHAR(50) NOT NULL,
 	site_id BIGINT,
@@ -108,7 +144,7 @@ create table subject (
 	CONSTRAINT u_subject_name_site_id UNIQUE (subject_name, site_id)
 );
 
-create table phase (
+CREATE TABLE phase (
 	phase_id BIGINT AUTO_INCREMENT NOT NULL,
 	phase_name VARCHAR(200) NOT NULL,
 	study_id BIGINT NOT NULL,
@@ -117,7 +153,7 @@ create table phase (
 	CONSTRAINT fk_phase_study FOREIGN KEY (study_id) REFERENCES study(study_id)
 );
 
-create table dataset_version_phase (
+CREATE TABLE dataset_version_phase (
 	dataset_version_id BIGINT NOT NULL,
 	phase_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -128,7 +164,7 @@ create table dataset_version_phase (
 		REFERENCES phase(phase_id)
 );
 
-create table field (
+CREATE TABLE field (
 	field_id BIGINT AUTO_INCREMENT NOT NULL,
 	field_name VARCHAR(200) NOT NULL,
 	field_label VARCHAR(400) NOT NULL,
@@ -161,7 +197,7 @@ alter table study
 add CONSTRAINT fk_study_2_field_record
 FOREIGN KEY (record_id_field_id) REFERENCES field(field_id);
 
-create table csv_data (
+CREATE TABLE csv_data (
 	csv_data_id BIGINT AUTO_INCREMENT NOT NULL,
 	field_id BIGINT NOT NULL,
 	dataset_id BIGINT NOT NULL,
@@ -171,7 +207,7 @@ create table csv_data (
 	CONSTRAINT fk_csv_data_2_dataset FOREIGN KEY (dataset_id) REFERENCES dataset(dataset_id)
 );
 
-create table dataset_version_field (
+CREATE TABLE dataset_version_field (
 	dataset_version_id BIGINT NOT NULL,
 	field_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -182,7 +218,7 @@ create table dataset_version_field (
 		FOREIGN KEY (field_id) REFERENCES field (field_id)
 );
 
-create table study_db_version (
+CREATE TABLE study_db_version (
 	study_db_version_id BIGINT AUTO_INCREMENT NOT NULL,
 	study_db_version_name VARCHAR(50) NOT NULL,
 	study_id BIGINT NOT NULL,
@@ -193,7 +229,7 @@ create table study_db_version (
 	CONSTRAINT u_study_db_version_name_study_id UNIQUE (study_db_version_name, study_id)
 );
 
-create table study_db_version_config (
+CREATE TABLE study_db_version_config (
 	study_db_version_id BIGINT NOT NULL,
 	dataset_version_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -202,7 +238,7 @@ create table study_db_version_config (
 	CONSTRAINT fk_study_db_version_config_2_dataset_version FOREIGN KEY (dataset_version_id) REFERENCES dataset_version(dataset_version_id)
 );
 
-create table loader_issue (
+CREATE TABLE loader_issue (
 	loader_issue_id BIGINT AUTO_INCREMENT NOT NULL,
 	message VARCHAR(500),
 	stack_trace TEXT,
@@ -214,7 +250,7 @@ create table loader_issue (
 		REFERENCES dataset_version(dataset_version_id)
 );
 
-create table field_instance (
+CREATE TABLE field_instance (
 	field_instance_id BIGINT AUTO_INCREMENT NOT NULL,
 	field_id BIGINT NOT NULL,
 	dataset_id BIGINT NOT NULL,
@@ -228,7 +264,7 @@ create table field_instance (
 	CONSTRAINT u_field_instance UNIQUE (field_id, dataset_id)
 );
 
-create table merge_field (
+CREATE TABLE merge_field (
 	merge_field_id BIGINT AUTO_INCREMENT NOT NULL,
 	field_instance_id_1 BIGINT NOT NULL,
 	field_instance_id_2 BIGINT NOT NULL,
@@ -242,7 +278,7 @@ create table merge_field (
 	CONSTRAINT u_merge_field UNIQUE (field_instance_id_1, field_instance_id_2)
 );
 
-create table correlation (
+CREATE TABLE correlation (
 	correlation_id BIGINT AUTO_INCREMENT NOT NULL,
 	field_instance_id_1 BIGINT NOT NULL,
 	field_instance_id_2 BIGINT NOT NULL,
@@ -257,7 +293,7 @@ create table correlation (
 		REFERENCES study(study_id)
 );
 
-create table checks (
+CREATE TABLE checks (
 	check_id BIGINT AUTO_INCREMENT NOT NULL,
 	check_name VARCHAR(50) NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -271,7 +307,7 @@ values('UNIVARIATE_OUTLIER');
 insert into checks(check_name)
 values('BIVARIATE_OUTLIER');
 
-create table bivariate_check (
+CREATE TABLE bivariate_check (
 	bivariate_check_id BIGINT AUTO_INCREMENT NOT NULL,
 	x_field_instance_id BIGINT NOT NULL,
 	y_field_instance_id BIGINT NOT NULL,
@@ -288,7 +324,7 @@ create table bivariate_check (
 		REFERENCES study(study_id)
 );
 
-create table check_param (
+CREATE TABLE check_param (
 	check_param_id BIGINT AUTO_INCREMENT NOT NULL,
 	param_name VARCHAR(50) NOT NULL,
 	param_value VARCHAR(50) NOT NULL,
@@ -332,7 +368,7 @@ values('sd-density', '6', 'GLOBAL', (select check_id from checks where check_nam
 insert into check_param (param_name, param_value, param_scope, check_id)
 values('min-bivariate', '25', 'GLOBAL', (select check_id from checks where check_name = 'BIVARIATE_OUTLIER'));
 
-create table check_run (
+CREATE TABLE check_run (
 	check_run_id BIGINT AUTO_INCREMENT NOT NULL,
 	dataset_version_id BIGINT NOT NULL,
 	dataset_version_2_id BIGINT,
@@ -352,7 +388,7 @@ create table check_run (
 		REFERENCES bivariate_check(bivariate_check_id)
 );
 
-create table param_used (
+CREATE TABLE param_used (
 	param_used_id BIGINT AUTO_INCREMENT NOT NULL,
 	param_name VARCHAR(50) NOT NULL,
 	param_value VARCHAR(50) NOT NULL,
@@ -363,7 +399,7 @@ create table param_used (
 		REFERENCES check_run (check_run_id)
 );
 
-create table observation (
+CREATE TABLE observation (
 	observation_id BIGINT AUTO_INCREMENT NOT NULL,
 	dataset_id BIGINT NOT NULL,
 	subject_id BIGINT NOT NULL,
@@ -377,7 +413,7 @@ create table observation (
 	CONSTRAINT u_observation UNIQUE (dataset_id, subject_id, phase_id, record_id)
 );
 
-create table datum (
+CREATE TABLE datum (
 	datum_id BIGINT AUTO_INCREMENT NOT NULL,
 	field_id BIGINT NOT NULL,
 	observation_id BIGINT NOT NULL,
@@ -388,7 +424,7 @@ create table datum (
 	CONSTRAINT u_field_observation UNIQUE (field_id, observation_id)
 );
 
-create table datum_version (
+CREATE TABLE datum_version (
 	datum_version_id BIGINT AUTO_INCREMENT NOT NULL,
 	value VARCHAR(50),
 	is_current TINYINT NOT NULL DEFAULT 0,
@@ -398,7 +434,7 @@ create table datum_version (
 	CONSTRAINT fk_datum_version_2_datum FOREIGN KEY (datum_id) REFERENCES datum (datum_id)
 );
 
-create table datum_dataset_version (
+CREATE TABLE datum_dataset_version (
 	datum_version_id BIGINT NOT NULL,
 	dataset_version_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -409,7 +445,7 @@ create table datum_dataset_version (
 		REFERENCES dataset_version(dataset_version_id)
 );
 
-create table anomaly (
+CREATE TABLE anomaly (
 	anomaly_id BIGINT AUTO_INCREMENT NOT NULL,
 	subject_id BIGINT NOT NULL,
 	site_id BIGINT NOT NULL,
@@ -434,7 +470,7 @@ create table anomaly (
 	CONSTRAINT fk_anomaly_2_field_instance_2 FOREIGN KEY (field_instance_2_id) REFERENCES field_instance(field_instance_id)
 );
 
-create table anomaly_datum_version (
+CREATE TABLE anomaly_datum_version (
 	anomaly_id BIGINT NOT NULL,
 	datum_version_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -443,7 +479,7 @@ create table anomaly_datum_version (
 	CONSTRAINT fk_anomaly_datum_version_2_datum_version FOREIGN KEY (datum_version_id) REFERENCES datum_version(datum_version_id)
 );
 
-create table anomaly_datum_version_2 (
+CREATE TABLE anomaly_datum_version_2 (
 	anomaly_id BIGINT NOT NULL,
 	datum_version_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -452,7 +488,7 @@ create table anomaly_datum_version_2 (
 	CONSTRAINT fk_anomaly_datum_version_2_2_datum_version FOREIGN KEY (datum_version_id) REFERENCES datum_version(datum_version_id)
 );
 
-create table anomaly_check_run (
+CREATE TABLE anomaly_check_run (
 	anomaly_id BIGINT NOT NULL,
 	check_run_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -461,7 +497,7 @@ create table anomaly_check_run (
 	CONSTRAINT fk_anomaly_check_run_2_check_run FOREIGN KEY (check_run_id) REFERENCES check_run(check_run_id)
 );
 
-create table data_property (
+CREATE TABLE data_property (
 	data_property_id BIGINT AUTO_INCREMENT NOT NULL,
 	data_property_name VARCHAR(50),
 	data_property_value VARCHAR(50),
