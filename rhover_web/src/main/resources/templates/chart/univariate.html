@@ -33,9 +33,9 @@
 	<div layout:fragment="page_content" id="page_content">
 	
 		<div class="container">
-			<div id="filters_bar" class="container"></div>
-			<div id="highlights_bar" class="container"></div>
-			<div id="groupby_bar" class="container"></div>
+			<div id="filters_bar" class="container"/>
+			<div id="highlights_bar" class="container"/>
+			<div id="groupby_bar" class="container"/>
 		</div>
 		
 		<!-- Data check parameters -->
@@ -48,11 +48,11 @@
 	
 		<!-- Chart -->
 		<div>
-			<svg></svg>
+			<svg/>
 		</div>
 
 		<!-- X-axis label -->
-		<h3 th:text="${field.fieldLabel}"></h3>
+		<h3 th:text="${field.fieldLabel}"/>
 	</div>
 	<!-- End main content -->
 		
@@ -61,7 +61,7 @@
 	
 		<!-- Dialog for showing data selected by user -->
 		<div id="dialog_data">
-    		<table id="dialog_data_table" class="wide"></table>
+    		<table id="dialog_data_table" class="wide"/>
     	</div>
     	
     	<!-- Dialog for navigating to other charts -->

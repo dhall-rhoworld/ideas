@@ -140,7 +140,6 @@ table.half-wide tr:nth-child(odd) {
 }
 
 .active-menu-item {
-	/*text-decoration: underline;*/
 	background-color: #4caf50;
 }
 
