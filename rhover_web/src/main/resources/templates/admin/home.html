@@ -1,0 +1,20 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="/base"
+      th:with="currentPage='administration'">
+      
+    <!-- Title -->
+	<head> 
+	    <title>Administration</title> 
+	</head>
+	
+	<!-- Content -->
+    <div layout:fragment="page_content" id="page_content">
+    	<h2>Administration</h2>
+    	<a href="/admin/log">
+    		<img src="/images/log-file.png"/>
+    	</a>
+    </div>
+</html>

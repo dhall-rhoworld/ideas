@@ -98,6 +98,8 @@ public class AnomalyController {
 	@RequestMapping("/global_summary")
     public String getGlobalAnomalySummary(Model model, Principal user, HttpServletRequest request) {
 		//logger.info("[User: " + user.getName() + "]: " + request.getRequestURL().toString());
+		int[] array = new int[1];
+		int temp = array[10];
 		model.addAttribute("summaries", anomalySummaryBuilder.getStudySummaries());
 		return "anomaly/global_summary";
     }

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head>
+        <title>Error</title>
+        <link rel="stylesheet" href="/rhover.css"/>
+		<link rel="icon" type="image/png" href="/images/rover-favicon.png" />
+    </head>
+    <body>
+    
+    	<div id="content">
+	    	<div class="page-header">
+				<img src="/images/green-dog.png"/>RhoVer
+			</div>
+			
+	    	<h2>A system error has occurred</h2>
+	    	<p>
+	    		The administrator of the system has been notified.
+	    	</p>
+	    	<p>
+	    		Error message: <span th:text="${message}"/>
+	    	</p>
+	    	<p>
+	    		<button type="button" onclick="window.location.href='/'">OK</button>
+	    	</p>
+    	</div>
+    </body>
+</html>

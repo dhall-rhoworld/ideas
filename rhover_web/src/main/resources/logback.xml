@@ -8,7 +8,7 @@
 	<property name="user" value="rhover"/>
 	<property name="password" value="rhover"/>
 
-	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
 		<layout class="ch.qos.logback.classic.PatternLayout">
 			<Pattern>
 				%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
@@ -21,7 +21,8 @@
 		<file>${LOG_HOME}/debug.log</file>
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<Pattern>
-				%d{yyyy-MM-dd HH:mm:ss} - %msg%n
+				<!-- %d{yyyy-MM-dd HH:mm:ss} - %msg%n -->
+				%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n
 			</Pattern>
 		</encoder>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -80,20 +81,13 @@
 	    </connectionSource>
 	  </appender>
   	
-	<logger name="com.rho" level="debug"
-		additivity="false">
-		<appender-ref ref="STDOUT" />
-		<appender-ref ref="FILE-AUDIT" />
+	<logger name="com.rho" level="info" additivity="true">
+		<appender-ref ref="DB" />
 	</logger>
 	
-	<!--
-	<logger name="com.rho" level="info" additivity="false">
-		<appender-ref ref="DB"/>
-	</logger>
-	-->
-
 	<root level="info">
-		<appender-ref ref="STDOUT" />
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="FILE-AUDIT" />
 	</root>
 
 </configuration>

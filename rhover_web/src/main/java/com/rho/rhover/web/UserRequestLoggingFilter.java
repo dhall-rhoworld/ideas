@@ -35,7 +35,7 @@ public class UserRequestLoggingFilter implements Filter {
 			throws IOException, ServletException {
 		HttpServletRequest httpRequest = (HttpServletRequest)request;
 		String url = httpRequest.getRequestURL().toString();
-		if (url.endsWith(".css") || url.endsWith(".js") || url.endsWith(".png") || url.endsWith(".jpg")) {
+		if (url.endsWith(".css") || url.endsWith(".js") || url.endsWith(".png") || url.endsWith(".jpg") || url.endsWith(".ico")) {
 			chain.doFilter(request, response);
 			return;
 		}

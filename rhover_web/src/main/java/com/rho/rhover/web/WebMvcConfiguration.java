@@ -14,8 +14,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 @Configuration
 @ComponentScan("com.rho.rhover")
-@EnableJpaRepositories(basePackages = {"com.rho.rhover.common"})
-@EntityScan("com.rho.rhover.common")
+@EnableJpaRepositories(basePackages = {"com.rho.rhover.common", "com.rho.rhover.web"})
+@EntityScan({"com.rho.rhover.common", "com.rho.rhover.web"})
 public class WebMvcConfiguration extends WebMvcConfigurerAdapter {
 	
 	@Autowired
