@@ -4,8 +4,6 @@ import java.security.Principal;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -45,8 +43,6 @@ import com.rho.rhover.web.dto.AnomalySummaryBuilder;
 @Controller
 @RequestMapping("/anomaly")
 public class AnomalyController {
-	
-	private Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	@Autowired
 	private FieldRepository fieldRepository;
@@ -97,9 +93,6 @@ public class AnomalyController {
 	 */
 	@RequestMapping("/global_summary")
     public String getGlobalAnomalySummary(Model model, Principal user, HttpServletRequest request) {
-		//logger.info("[User: " + user.getName() + "]: " + request.getRequestURL().toString());
-		int[] array = new int[1];
-		int temp = array[10];
 		model.addAttribute("summaries", anomalySummaryBuilder.getStudySummaries());
 		return "anomaly/global_summary";
     }

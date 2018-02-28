@@ -22,6 +22,17 @@
     <div layout:fragment="page_content" id="page_content">
     	<h2>System Log</h2>
     	
+    	<div class="paginator">
+    		Page
+    		<a th:href="@{/admin/log(pageNum=1)}" th:if="${pageNum > 1}">&lt;</a>
+    		<span th:each="page : ${pages}">
+    			&nbsp;
+    			<a th:href="@{/admin/log(pageNum=${page})}" th:if="${page != pageNum}" th:text="${page}"/>
+    			<span th:if="${page == pageNum}" th:text="${page}"/>
+    		</span>
+    		&nbsp;
+    		<a th:href="@{/admin/log(pageNum=${numPages})}" th:if="${pageNum < numPages}">&gt;</a>
+    	</div>
     	<table class="wide">
     		<tr>
     			<th>Time</th>

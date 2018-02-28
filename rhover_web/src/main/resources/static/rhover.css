@@ -371,3 +371,7 @@ th.alternate-th {
 	background-color: CornflowerBlue;
 	color: white;
 }
+
+.paginator {
+	padding: 5px;
+}
