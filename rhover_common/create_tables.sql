@@ -521,7 +521,9 @@ si.site_id as site_id,
 si.site_name as site_name,
 p.phase_id as phase_id,
 p.phase_name as phase_name,
-a.record_id as record_id
+a.record_id as record_id,
+a.is_an_issue as is_an_issue,
+qc.query_candidate_id as query_candidate_id
 from anomaly a
 join subject s on s.subject_id = a.subject_id
 join phase p on p.phase_id = a.phase_id
@@ -529,7 +531,8 @@ join site si on si.site_id = a.site_id
 join field f on f.field_id = a.field_id 
 join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id
 join anomaly_datum_version adv on adv.anomaly_id = a.anomaly_id
-join datum_version dv on dv.datum_version_id = adv.datum_version_id;
+join datum_version dv on dv.datum_version_id = adv.datum_version_id
+left join query_candidate qc on qc.anomaly_id = a.anomaly_id;
 
 create or replace view bivariate_anomaly as
 select acr.check_run_id as check_run_id,
@@ -560,4 +563,18 @@ join anomaly_datum_version adv1 on adv1.anomaly_id = a.anomaly_id
 join anomaly_datum_version adv2 on adv2.anomaly_id = a.anomaly_id
 join datum_version dv1 on dv1.datum_version_id = adv1.datum_version_id
 join datum_version dv2 on dv2.datum_version_id = adv2.datum_version_id;
+
+CREATE TABLE query_candidate (
+	query_candidate_id BIGINT AUTO_INCREMENT NOT NULL,
+	anomaly_id BIGINT NOT NULL,
+	created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	created_by VARCHAR(50),
+	is_active TINYINT NOT NULL DEFAULT 1,
+	deactivated_on TIMESTAMP,
+	deactivated_by VARCHAR(50),
+	modified_by VARCHAR(50),
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_query_candidate PRIMARY KEY (query_candidate_id),
+	CONSTRAINT fk_query_candidate_2_anomaly FOREIGN KEY (anomaly_id) REFERENCES anomaly(anomaly_id)
+);
 

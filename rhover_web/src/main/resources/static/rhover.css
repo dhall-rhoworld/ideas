@@ -74,7 +74,7 @@ table.half-wide tr:nth-child(odd) {
 }
 
 .inlier {
-	stroke: green;
+	stroke: CornflowerBlue;
 	stroke-width: 1;
 	/*fill: none;*/
 }
@@ -86,11 +86,20 @@ table.half-wide tr:nth-child(odd) {
 }
 
 .inlier-selected {
-	fill: green;
+	fill: black;
 }
 
 .outlier-selected {
 	fill: red;
+}
+
+.under-query {
+	stroke: black;
+	stroke-width: 2;
+}
+
+.under-query-selected {
+	fill: black;
 }
 
 .deselected {

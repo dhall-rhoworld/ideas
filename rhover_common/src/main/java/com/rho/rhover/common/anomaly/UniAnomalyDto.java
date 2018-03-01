@@ -23,7 +23,7 @@ public class UniAnomalyDto extends AnomalyDto implements Comparable<UniAnomalyDt
 
 	public UniAnomalyDto(Long checkRunId, Long anomalyId, Long fieldId, String fieldName, String anomalousValue,
 			Long phaseId, String phaseName, Long subjectId, String subjectName, Long siteId, String siteName,
-			String recordId) {
+			String recordId, Boolean isAnIssue, Long queryCandidateId) {
 		super();
 		this.checkRunId = checkRunId;
 		this.anomalyId = anomalyId;
@@ -37,6 +37,8 @@ public class UniAnomalyDto extends AnomalyDto implements Comparable<UniAnomalyDt
 		this.siteId = siteId;
 		this.siteName = siteName;
 		this.recordId = recordId;
+		this.isAnIssue = isAnIssue;
+		this.queryCandidateId = queryCandidateId;
 	}
 
 

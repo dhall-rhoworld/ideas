@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.rho.rhover.common.anomaly.Anomaly;
+import com.rho.rhover.common.anomaly.AnomalyRepository;
 import com.rho.rhover.common.anomaly.AnomalyRepositoryOld;
 import com.rho.rhover.common.check.CheckRun;
 import com.rho.rhover.common.check.CheckRunRepository;
@@ -29,7 +31,10 @@ public class AnomalyRestController {
 	private StudyDataRepository studyDataRepository;
 	
 	@Autowired
-	private AnomalyRepositoryOld anomalyRepository;
+	private AnomalyRepository anomalyRepository;
+	
+	@Autowired
+	private AnomalyRepositoryOld anomalyRepositoryOld;
 	
 	@Autowired
 	private CsvDataService csvDataService;
@@ -46,6 +51,7 @@ public class AnomalyRestController {
 		return new ResponseEntity<String>(data, headers, HttpStatus.OK);
 	}
 	
+	// TODO: Consider moving to DataController
 	@RequestMapping("/data/univariate_outliers")
 	public String getUnivariateOutliers(@RequestParam("check_run_id") Long checkRunId) {
 		CheckRun checkRun = checkRunRepository.findOne(checkRunId);
@@ -70,13 +76,14 @@ public class AnomalyRestController {
 	
 	@RequestMapping("/not_an_issue")
 	public ResponseEntity<Integer> notAnIssue(@RequestParam("anomaly_ids") String anomalyIds) {
+		logger.info("Not an issue");
 		String[] ids = anomalyIds.split(",");
-		List<Long> idList = new ArrayList<>();
-		for (int i = 0; i < ids.length; i++) {
-			idList.add(Long.parseLong(ids[i]));
+		for (String id : ids) {
+			Anomaly anomaly = anomalyRepository.findOne(new Long(id));
+			anomaly.setIsAnIssue(Boolean.FALSE);
+			anomalyRepository.save(anomaly);
 		}
-		int numUpdated = anomalyRepository.setIsAnIssue(idList, false);
-		return new ResponseEntity<Integer>(numUpdated, HttpStatus.OK);
+		return new ResponseEntity<Integer>(ids.length, HttpStatus.OK);
 	}
 	
 	// TODO: Complete functionality so that inliers can marked as issues in database.
@@ -87,7 +94,7 @@ public class AnomalyRestController {
 			@RequestParam("events") String eventString) {
 		String[] recruitIds = recruitIdString.split(",");
 		String[] events = eventString.replaceAll("%26", "&").split(",");
-		anomalyRepository.setIsAnIssue(dataFieldId, recruitIds, events, true);
+		anomalyRepositoryOld.setIsAnIssue(dataFieldId, recruitIds, events, true);
 		return new ResponseEntity<Integer>(0, HttpStatus.OK);
 	}
 	

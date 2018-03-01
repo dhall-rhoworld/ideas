@@ -1,3 +1,4 @@
+delete from query_candidate;
 delete from data_property;
 delete from anomaly_check_run;
 delete from anomaly_datum_version;

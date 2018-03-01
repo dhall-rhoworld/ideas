@@ -1,0 +1,53 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="/base"
+      th:with="currentPage='query'">
+	<head> 
+	    <title>Query List</title> 
+	    
+	    
+	</head>
+
+	<!-- Content -->
+    <div layout:fragment="page_content" id="page_content">
+    	<p>
+    		<strong>Note:</strong> RhoVer does not actually submit queries to Rave at this time.  This page is
+    		simply the list of data issues flagged by users when visualizing data anomalies. 
+    	</p>
+    	
+    	<div th:each="study : ${studySet}">
+    		<h2 th:text="${study.studyName}"/>
+	    	<table class="wide">
+	    		<tr>
+	    			<th th:text="${study.formFieldName}"/>
+	    			<th th:text="${study.siteFieldName}"/>
+	    			<th th:text="${study.phaseFieldName}"/>
+	    			<th th:text="${study.subjectFieldName}"/>
+	    			<th th:text="${study.recordIdFieldName}"/>
+	    			<th>Field</th>
+	    			<th>Value</th>
+	    		</tr>
+	    		<tr th:each="query : ${queryMap.get(study.studyName)}">
+	    			<!--
+	    			<td th:text="${query.anomaly.fieldInstance.dataset.datasetName}"/>
+	    			<td th:text="${query.anomaly.site.siteName}"/>
+	    			<td th:text="${query.anomaly.phase.phaseName}"/>
+	    			<td th:text="${query.anomaly.subject.subjectName}"/>
+	    			<td th:text="${query.anomaly.recordId}"/>
+	    			<td th:text="${query.anomaly.fieldInstance.field.displayName}"/>
+	    			<td th:text="${query.anomaly.currentDatumVersion.value}"/>
+	    			-->
+	    			<td th:text="${query.anomaly.fieldInstance.dataset.datasetName}"/>
+	    			<td th:text="${query.anomaly.site.siteName}"/>
+	    			<td th:text="${query.anomaly.phase.phaseName}"/>
+	    			<td th:text="${query.anomaly.subject.subjectName}"/>
+	    			<td th:text="${query.anomaly.recordId}"/>
+	    			<td th:text="${query.anomaly.field.displayName}"/>
+	    			<td th:text="${query.anomaly.currentDatumVersion.value}"/>
+	    		</tr>
+	    	</table>
+    	</div>
+    </div>
+</html>

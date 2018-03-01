@@ -11,6 +11,8 @@ public class AnomalyDto {
 	protected Long siteId;
 	protected String siteName;
 	protected String recordId;
+	protected Boolean isAnIssue;
+	protected Long queryCandidateId;
 
 	public AnomalyDto() {
 		super();
@@ -86,6 +88,22 @@ public class AnomalyDto {
 
 	public void setRecordId(String recordId) {
 		this.recordId = recordId;
+	}
+
+	public Boolean getIsAnIssue() {
+		return isAnIssue;
+	}
+
+	public void setIsAnIssue(Boolean isAnIssue) {
+		this.isAnIssue = isAnIssue;
+	}
+
+	public Long getQueryCandidateId() {
+		return queryCandidateId;
+	}
+
+	public void setQueryCandidateId(Long queryCandidateId) {
+		this.queryCandidateId = queryCandidateId;
 	}
 
 }

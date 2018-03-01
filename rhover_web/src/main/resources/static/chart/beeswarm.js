@@ -60,6 +60,17 @@ let max = NaN;
 // FUNCTIONS INVOKED BY CLIENT WEB PAGE
 //
 
+function switchClass(data, oldClass, newClass) {
+	data.forEach(function(datum) {
+		let id = "#point-" + datum[recordIdField];
+		let element = d3.select(id);
+		if (element.classed(oldClass)) {
+			element.classed(oldClass, false);
+			element.classed(newClass, true);
+		}
+	});
+}
+
 /**
  * Set data filters.
  * 
@@ -269,6 +280,7 @@ function onBrushStart() {
 		.classed("selected", false)
 		.classed("inlier-selected", false)
 		.classed("outlier-selected", false)
+		.classed("under-query-selected", false)
 		.classed("deselected", true);
 }
 
@@ -280,6 +292,7 @@ function onBrush() {
 		.classed("selected", false)
 		.classed("inlier-selected", false)
 		.classed("outlier-selected", false)
+		.classed("under-query-selected", false)
 		.classed("deselected", true);
 	const brushCoords = d3.brushSelection(this);
 	const selectedPoints = svg.selectAll(".data-point").filter(function() {
@@ -293,6 +306,9 @@ function onBrush() {
 	selectedPoints.classed("outlier-selected", function() {
 		return d3.select(this).classed("outlier");
 	});
+	selectedPoints.classed("under-query-selected", function() {
+		return d3.select(this).classed("under-query");
+	})
 }
 
 function onBrushEnd() {
@@ -303,11 +319,17 @@ function onBrushEnd() {
 }
 
 function isOutlier(dataPoint) {
-	return dataPoint["anomaly_id"] > 0;
+	return dataPoint["anomaly_id"] > 0
+		&& dataPoint["query_candidate_id"] == 0
+		&& dataPoint["is_an_issue"] == "true";
 }
 
 function isInlier(dataPoint) {
-	return dataPoint["anomaly_id"] == 0;
+	return dataPoint["anomaly_id"] == 0 || dataPoint["is_an_issue"] == "false";
+}
+
+function isUnderQuery(dataPoint) {
+	return dataPoint["query_candidate_id"] > 0;
 }
 
 function isBackground(dataPoint) {
@@ -377,10 +399,14 @@ function drawDataPoints() {
 			return yCoordinate(d);
 		})
 		.attr("r", CIRCUMFERENCE)
+		.attr("id", function(d) {
+			return "point-" + d[recordIdField];
+		})
 		.classed("data-point", true)
 		.classed("deselected", true)
 		.classed("outlier", isOutlier)
 		.classed("inlier", isInlier)
+		.classed("under-query", isUnderQuery)
 		.classed("background", isBackground);
 
 	// Update
@@ -470,7 +496,7 @@ function renderBeeswarm(dataUrl, fieldName, idField, mean, sd, numSd, handler) {
 	
 	d3.csv(dataUrl, function(d) {
 		data = d;
-		//console.log(data);
+		console.log(data);
 		
 		// Set extent of data and chart areas on the screen
 		min = data[0][fieldToPlot];
@@ -513,10 +539,14 @@ function renderBeeswarm(dataUrl, fieldName, idField, mean, sd, numSd, handler) {
 				return yCoordinate(d);
 			})
 			.attr("r", CIRCUMFERENCE)
+			.attr("id", function(d) {
+				return "point-" + d[recordIdField];
+			})
 			.classed("data-point", true)
 			.classed("deselected", true)
 			.classed("outlier", isOutlier)
 			.classed("inlier", isInlier)
+			.classed("under-query", isUnderQuery)
 			.classed("background", isBackground);
 		
 		// Drawn any overflows
@@ -573,10 +603,14 @@ function reRenderBeeswarm() {
 			return panel.midY;
 		})
 		.attr("r", CIRCUMFERENCE)
+		.attr("id", function(d) {
+			return "point-" + d[recordIdField];
+		})
 		.classed("data-point", true)
 		.classed("deselected", true)
 		.classed("outlier", isOutlier)
 		.classed("inlier", isInlier)
+		.classed("under-query", isUnderQuery)
 		.classed("background", isBackground);
 	
 	enteringPoints

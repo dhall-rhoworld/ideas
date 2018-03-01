@@ -315,7 +315,7 @@ public class CheckServiceImpl implements CheckService {
 				}
 				if (anomaly == null) {
 					//logger.debug("Creating new anomaly");
-					FieldInstance fieldInstance = fieldInstanceRepository.findByFieldAndDataset(field2, datasetVersion.getDataset());
+					FieldInstance fieldInstance = fieldInstanceRepository.findByFieldAndDataset(field, datasetVersion.getDataset());
 					anomaly = new Anomaly();
 					anomaly.setCheck(check);
 					anomaly.getDatumVersions().add(datumVersion);

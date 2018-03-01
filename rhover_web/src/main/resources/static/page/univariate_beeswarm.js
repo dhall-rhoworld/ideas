@@ -313,6 +313,8 @@ function onClickShowData() {
 	const data = getSelectedData();
 	let varNames = Object.keys(data[0]);
 	varNames.splice(varNames.indexOf("anomaly_id"), 1);
+	varNames.splice(varNames.indexOf("is_an_issue"), 1);
+	varNames.splice(varNames.indexOf("query_candidate_id"), 1);
 	varNames.splice(varNames.indexOf("__y__"), 1);
 	let html = "<tr>";
 	for (var i in varNames) {
@@ -353,6 +355,45 @@ function onClickShowData() {
 	$("#dialog_data").dialog("open");
 }
 
+function onClickQuery() {
+	const data = getSelectedData();
+	let anomalyIds = "anomaly_ids=";
+	for (let i = 0; i < data.length; i++) {
+		if (i > 0) {
+			anomalyIds += ","
+		}
+		anomalyIds += data[i].anomaly_id;
+	}
+	const url = "/rest/query/add";
+	$.post(url, anomalyIds)
+		.done(function() {
+			switchClass(data, "outlier", "under-query");
+			switchClass(data, "outlier-selected", "under-query-selected");
+		})
+		.fail(function() {
+			console.log("Error");
+		});
+}
+
+function onClickNotIssue() {
+	const data = getSelectedData();
+	let anomalyIds = "anomaly_ids=";
+	for (let i = 0; i < data.length; i++) {
+		if (i > 0) {
+			anomalyIds += ","
+		}
+		anomalyIds += data[i].anomaly_id;
+	}
+	const url = "/rest/anomaly/not_an_issue";
+	$.post(url, anomalyIds)
+		.done(function() {
+			switchClass(data, "outlier", "inlier");
+			switchClass(data, "outlier-selected", "inlier-selected");
+		})
+		.fail(function() {
+			console.log("Error");
+		});
+}
 
 $(function() {
 	initializeDialogs();
@@ -397,6 +438,12 @@ $(function() {
 			}
 			else if (key == "data") {
 				onClickShowData();
+			}
+			else if (key == "query") {
+				onClickQuery();
+			}
+			else if (key == "notissue") {
+				onClickNotIssue();
 			}
 		}
 	});

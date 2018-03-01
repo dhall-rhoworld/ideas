@@ -15,7 +15,7 @@ public class UniAnomalyDtoRepositoryImpl extends AnomalyDtoRepositoryImpl implem
 	public List<UniAnomalyDto> findByCheckRunId(Long checkRunId) {
 		String sql = 
 				"select check_run_id, anomaly_id, field_id, field_name, anomalous_value, " +
-				"phase_id, phase_name, subject_id, subject_name, site_id, site_name, record_id " +
+				"phase_id, phase_name, subject_id, subject_name, site_id, site_name, record_id, is_an_issue, query_candidate_id " +
 				"from uni_anomaly_dto " +
 				"where check_run_id = " + checkRunId;
 		return (List<UniAnomalyDto>)queryAndMarkAsVeiwed(sql, new UniAnomalyDtoResultSetMapper());
@@ -26,7 +26,7 @@ public class UniAnomalyDtoRepositoryImpl extends AnomalyDtoRepositoryImpl implem
 	public List<UniAnomalyDto> findByCheckRunIdAndSiteId(Long checkRunId, Long siteId) {
 		String sql = 
 				"select check_run_id, anomaly_id, field_id, field_name, anomalous_value, " +
-				"phase_id, phase_name, subject_id, subject_name, site_id, site_name, record_id " +
+				"phase_id, phase_name, subject_id, subject_name, site_id, site_name, record_id, is_an_issue, query_candidate_id " +
 				"from uni_anomaly_dto " +
 				"where check_run_id = " + checkRunId + " " +
 				"and site_id = " + siteId;
@@ -38,7 +38,7 @@ public class UniAnomalyDtoRepositoryImpl extends AnomalyDtoRepositoryImpl implem
 	public List<UniAnomalyDto> findByCheckRunIdAndSubjectId(Long checkRunId, Long subjectId) {
 		String sql = 
 				"select check_run_id, anomaly_id, field_id, field_name, anomalous_value, " +
-				"phase_id, phase_name, subject_id, subject_name, site_id, site_name, record_id " +
+				"phase_id, phase_name, subject_id, subject_name, site_id, site_name, record_id, is_an_issue, query_candidate_id " +
 				"from uni_anomaly_dto " +
 				"where check_run_id = " + checkRunId + " " +
 				"and subject_id = " + subjectId;
@@ -61,7 +61,9 @@ public class UniAnomalyDtoRepositoryImpl extends AnomalyDtoRepositoryImpl implem
 					rs.getString(9),
 					rs.getLong(10),
 					rs.getString(11),
-					rs.getString(12));
+					rs.getString(12),
+					rs.getBoolean(13),
+					rs.getLong(14));
 			return dto;
 		}
 		

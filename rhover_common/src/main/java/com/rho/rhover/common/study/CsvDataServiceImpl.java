@@ -448,7 +448,7 @@ public class CsvDataServiceImpl implements CsvDataService {
 			builder.append("," + checkRun.getBivariateCheck().getxFieldInstance().getField().getDisplayName() + ","
 					+ checkRun.getBivariateCheck().getyFieldInstance().getField().getDisplayName());
 		}
-		builder.append(",anomaly_id\n");
+		builder.append(",anomaly_id,is_an_issue,query_candidate_id\n");
 		
 		// Add data to output
 		for (Record rec : records) {
@@ -461,7 +461,10 @@ public class CsvDataServiceImpl implements CsvDataService {
 			if (rec.dataValue2 != null) {
 				builder.append("," + rec.dataValue2);
 			}
-			builder.append("," + rec.anomalyId + "\n");
+			builder.append("," + rec.anomalyId
+					+ "," + rec.isAnIssue
+					+ "," + rec.queryCandidateId
+					+ "\n");
 		}
 		
 		
@@ -471,13 +474,12 @@ public class CsvDataServiceImpl implements CsvDataService {
 	
 	private void addAnomalyIds(List<Record> records, CheckRun checkRun) {
 		List<UniAnomalyDto> dtos = uniAnomalyDtoRepository.findByCheckRunId(checkRun.getCheckRunId());
-		logger.debug("Num anomalies: " + dtos.size());
-		Map<String, Long> anomalyIdIndex = new HashMap<>();
+		Map<String, UniAnomalyDto> anomalyIndex = new HashMap<>();
 		StringBuilder sb = new StringBuilder();
 		for (UniAnomalyDto dto : dtos) {
 			String key = generateKey(dto.getSubjectName(), dto.getSiteName(), dto.getPhaseName(), dto.getRecordId());
 //			sb.append("\n" + key);
-			anomalyIdIndex.put(key, dto.getAnomalyId());
+			anomalyIndex.put(key, dto);
 		}
 //		logger.debug(sb.toString());
 //		logger.debug("++++++++++++++++++++");
@@ -485,11 +487,15 @@ public class CsvDataServiceImpl implements CsvDataService {
 		for (Record record : records) {
 			String key = generateKey(record.subjectName, record.siteName, record.phaseName, record.recordId);
 			sb.append("\n" + key);
-			Long anomalyId = anomalyIdIndex.get(key);
-			if (anomalyId == null) {
-				anomalyId = 0L;
+			UniAnomalyDto dto = anomalyIndex.get(key);
+			if (dto != null) {
+				record.anomalyId = dto.getAnomalyId();
+				record.isAnIssue = dto.getIsAnIssue();
+				record.queryCandidateId = dto.getQueryCandidateId();
+				if (record.queryCandidateId == null) {
+					record.queryCandidateId = 0L;
+				}
 			}
-			record.anomalyId = anomalyId;
 		}
 //		logger.debug(sb.toString());
 	}
@@ -515,6 +521,10 @@ public class CsvDataServiceImpl implements CsvDataService {
 		private String dataValue2;
 		
 		private Long anomalyId = 0L;
+		
+		private Boolean isAnIssue = Boolean.FALSE;
+		
+		private Long queryCandidateId = 0L;
 	
 		@Override
 		public int compareTo(Record o) {
