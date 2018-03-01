@@ -48,36 +48,6 @@ public class BrowseController {
 	
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @RequestMapping("/studies")
-    public String studies(Model model) {
-		model.addAttribute("summaries", anomalySummaryBuilder.getStudySummaries());
-		return "browse/studies";
-    }
-    
-    @RequestMapping("/datasets")
-    public String studyDatasets(
-	    		@RequestParam(name="study_id", required=false, defaultValue="-1") Long studyId,
-	    		@RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
-	    		@RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
-	    		Model model) {
-    	if (studyId != -1) {
-    		Study study = studyRepository.findOne(studyId);
-    		model.addAttribute("study", study);
-        	model.addAttribute("summaries", anomalySummaryBuilder.getDatasetSummaries(study));
-    	}
-    	if (siteId != -1) {
-    		Site site = siteRepository.findOne(siteId);
-    		model.addAttribute("site", site);
-    		model.addAttribute("summaries", anomalySummaryBuilder.getDatasetSummaries(site));
-    	}
-    	if (subjectId != -1) {
-    		Subject subject = subjectRepository.findOne(subjectId);
-    		model.addAttribute("subject", subject);
-    		model.addAttribute("summaries", anomalySummaryBuilder.getDatasetSummaries(subject));
-    	}
-		return "browse/datasets";
-    }
-    
     @RequestMapping("/sites")
     public String sites(
     		@RequestParam("study_id") Long studyId,

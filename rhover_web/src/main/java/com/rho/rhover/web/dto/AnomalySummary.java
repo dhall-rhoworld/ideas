@@ -1,7 +1,6 @@
 package com.rho.rhover.web.dto;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -15,7 +14,7 @@ public class AnomalySummary {
 	private String entityName;
 	private Integer numAnomalies;
 	private Integer numUnviewedAnomalies;
-	private String attribute;
+	private Map<String, String> attributes = new HashMap<String, String>();
 	private Long entityId2;
 	private String entityName2;
 	
@@ -42,9 +41,10 @@ public class AnomalySummary {
 		this.entityName2 = entityName2;
 	}
 
-	public AnomalySummary(Long entityId, String entityName, Integer numAnomalies, Integer numUnviewedAnomalies, String attribute) {
+	public AnomalySummary(Long entityId, String entityName, Integer numAnomalies, Integer numUnviewedAnomalies,
+			String attributeName, String attributeValue) {
 		this(entityId, entityName, numAnomalies, numUnviewedAnomalies);
-		this.setAttribute(attribute);
+		this.setAttribute(attributeName, attributeValue);
 	}
 
 	public Long getEntityId() {
@@ -79,14 +79,6 @@ public class AnomalySummary {
 		this.numUnviewedAnomalies = numUnviewedAnomalies;
 	}
 
-	public String getAttribute() {
-		return attribute;
-	}
-
-	public void setAttribute(String attribute) {
-		this.attribute = attribute;
-	}
-
 	public Long getEntityId2() {
 		return entityId2;
 	}
@@ -102,5 +94,16 @@ public class AnomalySummary {
 	public void setEntityName2(String entityName2) {
 		this.entityName2 = entityName2;
 	}
+
+	public Map<String, String> getAttributes() {
+		return attributes;
+	}
+
+	public void setAttributes(Map<String, String> attributes) {
+		this.attributes = attributes;
+	}
 	
+	public void setAttribute(String name, String value) {
+		attributes.put(name, value);
+	}
 }

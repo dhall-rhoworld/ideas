@@ -93,7 +93,7 @@ public class AnomalyController {
 	 */
 	@RequestMapping("/global_summary")
     public String getGlobalAnomalySummary(Model model, Principal user, HttpServletRequest request) {
-		model.addAttribute("summaries", anomalySummaryBuilder.getStudySummaries());
+		model.addAttribute("summaries", anomalySummaryBuilder.getStudySummaries(true));
 		return "anomaly/global_summary";
     }
 	
@@ -115,7 +115,7 @@ public class AnomalyController {
     	if (studyId != -1) {
     		Study study = studyRepository.findOne(studyId);
     		model.addAttribute("study", study);
-        	model.addAttribute("summaries", anomalySummaryBuilder.getDatasetSummaries(study));
+        	model.addAttribute("summaries", anomalySummaryBuilder.getDatasetSummaries(study, true));
     	}
     	if (siteId != -1) {
     		Site site = siteRepository.findOne(siteId);

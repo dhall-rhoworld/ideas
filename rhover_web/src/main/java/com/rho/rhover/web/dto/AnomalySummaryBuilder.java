@@ -37,7 +37,7 @@ public class AnomalySummaryBuilder {
 	 * Get anomaly summaries across all studies.
 	 * @return Zero or more anomaly summaries.
 	 */
-	public List<AnomalySummary> getStudySummaries() {
+	public List<AnomalySummary> getStudySummaries(boolean removeEmpties) {
 		String sql =
 				"select s.study_id, s.study_name,\r\n" + 
 				"(\r\n" + 
@@ -64,10 +64,14 @@ public class AnomalySummaryBuilder {
 				"	and a.has_been_viewed = 0\r\n" + 
 				") unviewed\r\n" + 
 				"from study s";
-		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
+		List<AnomalySummary> summaries = jdbcTemplate.query(sql, new AnomalySummaryRowMapper());
+		if (removeEmpties) {
+			summaries = removeEmpties(summaries);
+		}
+		return summaries;
 	}
 	
-	public List<AnomalySummary> getDatasetSummaries(Study study) {
+	public List<AnomalySummary> getDatasetSummaries(Study study, boolean removeEmpties) {
 		String sql =
 				"select ds.dataset_id, ds.dataset_name,\r\n" + 
 				"(\r\n" + 
@@ -90,10 +94,14 @@ public class AnomalySummaryBuilder {
 				"	and cr.is_latest = 1\r\n" + 
 				"	and a.is_an_issue = 1\r\n" + 
 				"	and a.has_been_viewed = 0\r\n" + 
-				") unviewed\r\n" + 
+				") unviewed, is_checked, is_critical\r\n" + 
 				"from dataset ds\r\n" + 
 				"where ds.study_id = " + study.getStudyId();
-		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
+		List<AnomalySummary> summaries = jdbcTemplate.query(sql, new AnomalySummaryRowMapperWithAttributes("is_checked", "is_critical"));
+		if (removeEmpties) {
+			summaries = removeEmpties(summaries);
+		}
+		return summaries;
 	}
 	
 	public List<AnomalySummary> getDatasetSummaries(Site site) {
@@ -212,7 +220,7 @@ public class AnomalySummaryBuilder {
 				"where si.study_id = " + studyId + "\r\n" + 
 				"order by total desc\r\n" + 
 				"limit " + limit + " offset " + offset;
-		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapperWithAttribute()));
+		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapperWithAttributes("site_name")));
 	}
 	
 	public List<AnomalySummary> getUnivariateDataFieldSummaries(Long datasetId) {
@@ -429,9 +437,22 @@ public class AnomalySummaryBuilder {
 		}
 	}
 	
-	private static class AnomalySummaryRowMapperWithAttribute implements RowMapper<AnomalySummary> {
+	private static class AnomalySummaryRowMapperWithAttributes implements RowMapper<AnomalySummary> {
+		
+		private String[] attributeNames;
+		
+		private AnomalySummaryRowMapperWithAttributes(String ... attributeNames) {
+			this.attributeNames = attributeNames;
+		}
+		
 		public AnomalySummary mapRow(ResultSet rs, int p) throws SQLException {
-			return new AnomalySummary(rs.getLong(1), rs.getString(2), rs.getInt(3), rs.getInt(4), rs.getString(5));
+			AnomalySummary summary =  new AnomalySummary(rs.getLong(1), rs.getString(2), rs.getInt(3), rs.getInt(4));
+			for (int i = 0; i < attributeNames.length; i++) {
+				String name = attributeNames[i];
+				String value = rs.getString(5 + i);
+				summary.setAttribute(name, value);
+			}
+			return summary;
 		}
 	}
 	

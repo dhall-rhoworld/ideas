@@ -1,0 +1,60 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="/base"
+      th:with="currentPage='data'">
+	<head> 
+	    <title>RhoVer Study</title>
+	    <script defer src="https://use.fontawesome.com/releases/v5.0.7/js/all.js"></script>
+	</head>
+	
+	<!-- Breadcrumbs -->
+	<div layout:fragment="breadcrumbs" id="breadcrumbs">
+		<ul class="breadcrumb">
+			<li><a href="/data/all_studies">All Studies</a></li>
+			<li th:text="${study.studyName}"/>
+		</ul>
+	</div>
+
+	<!-- Content -->
+    <div layout:fragment="page_content" id="page_content">
+    	<h2 th:text="${study.studyName}"/>
+    	
+    	<table class="wide">
+   			<tr>
+   				<th></th>
+   				<th>Data Stream</th>
+   				<th>Critical</th>
+   				<th>Univariate Checks</th>
+   				<th th:text="'Total ' + ${study.studyName} + ' Anomalies'"/>
+   			</tr>
+   			<tr th:each="summary : ${summaries}">
+   				<td>
+   					<i class="fas fa-edit" title="Edit study configuration"></i>
+   				</td>
+   				<td>
+   					<a th:href="@{/anomaly/dataset_summary(dataset_id=${summary.entityId})}" th:text="${summary.entityName}"/>
+   				</td>
+   				<td>
+   					<span th:if="${summary.attributes.get('is_critical')} == '1'">
+   						<i class="far fa-flag" title="Dataset is flagged as critical"></i>
+   					</span>
+   				</td>
+   				<td>
+   					<span th:if="${summary.attributes.get('is_checked')} == '1'">
+   						<i class="far fa-flag" title="Univariate checks are configured for this dataset"></i>
+   					</span>
+   				</td>
+   				<td>
+   					<span th:if="${summary.numAnomalies} > 0">
+	   					<span th:text="${summary.numAnomalies}"/>
+	   					<span th:if="${summary.numUnviewedAnomalies > 0}">
+	   						&nbsp; (<span class="attention" th:text="${summary.numUnviewedAnomalies}"/> unviewed)
+	   					</span>
+	   				</span>
+   				</td>
+   			</tr>
+   		</table>
+    </div>
+</html>

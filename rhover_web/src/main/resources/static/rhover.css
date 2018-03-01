@@ -375,3 +375,12 @@ th.alternate-th {
 .paginator {
 	padding: 5px;
 }
+
+.two-column-grid-container {
+	display: grid;
+	grid-template-columns: auto auto;
+}
+
+.two-column-grid-item {
+	padding: 20px;
+}

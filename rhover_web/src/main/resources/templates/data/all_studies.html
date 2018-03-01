@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="/base"
+      th:with="currentPage='data'">
+	<head> 
+	    <title>RhoVer Studies</title> 
+	    
+	    
+	</head>
+
+	<!-- Content -->
+    <div layout:fragment="page_content" id="page_content">
+    	<h2>Studies</h2>
+    	<div class="two-column-grid-container">
+	    	<div th:each="study : ${studies}" class="two-column-grid-item">
+	    		<a th:href="@{/data/study(study_id=${study.studyId})}">
+	    			<img src="/images/research-small.png"/>
+	    		</a>
+	    		<br/>
+	    		<strong><span th:text="${study.studyName}"/></strong>
+	    	</div>	
+	 	</div>
+    </div>
+</html>

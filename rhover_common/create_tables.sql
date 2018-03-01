@@ -77,6 +77,7 @@ CREATE TABLE dataset (
 	dataset_name VARCHAR(50) NOT NULL,
 	file_path VARCHAR(400) NOT NULL,
 	is_checked TINYINT NOT NULL DEFAULT 0,
+	is_critical TINYINT NOT NULL DEFAULT 0,
 	was_checkability_deduced TINYINT NOT NULL DEFAULT 0,
 	was_checkability_confirmed TINYINT NOT NULL DEFAULT 0,
 	study_id BIGINT NOT NULL,

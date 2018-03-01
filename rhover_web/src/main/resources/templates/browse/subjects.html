@@ -36,7 +36,7 @@
    				<th>Total Anomalies by Subject</th>
    			</tr>
    			<tr th:each="summary : ${summaries}">
-   				<td th:text="${summary.attribute}"/>
+   				<td th:text="${summary.attributes.get('site_name')}"/>
    				<td> <a th:href="@{/browse/datasets(subject_id=${summary.entityId})}" th:text="${summary.entityName}"/></td>
    				<td>
    					<span th:text="${summary.numAnomalies}"/>

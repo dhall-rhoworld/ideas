@@ -38,6 +38,10 @@ public class Dataset {
 	@Type(type="org.hibernate.type.NumericBooleanType")
 	private Boolean isChecked = Boolean.FALSE;
 	
+	@Column(name="is_critical")
+	@Type(type="org.hibernate.type.NumericBooleanType")
+	private Boolean isCritical = Boolean.FALSE;
+	
 	public Dataset() {
 		
 	}
@@ -97,4 +101,13 @@ public class Dataset {
 	public void setIsChecked(Boolean isChecked) {
 		this.isChecked = isChecked;
 	}
+
+	public Boolean getIsCritical() {
+		return isCritical;
+	}
+
+	public void setIsCritical(Boolean isCritical) {
+		this.isCritical = isCritical;
+	}
+	
 }

@@ -20,14 +20,14 @@ public class ExceptionController {
 	@Autowired
 	private EmailService emailService;
 
-	@ExceptionHandler
+	@ExceptionHandler(Exception.class)
 	public String handleException(Exception e, Model model) {
 		StringWriter stringWriter = new StringWriter();
-		String errorMessage = e.getMessage();
+		String errorMessage = "From the captain: " + e.getMessage();
 		e.printStackTrace(new PrintWriter(stringWriter));
 		logger.error(stringWriter.toString());
 		model.addAttribute("message", errorMessage);
-		emailService.sendMessage("david_hall@rhoworld.com", "RhoVer Error", "Crap!");
+		//emailService.sendMessage("david_hall@rhoworld.com", "RhoVer Error", "Crap!");
 		return "error";
 	}
 	

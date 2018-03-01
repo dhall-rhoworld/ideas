@@ -13,8 +13,20 @@
 	<!-- Content -->
     <div layout:fragment="page_content" id="page_content">
     	<h2>Administration</h2>
-    	<a href="/admin/log">
-    		<img src="/images/log-file.png"/>
-    	</a>
+    	<div style="width: 50%; flow: left;">
+    		<table class="invisible">
+    			<tr>
+    				<td>
+	    				<a href="/admin/log">
+				    		<img src="/images/log-file.png" height=100 width=100/>
+				    	</a>
+    				</td>
+    				<td style="width: 150px; font-size: 12pt; font-family: Arial, Helvetica, sans-serif;">
+    					View system log
+    				</td>
+    			</tr>
+    		</table>
+	    	
+	    </div>
     </div>
 </html>
