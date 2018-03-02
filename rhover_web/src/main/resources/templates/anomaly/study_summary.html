@@ -8,6 +8,7 @@
     <!-- Title -->
 	<head> 
 	    <title>Study Anomalies Summary</title> 
+	    <script defer src="https://use.fontawesome.com/releases/v5.0.7/js/all.js"></script>
 	</head>
 	
 	<!-- Breadcrumbs -->
@@ -23,6 +24,7 @@
    		<table class="wide">
    			<tr>
    				<th>Data Stream</th>
+   				<th>Critical</th>
    				<th th:if="${study}" th:text="'Total ' + ${study.studyName} + ' Anomalies'"/>
    				<th th:if="${site}" th:text="'Total Site ' + ${site.siteName} + ' Anomalies'"/>
    				<th th:if="${subject}" th:text="'Subject ' + ${subject.subjectName} + ' Anomalies'"/>
@@ -32,6 +34,11 @@
    					<a th:if="${study}" th:href="@{/anomaly/dataset_summary(dataset_id=${summary.entityId})}" th:text="${summary.entityName}"/>
    					<a th:if="${site}" th:href="@{/anomaly/fields(dataset_id=${summary.entityId}, site_id=${site.siteId})}" th:text="${summary.entityName}"/>
    					<a th:if="${subject}" th:href="@{/anomaly/fields(dataset_id=${summary.entityId}, subject_id=${subject.subjectId})}" th:text="${summary.entityName}"/>
+   				</td>
+   				<td>
+   					<span th:if="${summary.attributes.get('is_critical')} == '1'">
+   						<i class="far fa-flag" title="Dataset is flagged as critical"></i>
+   					</span>
    				</td>
    				<td>
    					<span th:text="${summary.numAnomalies}"/>

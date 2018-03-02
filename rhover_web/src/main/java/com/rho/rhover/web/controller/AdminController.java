@@ -18,7 +18,7 @@ import com.rho.rhover.web.admin.LoggingEventRepository;
 @RequestMapping("/admin")
 public class AdminController {
 	
-	private static final int PAGE_SIZE = 50;
+	private static final int PAGE_SIZE = 100;
 	
 	private final Sort sort = new Sort(Direction.DESC, "timestamp");
 	

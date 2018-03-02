@@ -23,16 +23,12 @@
     	
     	<table class="wide">
    			<tr>
-   				<th></th>
    				<th>Data Stream</th>
    				<th>Critical</th>
    				<th>Univariate Checks</th>
    				<th th:text="'Total ' + ${study.studyName} + ' Anomalies'"/>
    			</tr>
    			<tr th:each="summary : ${summaries}">
-   				<td>
-   					<i class="fas fa-edit" title="Edit study configuration"></i>
-   				</td>
    				<td>
    					<a th:href="@{/anomaly/dataset_summary(dataset_id=${summary.entityId})}" th:text="${summary.entityName}"/>
    				</td>

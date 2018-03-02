@@ -1,0 +1,51 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="/base"
+      th:with="currentPage='configuration'">
+	<head> 
+	    <title>Critical Datasets</title> 
+	    <link rel="stylesheet" href="/jquery-ui.css"/>
+	    <script src="/jquery-3.2.1.min.js"></script>
+	    <script src="/jquery-ui.js"></script>
+	</head>
+
+	<!-- Breadcrumbs -->
+	<div layout:fragment="breadcrumbs" id="breadcrumbs">
+		<ul class="breadcrumb">
+			<li><a href="/admin/study/all">Configure Studies</a></li>
+			<li th:text="${study.studyName} + ' Critical Datasets'"/>
+		</ul>
+	</div>
+	
+    <div layout:fragment="page_content" id="page_content">
+    
+    	<p th:if="${message}" th:text="${message}" class="message-box-slim"/>
+    	
+    	<form action="/admin/study/save_critical_datasets" method="post">
+	    	<input type="hidden" id="study_id" name="study_id" th:value="${study.studyId}"/>
+			
+			<h3>Use checkboxes to indicate which datasets are critical</h3>
+			<div style="column-count: 4; text-align: left; line-height: 40px;">
+				<div th:each="datasetVersion : ${dataset_versions}" th:title="${datasetVersion.numericFieldSummary}" class="dataset-selector">
+					<input type="checkbox" class="radio-dataset" th:name="'check_dataset-' + ${datasetVersion.dataset.datasetId}"
+						th:checked="${datasetVersion.dataset.isCritical}" th:id="'cb-' + ${datasetVersion.dataset.datasetId}"/>
+					<label th:for="'cb-' + ${datasetVersion.dataset.datasetId}" th:text="${datasetVersion.dataset.datasetName}" style="width: 175px"/>
+				</div>
+			</div>
+			<p>
+				<button type="submit" id="button_save">Save</button>
+			</p>
+		</form>
+   	</div>
+
+	<!-- Scripts -->
+	<th:block layout:fragment="scripts">
+		<script>
+			$(function() {
+				$(".radio-dataset").checkboxradio();
+			});
+		</script>
+	</th:block>
+</html>

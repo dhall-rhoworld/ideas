@@ -138,6 +138,23 @@ public class StudyAdminController {
 		return "admin/study/study_univariate";
 	}
 	
+	@RequestMapping("/critical_datasets")
+	public String showCriticalDatasets (
+			@RequestParam(name="study_id") Long studyId,
+			Model model) {
+		Study study = studyRepository.findOne(studyId);
+		model.addAttribute("study", study);
+		StudyDbVersion studyDbVersion = studyDbVersionRepository.findByStudyAndIsCurrent(study, Boolean.TRUE);
+		SortedSet<DatasetVersion> datasetVersions = new TreeSet<DatasetVersion>(new Comparator<DatasetVersion>() {
+			public int compare(DatasetVersion dv1, DatasetVersion dv2) {
+				return dv1.getDataset().getDatasetName().compareTo(dv2.getDataset().getDatasetName());
+			}
+		});
+		datasetVersions.addAll(studyDbVersion.getDatasetVersions());
+		model.addAttribute("dataset_versions", datasetVersions);
+		return "admin/study/critical_datasets";
+	}
+	
 	@RequestMapping(value="/save_study_univariate", method=RequestMethod.POST)
 	public String saveStudyUnivariate(
 			@RequestParam MultiValueMap<String, String> requestParams,
@@ -168,6 +185,34 @@ public class StudyAdminController {
 		checkConfigurationService.saveStudyCheckConfiguration(study, check, studyParams, datasetIds);
 		model.addAttribute("message", "Study parameters saved");
 		return "forward:/admin/study/study_univariate";
+	}
+	
+	@RequestMapping(value="/save_critical_datasets", method=RequestMethod.POST)
+	public String saveCriticalDatasets(
+			@RequestParam MultiValueMap<String, String> requestParams,
+			Model model) {
+		
+		// Un-flag as critical all datasets in study
+		Long studyId = Long.parseLong(requestParams.getFirst("study_id"));
+		Study study = studyRepository.findOne(studyId);
+		Iterable<Dataset> datasets = datasetRepository.findByStudy(study);
+		for (Dataset dataset : datasets) {
+			dataset.setIsCritical(Boolean.FALSE);
+			datasetRepository.save(dataset);
+		}
+		
+		// Flag all selected datasets as critical
+		for (String key : requestParams.keySet()) {
+			if (key.startsWith("check_dataset-")) {
+				Long datasetId = Long.parseLong(key.substring(14));
+				Dataset dataset = datasetRepository.findOne(datasetId);
+				dataset.setIsCritical(Boolean.TRUE);
+				datasetRepository.save(dataset);
+			}
+		}
+
+		model.addAttribute("message", "Critical datasets flagged");
+		return "forward:/admin/study/critical_datasets";
 	}
 	
 	@RequestMapping("/dataset_univariate")

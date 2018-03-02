@@ -16,10 +16,11 @@
 	    	<div th:each="study : ${studies}" style="height: 90px; position: relative">
 	    		<img src="/images/research-small.png" style="float:left;"/>
 	    		<div style="position: absolute; left: 85px; top: 15px;">
-	    		<strong><span th:text="${study.studyName}"/></strong><br/>
-	    		<a th:href="@{/admin/study/data_locations(study_id=${study.studyId})}" class="action-link">Data Folders</a> |
-	   			<a th:href="@{/admin/study/study_univariate(study_id=${study.studyId})}" class="action-link">Univariate Checks</a> |
-	   			<a th:href="@{/admin/study/bivariates(study_id=${study.studyId})}" class="action-link">Bivariate Checks</a>
+		    		<strong><span th:text="${study.studyName}"/></strong><br/>
+		    		<a th:href="@{/admin/study/data_locations(study_id=${study.studyId})}" class="action-link">Data Folders</a> |
+		    		<a th:href="@{/admin/study/critical_datasets(study_id=${study.studyId})}" class="action-link">Critical Datasets</a> |
+		   			<a th:href="@{/admin/study/study_univariate(study_id=${study.studyId})}" class="action-link">Univariate Checks</a> |
+		   			<a th:href="@{/admin/study/bivariates(study_id=${study.studyId})}" class="action-link">Bivariate Checks</a>
 	   			</div>	
 	    	</div>	
 	    	<p>
