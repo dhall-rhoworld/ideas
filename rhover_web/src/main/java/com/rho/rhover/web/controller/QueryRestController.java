@@ -18,6 +18,8 @@ import com.rho.rhover.common.anomaly.Anomaly;
 import com.rho.rhover.common.anomaly.AnomalyRepository;
 import com.rho.rhover.web.query.QueryCandidate;
 import com.rho.rhover.web.query.QueryCandidateRepository;
+import com.rho.rhover.web.query.QueryStatus;
+import com.rho.rhover.web.query.QueryStatusRepository;
 
 @RestController
 @RequestMapping("/rest/query")
@@ -30,9 +32,13 @@ public class QueryRestController {
 	
 	@Autowired
 	private AnomalyRepository anomalyRepository;
+	
+	@Autowired
+	private QueryStatusRepository queryStatusRepository;
 
 	@RequestMapping(value="/add", method=RequestMethod.POST)
 	public ResponseEntity<Integer> addQueryCandidates(@RequestParam("anomaly_ids") String anomalyIds, Principal user) {
+		QueryStatus queryStatus = queryStatusRepository.findByQueryStatusName("NOT-OPENED");
 		String[] tokens = anomalyIds.split(",");
 		for (String token : tokens) {
 			Long anomalyId = new Long(token);
@@ -43,7 +49,7 @@ public class QueryRestController {
 				qc.setAnomaly(anomaly);
 				qc.setCreatedBy(user.getName());
 			}
-			qc.setIsActive(Boolean.TRUE);
+			qc.setQueryStatus(queryStatus);
 			queryCandidateRepository.save(qc);
 		}
 		return new ResponseEntity<>(tokens.length, HttpStatus.OK);

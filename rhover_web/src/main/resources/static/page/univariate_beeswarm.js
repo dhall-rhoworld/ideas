@@ -96,7 +96,7 @@ function removeHighlightFromDialog(propName, propValue) {
 		const p = highlightedSubjects.indexOf(propValue);
 		highlightedSubjects.splice(p, 1);
 	}
-	else {
+	else if (propName != recordIdFieldName) {
 		const values = $("select[name='highlight-" + propName + "']").val();
 		const p = values.indexOf(propValue);
 		values.splice(p, 1);
@@ -403,6 +403,17 @@ $(function() {
 	
 	$("#tabs").tabs();
 	
+	let criteria = null;
+	if (recordId != -1) {
+		criteria = new Array();
+		const criterion = new Object();
+		criterion.name = recordIdFieldName;
+		criterion.values = new Array();
+		criterion.values.push(recordId);
+		criteria.push(criterion);
+		setHighlightCriteria(criteria);
+	}
+	
 	renderBeeswarm(url, fieldName, recordIdFieldName, mean, sd, numSd, function(itemsAreSelected) {
 		if (itemsAreSelected) {
 			$("#button_show").prop("disabled", false);
@@ -415,6 +426,10 @@ $(function() {
 			$("#button_status").prop("disabled", true);
 		}
 	});
+	
+	if (recordId != -1) {
+		synchronizeHighlightsBar(criteria);
+	}
 	
 	$.contextMenu({
 		selector: "svg",

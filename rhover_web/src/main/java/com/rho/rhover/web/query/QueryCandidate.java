@@ -35,15 +35,9 @@ public class QueryCandidate {
 	@Column(name="created_by")
 	private String createdBy;
 	
-	@Column(name="is_active")
-	@Type(type="org.hibernate.type.NumericBooleanType")
-	private Boolean isActive;
-	
-	@Column(name="deactivated_on")
-	private Date deactivatedOn;
-	
-	@Column(name="deactivated_by")
-	private String deactivatedBy;
+	@ManyToOne
+	@JoinColumn(name="query_status_id")
+	private QueryStatus queryStatus;
 
 	public QueryCandidate() {
 		
@@ -81,28 +75,12 @@ public class QueryCandidate {
 		this.createdBy = createdBy;
 	}
 
-	public Boolean getIsActive() {
-		return isActive;
+	public QueryStatus getQueryStatus() {
+		return queryStatus;
 	}
 
-	public void setIsActive(Boolean isActive) {
-		this.isActive = isActive;
+	public void setQueryStatus(QueryStatus queryStatus) {
+		this.queryStatus = queryStatus;
 	}
-
-	public Date getDeactivatedOn() {
-		return deactivatedOn;
-	}
-
-	public void setDeactivatedOn(Date deactivatedOn) {
-		this.deactivatedOn = deactivatedOn;
-	}
-
-	public String getDeactivatedBy() {
-		return deactivatedBy;
-	}
-
-	public void setDeactivatedBy(String deactivatedBy) {
-		this.deactivatedBy = deactivatedBy;
-	}
-
+	
 }

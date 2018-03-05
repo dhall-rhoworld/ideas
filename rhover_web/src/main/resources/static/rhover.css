@@ -393,3 +393,7 @@ th.alternate-th {
 .two-column-grid-item {
 	padding: 20px;
 }
+
+.filter-set {
+	color: red;
+}

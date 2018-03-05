@@ -10,8 +10,11 @@ import com.rho.rhover.common.study.Study;
 
 public interface QueryCandidateRepository extends CrudRepository<QueryCandidate, Long> {
 
-	@Query("select qc from QueryCandidate qc where qc.anomaly.field.study = ?1 and qc.isActive = ?2")
-	List<QueryCandidate> findByStudyAndIsActive(Study study, Boolean isActive);
+	@Query("select qc from QueryCandidate qc where qc.anomaly.field.study = ?1 and qc.queryStatus = ?2")
+	List<QueryCandidate> findByStudyAndQueryStatus(Study study, QueryStatus queryStatus);
 	
 	QueryCandidate findByAnomaly(Anomaly anomaly);
+
+	@Query("select qc from QueryCandidate qc where qc.anomaly.field.study = ?1")
+	List<QueryCandidate> findByStudy(Study study);
 }

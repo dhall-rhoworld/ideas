@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="/base"
+      th:with="currentPage='data'">
+      
+    <!-- Title -->
+	<head> 
+	    <title>Dataset</title> 
+	</head>
+
+	<!-- Breadcrumbs -->
+	<div layout:fragment="breadcrumbs" id="breadcrumbs">
+		<ul class="breadcrumb">
+				<li><a href="/data/all_studies">All Studies</a></li>
+				<li><a th:href="@{/data/study(study_id=${dataset.study.studyId})}" th:text="${dataset.study.studyName}"/></li>
+				<li th:text="${dataset.datasetName}"/>
+		</ul>
+	</div>
+		
+	<!-- Content -->
+    <div layout:fragment="page_content" id="page_content">
+		<h2>Variables</h2>
+   		<table class="wide">
+   			<tr>
+   				<th>Label</th>
+   				<th th:if="${dataset.isChecked}">Anomalies</th>
+   				<th>View</th>
+   			</tr>
+   			<tr th:each="summary : ${summaries}">
+   				<td th:text="${summary.entityName}"/>
+   				<td th:if="${dataset.isChecked}">
+   					<span th:text="${summary.numAnomalies}"/>
+   					<span th:if="${summary.numUnviewedAnomalies > 0}">
+   						&nbsp; (<span class="attention" th:text="${summary.numUnviewedAnomalies}"/> unviewed)
+   					</span>
+   				</td>
+   				<td>
+   					<a th:href="@{/chart/univariate_beeswarm(field_id=${summary.entityId}, dataset_id=${dataset.datasetId})}">Chart</a>
+   				</td>
+   			</tr>
+   		</table>
+    </div>
+</html>

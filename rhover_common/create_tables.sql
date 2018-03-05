@@ -564,17 +564,30 @@ join anomaly_datum_version adv2 on adv2.anomaly_id = a.anomaly_id
 join datum_version dv1 on dv1.datum_version_id = adv1.datum_version_id
 join datum_version dv2 on dv2.datum_version_id = adv2.datum_version_id;
 
+CREATE TABLE query_status (
+	query_status_id BIGINT NOT NULL,
+	query_status_name VARCHAR(50) NOT NULL,
+	query_status_label VARCHAR(50) NOT NULL,
+	CONSTRAINT pk_query_status PRIMARY KEY (query_status_id)
+);
+
+INSERT INTO query_status(query_status_id, query_status_name, query_status_label)
+VALUES (1, "NOT-OPENED", "Query Not Opened");
+
+INSERT INTO query_status(query_status_id, query_status_name, query_status_label)
+VALUES (2, "OPENED", "Query Opened");
+
+INSERT INTO query_status(query_status_id, query_status_name, query_status_label)
+VALUES (3, "CLOSED", "Query Closed");
+
 CREATE TABLE query_candidate (
 	query_candidate_id BIGINT AUTO_INCREMENT NOT NULL,
 	anomaly_id BIGINT NOT NULL,
 	created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	created_by VARCHAR(50),
-	is_active TINYINT NOT NULL DEFAULT 1,
-	deactivated_on TIMESTAMP,
-	deactivated_by VARCHAR(50),
+	query_status_id BIGINT NOT NULL DEFAULT 1,
 	modified_by VARCHAR(50),
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT pk_query_candidate PRIMARY KEY (query_candidate_id),
 	CONSTRAINT fk_query_candidate_2_anomaly FOREIGN KEY (anomaly_id) REFERENCES anomaly(anomaly_id)
 );
-

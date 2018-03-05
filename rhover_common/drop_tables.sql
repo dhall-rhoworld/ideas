@@ -1,4 +1,5 @@
 drop table query_candidate;
+drop table query_status;
 drop view bivariate_anomaly;
 drop view uni_anomaly_dto;
 drop table data_property;

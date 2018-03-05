@@ -6,8 +6,10 @@
       th:with="currentPage='query'">
 	<head> 
 	    <title>Query List</title> 
-	    
-	    
+	    <script defer src="https://use.fontawesome.com/releases/v5.0.7/js/all.js"></script>
+	    <script src="/jquery-3.2.1.min.js"></script>
+	    <script src="/jquery-ui.js"></script>
+	    <link rel="stylesheet" href="/jquery-ui.css"/>
 	</head>
 
 	<!-- Content -->
@@ -17,28 +19,68 @@
     		simply the list of data issues flagged by users when visualizing data anomalies. 
     	</p>
     	
-    	<div th:each="study : ${studySet}">
-    		<h2 th:text="${study.studyName}"/>
+    	<p>
+	    	Study:
+	    	<select id="select_study">
+	    		<option value="0" th:selected="${selectedStudy} == null">--- Select --- </option>
+	    		<option th:each="study : ${allStudies}" th:value=${study.studyId} th:text="${study.studyName}"
+	    			th:selected="${selectedStudy} != null AND ${selectedStudy.equals(study)}"/>
+	    	</select>
+    	</p>
+    	
+    	<div th:if="${selectedStudy}">
 	    	<table class="wide">
 	    		<tr>
-	    			<th th:text="${study.formFieldName}"/>
-	    			<th th:text="${study.siteFieldName}"/>
-	    			<th th:text="${study.phaseFieldName}"/>
-	    			<th th:text="${study.subjectFieldName}"/>
-	    			<th th:text="${study.recordIdFieldName}"/>
-	    			<th>Field</th>
+	    			<th></th>
+	    			<th>
+	    				Status
+	    				<span id="filter_statuses" class="data_filter" title="Set filter on this field">
+	    					<i class="fas fa-filter"></i>
+	    				</span>
+	    			</th>
+	    			<th>
+	    				<span th:text="${selectedStudy.formFieldName}"/>
+	    				<span id="filter_datasets" class="data_filter" title="Set filter on this field">
+	    					<i class="fas fa-filter"></i>
+	    				</span>
+	    			</th>
+	    			<th>
+	    				<span th:text="${selectedStudy.siteFieldName}"/>
+	    				<span id="filter_sites" class="data_filter" title="Set filter on this field">
+	    					<i class="fas fa-filter"></i>
+	    				</span>
+	    			</th>
+	    			<th>
+	    				<span th:text="${selectedStudy.phaseFieldName}"/>
+	    				<span id="filter_phases" class="data_filter" title="Set filter on this field">
+	    					<i class="fas fa-filter"></i>
+	    				</span>
+	    			</th>
+	    			<th>
+	    				<span th:text="${selectedStudy.subjectFieldName}"/>
+	    				<span id="filter_subjects" class="data_filter" title="Set filter on this field">
+	    					<i class="fas fa-filter"></i>
+	    				</span>
+	    			</th>
+	    			<th th:text="${selectedStudy.recordIdFieldName}"/>
+	    			<th>
+	    				Field
+	    				<span id="filter_fields" class="data_filter" title="Set filter on this field">
+	    					<i class="fas fa-filter"></i>
+	    				</span>
+	    			</th>
 	    			<th>Value</th>
+	    			<th>View</th>
 	    		</tr>
-	    		<tr th:each="query : ${queryMap.get(study.studyName)}">
-	    			<!--
-	    			<td th:text="${query.anomaly.fieldInstance.dataset.datasetName}"/>
-	    			<td th:text="${query.anomaly.site.siteName}"/>
-	    			<td th:text="${query.anomaly.phase.phaseName}"/>
-	    			<td th:text="${query.anomaly.subject.subjectName}"/>
-	    			<td th:text="${query.anomaly.recordId}"/>
-	    			<td th:text="${query.anomaly.fieldInstance.field.displayName}"/>
-	    			<td th:text="${query.anomaly.currentDatumVersion.value}"/>
-	    			-->
+	    		<tr th:each="query : ${candidates}">
+	    			<td title="Delete from query list"><i class="fas fa-times-circle"></i></td>
+	    			<td>
+		    			<select>
+		    				<option>Query not opened</option>
+		    				<option>Query opened</option>
+		    				<option>Query closed</option>
+		    			</select>
+		    		</td>
 	    			<td th:text="${query.anomaly.fieldInstance.dataset.datasetName}"/>
 	    			<td th:text="${query.anomaly.site.siteName}"/>
 	    			<td th:text="${query.anomaly.phase.phaseName}"/>
@@ -46,8 +88,105 @@
 	    			<td th:text="${query.anomaly.recordId}"/>
 	    			<td th:text="${query.anomaly.field.displayName}"/>
 	    			<td th:text="${query.anomaly.currentDatumVersion.value}"/>
+	    			<td>
+	    				<a th:href="@{/chart/univariate_beeswarm(field_id=${query.anomaly.fieldInstance.field.fieldId}, dataset_id=${query.anomaly.fieldInstance.dataset.datasetId}, record_id=${query.anomaly.recordId})}">
+	    					<i class="fas fa-chart-bar" title="View data point in chart"></i>
+	    				</a>
+	    			</td>
 	    		</tr>
 	    	</table>
-    	</div>
+		</div>
     </div>
+    
+    <!-- Dialogs -->
+	<div layout:fragment="dialogs" id="dialogs">
+		<div id="dialog_filter">
+			<div id="dialog_filter_options"></div>
+		</div>
+	</div>
+    
+    <!-- Scripts -->
+	<th:block layout:fragment="scripts">
+	
+		<script th:inline="javascript">
+			
+			const filterOptions = [(${filterOptions})];
+			const filters = [(${filters})];
+			let filterField = null;
+			
+			function onClickFilter(id) {
+				filterField = id.substr(7);
+				const options = filterOptions[filterField];
+				const selectedOptions = filters[filterField];
+				let html = "<table class='invisible'>";
+				for (option of options) {
+					console.log("option: " + option.id + ", selectedOptions: " + selectedOptions);
+					html += "<tr><td><input type='checkbox' class='cb_filter' id='cb_";
+					html += option.id;
+					html += "'";
+					if (selectedOptions.includes(parseInt(option.id))) {
+						console.log("Should be checked");
+						html += " checked='true'";
+					}
+					html += "/></td><td>";
+					html += option.name;
+					html += "</td></tr>";
+				};
+				html += "</table>";
+				$("#dialog_filter_options").html(html);
+				$("#dialog_filter").dialog("open");
+			}
+			
+			$(function() {
+				
+				$("#dialog_filter").dialog({
+					title: "Filter Values",
+					autoOpen: false,
+					modal: true,
+					buttons: [
+						{
+							text: "Cancel",
+							click: function() {
+								$(this).dialog("close");
+							}
+						},
+						{
+							text: "OK",
+							click: function() {
+								filters[filterField] = [];
+								$(".cb_filter:checked").each(function(checkBox) {
+									id = this.id.substr(3);
+									filters[filterField].push(id);
+								});
+								const studyId = $("#select_study").val();
+								const filterString = JSON.stringify(filters).replace(/\"/g, "");
+								const url = encodeURI("/query/all_queries?study_id=" + studyId + "&" + "filters=" + filterString);
+								window.location.href = url;
+								//$(this).dialog("close");
+							}
+						}
+					]
+				});
+				
+				// Study selector
+				$("#select_study").change(function() {
+					const studyId = $("#select_study").val();
+					const url = "/query/all_queries?study_id=" + studyId;
+					window.location.href = url;
+				});
+				
+				// Filters
+				$(".data_filter").click(function() {
+					onClickFilter(this.id);
+				});
+				
+				$(".data_filter").each(function() {
+					const filterField = this.id.substr(7);
+					if (filters[filterField].length > 0) {
+						$(this).addClass("filter-set");
+					}
+				});
+			});
+		</script>
+	</th:block>
 </html>

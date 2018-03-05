@@ -100,6 +100,7 @@ public class ChartController {
 		    @RequestParam("field_id") Long fieldId,
 		    @RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
 		    @RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
+		    @RequestParam(name="record_id", required=false, defaultValue="-1") Long recordId,
 		    @RequestParam("dataset_id") Long datasetId,
 			Model model) {
     	Field field = dataFieldRepository.findOne(fieldId);
@@ -109,13 +110,12 @@ public class ChartController {
     	model.addAttribute("dataset", datasetVersion.getDataset());
     	Check check = checkRepository.findByCheckName("UNIVARIATE_OUTLIER");
     	CheckRun checkRun = checkRunRepository.findByCheckAndDatasetVersionAndFieldAndIsLatest(check, datasetVersion, field, Boolean.TRUE);
-    	if (checkRun == null) {
-    		logger.debug("checkRun is null");
+    	if (checkRun != null) {
+	    	model.addAttribute("check_run_id", checkRun.getCheckRunId());
+	    	model.addAttribute("mean", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "mean").getDataPropertyValue());
+	    	model.addAttribute("sd", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "sd").getDataPropertyValue());
+	    	model.addAttribute("num_sd", paramUsedRepository.findByCheckRunAndParamName(checkRun, "sd").getParamValue());
     	}
-    	model.addAttribute("check_run_id", checkRun.getCheckRunId());
-    	model.addAttribute("mean", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "mean").getDataPropertyValue());
-    	model.addAttribute("sd", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "sd").getDataPropertyValue());
-    	model.addAttribute("num_sd", paramUsedRepository.findByCheckRunAndParamName(checkRun, "sd").getParamValue());
     	
     	//TODO: Remove this.  Adding whole field object as an attribute below
     	model.addAttribute("field_name", field.getDisplayName());
@@ -148,7 +148,7 @@ public class ChartController {
     		model.addAttribute("filter_entity", "subject");
     		model.addAttribute("filter_value", subject.getSubjectName());
     	}
-    	
+    	model.addAttribute("record_id", recordId);
     	model.addAttribute("sites", siteRepository.findByStudy(study));
     	List<Phase> phases = phaseRepository.findByStudy(study);
     	Collections.sort(phases);

@@ -499,4 +499,53 @@ where (fi1.dataset_id = 9 or fi2.dataset_id = 9)
 and cr.is_latest = 1
 ;
 
+select qs.query_status_id, qs.query_status_name
+from query_status qs
+join query_candidate qc on qc.query_status_id = qs.query_status_id
+join anomaly a on a.anomaly_id = qc.anomaly_id
+join field f on f.field_id = a.field_id
+where f.study_id = 1
+group by qs.query_status_id, qs.query_status_name
+;
 
+select ds.dataset_id, ds.dataset_name
+from query_candidate qc
+join anomaly a on a.anomaly_id = qc.anomaly_id
+join field_instance fi on fi.field_instance_id = a.field_instance_id
+join dataset ds on ds.dataset_id = fi.dataset_id
+where ds.study_id = 1
+group by ds.dataset_id, ds.dataset_name
+;
+
+select s.site_id, s.site_name
+from query_candidate qc
+join anomaly a on a.anomaly_id = qc.anomaly_id
+join site s on s.site_id = a.site_id
+where s.study_id = 1
+group by s.site_id, s.site_name
+;
+
+select p.phase_id, p.phase_name
+from query_candidate qc
+join anomaly a on a.anomaly_id = qc.anomaly_id
+join phase p on p.phase_id = a.phase_id
+where p.study_id = 1
+group by p.phase_id, p.phase_name
+;
+
+select s.subject_id, s.subject_name
+from query_candidate qc
+join anomaly a on a.anomaly_id = qc.anomaly_id
+join subject s on s.subject_id = a.subject_id
+join site si on si.site_id = s.site_id
+where si.study_id = 1
+group by s.subject_id, s.subject_name
+;
+
+select f.field_id, f.field_label
+from query_candidate qc
+join anomaly a on a.anomaly_id = qc.anomaly_id
+join field f on f.field_id = a.field_id
+where f.study_id = 1
+group by f.field_id, f.field_label
+;

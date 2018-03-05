@@ -92,7 +92,9 @@ function setFilterCriteria(criteria) {
 
 function setHighlightCriteria(criteria) {
 	highlightCriteria = criteria;
-	svg.selectAll(".data-point").classed("background", isBackground);
+	if (svg != null) {
+		svg.selectAll(".data-point").classed("background", isBackground);
+	}
 }
 
 function setGroupBy(attribute) {
@@ -496,7 +498,7 @@ function renderBeeswarm(dataUrl, fieldName, idField, mean, sd, numSd, handler) {
 	
 	d3.csv(dataUrl, function(d) {
 		data = d;
-		console.log(data);
+		//console.log(data);
 		
 		// Set extent of data and chart areas on the screen
 		min = data[0][fieldToPlot];

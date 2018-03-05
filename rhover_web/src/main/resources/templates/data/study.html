@@ -30,7 +30,7 @@
    			</tr>
    			<tr th:each="summary : ${summaries}">
    				<td>
-   					<a th:href="@{/anomaly/dataset_summary(dataset_id=${summary.entityId})}" th:text="${summary.entityName}"/>
+   					<a th:href="@{/data/dataset(dataset_id=${summary.entityId})}" th:text="${summary.entityName}"/>
    				</td>
    				<td>
    					<span th:if="${summary.attributes.get('is_critical')} == '1'">

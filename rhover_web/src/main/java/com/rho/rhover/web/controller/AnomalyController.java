@@ -148,7 +148,7 @@ public class AnomalyController {
     	Dataset dataset = datasetRepository.findOne(datasetId);
     	model.addAttribute("dataset", dataset);
 		if (siteId == -1 && subjectId == -1) {
-			model.addAttribute("univariateSummaries", anomalySummaryBuilder.getUnivariateDataFieldSummaries(datasetId));
+			model.addAttribute("univariateSummaries", anomalySummaryBuilder.getUnivariateDataFieldSummaries(datasetId, true));
 			model.addAttribute("bivariateSummaries", anomalySummaryBuilder.getBivariateDataFieldSummaries(datasetId));
 		}
 		if (siteId != -1) {

@@ -179,5 +179,10 @@
 			// TODO: Consider consolidating this variable with fieldName1 below
 			const fieldName = [[${field_name}]];
 		</script>
+		
+		<script th:if="${record_id}" th:inline="javascript">
+			const recordId = [[${record_id}]];
+			console.log("recordId: " + recordId);
+		</script>
 	</th:block>
 </html>

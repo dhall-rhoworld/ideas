@@ -6,6 +6,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.rho.rhover.common.study.Dataset;
+import com.rho.rhover.common.study.DatasetRepository;
 import com.rho.rhover.common.study.Study;
 import com.rho.rhover.common.study.StudyRepository;
 import com.rho.rhover.web.dto.AnomalySummaryBuilder;
@@ -20,6 +22,9 @@ public class DataController {
 	@Autowired
 	private AnomalySummaryBuilder anomalySummaryBuilder;
 	
+	@Autowired
+	private DatasetRepository datasetRepository;
+	
 	@RequestMapping("/all_studies")
 	public String allStudies(Model model) {
 		model.addAttribute("studies", studyRepository.findAll());
@@ -32,5 +37,14 @@ public class DataController {
 		model.addAttribute("study", study);
     	model.addAttribute("summaries", anomalySummaryBuilder.getDatasetSummaries(study, false));
 		return "/data/study";
+	}
+	
+	@RequestMapping("/dataset")
+	public String dataset(Model model, @RequestParam("dataset_id") Long datasetId) {
+		Dataset dataset = datasetRepository.findOne(datasetId);
+		model.addAttribute("dataset", dataset);
+    	model.addAttribute("dataset", dataset);
+		model.addAttribute("summaries", anomalySummaryBuilder.getUnivariateDataFieldSummaries(datasetId, false));
+		return "/data/dataset";
 	}
 }

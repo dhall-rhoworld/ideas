@@ -96,7 +96,8 @@ public class AnomalySummaryBuilder {
 				"	and a.has_been_viewed = 0\r\n" + 
 				") unviewed, is_checked, is_critical\r\n" + 
 				"from dataset ds\r\n" + 
-				"where ds.study_id = " + study.getStudyId();
+				"where ds.study_id = " + study.getStudyId() + "\r\n" +
+				"order by ds.dataset_name";
 		List<AnomalySummary> summaries = jdbcTemplate.query(sql, new AnomalySummaryRowMapperWithAttributes("is_checked", "is_critical"));
 		if (removeEmpties) {
 			summaries = removeEmpties(summaries);
@@ -223,7 +224,7 @@ public class AnomalySummaryBuilder {
 		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapperWithAttributes("site_name")));
 	}
 	
-	public List<AnomalySummary> getUnivariateDataFieldSummaries(Long datasetId) {
+	public List<AnomalySummary> getUnivariateDataFieldSummaries(Long datasetId, boolean removeEmpties) {
 		String sql =
 				"select f.field_id, f.field_label,\r\n" + 
 				"(\r\n" + 
@@ -251,7 +252,11 @@ public class AnomalySummaryBuilder {
 				"join dataset_version_field dvf on dvf.field_id = f.field_id\r\n" + 
 				"join dataset_version dv on dv.dataset_version_id = dvf.dataset_version_id\r\n" + 
 				"where dv.dataset_id = " + datasetId;
-		return removeEmpties(jdbcTemplate.query(sql, new AnomalySummaryRowMapper()));
+		List<AnomalySummary> summaries = jdbcTemplate.query(sql, new AnomalySummaryRowMapper());
+		if (removeEmpties) {
+			summaries = removeEmpties(summaries);
+		}
+		return summaries;
 	}
 	
 	public List<AnomalySummary> getUnivariateDataFieldSummaries(Long datasetId, Site site) {
