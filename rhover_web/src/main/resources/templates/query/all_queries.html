@@ -73,7 +73,11 @@
 	    			<th>View</th>
 	    		</tr>
 	    		<tr th:each="query : ${candidates}">
-	    			<td title="Delete from query list"><i class="fas fa-times-circle"></i></td>
+	    			<td title="Delete from query list">
+	    				<span class="delete-button" th:attr="data-query_candidate_id=${query.queryCandidateId}">
+	    					<i class="fas fa-times-circle"></i>
+	    				</span>
+	    			</td>
 	    			<td>
 		    			<select>
 		    				<option>Query not opened</option>
@@ -137,6 +141,10 @@
 				$("#dialog_filter").dialog("open");
 			}
 			
+			function onClickDelete() {
+				
+			}
+			
 			$(function() {
 				
 				$("#dialog_filter").dialog({
@@ -185,6 +193,16 @@
 					if (filters[filterField].length > 0) {
 						$(this).addClass("filter-set");
 					}
+				});
+				
+				$(".delete-button").click(function() {
+					const queryCandidateId = this.dataset.query_candidate_id;
+					const studyId = $("#select_study").val();
+					const filterString = JSON.stringify(filters).replace(/\"/g, "");
+					const url = encodeURI("/query/delete?study_id=" + studyId + "&" + "filters="
+							+ filterString + "&query_candidate_id=" + queryCandidateId);
+					//console.log(url);
+					window.location.href = url;
 				});
 			});
 		</script>

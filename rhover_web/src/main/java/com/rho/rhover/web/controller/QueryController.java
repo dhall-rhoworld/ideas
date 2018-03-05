@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -70,7 +69,6 @@ public class QueryController {
 		Matcher matcher = pattern.matcher(json);
 		while (matcher.find()) {
 			matcher.toMatchResult();
-			String token = json.substring(matcher.start(), matcher.end());
 			int p = json.indexOf(":", matcher.start());
 			String fieldName = json.substring(matcher.start(), p);
 			p = json.indexOf("[", p);
@@ -114,5 +112,14 @@ public class QueryController {
 			return true;
 		}
 		return ids.contains(fieldValue);
+	}
+	
+	@RequestMapping("/delete")
+	public String deleteQueryCandidate(@RequestParam("query_candidate_id") Long queryCandidateId) {
+		if (queryCandidateRepository.findOne(queryCandidateId) != null) {
+			logger.info("Deleting query candidate");
+			queryCandidateRepository.delete(queryCandidateId);
+		}
+		return "forward:/query/all_queries";
 	}
 }
