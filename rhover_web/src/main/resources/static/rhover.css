@@ -397,3 +397,12 @@ th.alternate-th {
 .filter-set {
 	color: red;
 }
+
+.saved-message {
+	float: left;
+	width: 125px;
+	color: white;
+	background-color: coral;
+	padding: 5px;
+	margin-left: 20px;
+}

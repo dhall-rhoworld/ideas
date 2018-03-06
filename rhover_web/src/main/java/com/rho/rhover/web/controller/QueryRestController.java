@@ -54,4 +54,15 @@ public class QueryRestController {
 		}
 		return new ResponseEntity<>(tokens.length, HttpStatus.OK);
 	}
+	
+	@RequestMapping(value="/set_status", method=RequestMethod.POST)
+	public ResponseEntity<Integer> setStatus(
+			@RequestParam("query_candidate_id") Long queryCandidateId,
+			@RequestParam("query_status_id") Long queryStatusId) {
+		QueryCandidate qc = queryCandidateRepository.findOne(queryCandidateId);
+		QueryStatus qs = queryStatusRepository.findOne(queryStatusId);
+		qc.setQueryStatus(qs);
+		queryCandidateRepository.save(qc);
+		return new ResponseEntity<Integer>(1, HttpStatus.OK);
+	}
 }

@@ -19,15 +19,19 @@
     		simply the list of data issues flagged by users when visualizing data anomalies. 
     	</p>
     	
-    	<p>
-	    	Study:
-	    	<select id="select_study">
-	    		<option value="0" th:selected="${selectedStudy} == null">--- Select --- </option>
-	    		<option th:each="study : ${allStudies}" th:value=${study.studyId} th:text="${study.studyName}"
-	    			th:selected="${selectedStudy} != null AND ${selectedStudy.equals(study)}"/>
-	    	</select>
-    	</p>
-    	
+    	<div style="height: 40px;">
+    		<span id="message_bar"></span>
+    		
+    		<span style="position: absolute; left: 50%; margin-left: -100px;">
+		    	Study:
+		    	<select id="select_study">
+		    		<option value="0" th:selected="${selectedStudy} == null">--- Select --- </option>
+		    		<option th:each="study : ${allStudies}" th:value=${study.studyId} th:text="${study.studyName}"
+		    			th:selected="${selectedStudy} != null AND ${selectedStudy.equals(study)}"/>
+		    	</select>
+		    </span>
+    	</div>
+     	
     	<div th:if="${selectedStudy}">
 	    	<table class="wide">
 	    		<tr>
@@ -79,10 +83,10 @@
 	    				</span>
 	    			</td>
 	    			<td>
-		    			<select>
-		    				<option>Query not opened</option>
-		    				<option>Query opened</option>
-		    				<option>Query closed</option>
+		    			<select th:attr="data-query_candidate_id=${query.queryCandidateId}" class="select_status">
+		    				<option value="1" th:selected="${query.queryStatus.queryStatusId} == 1">Query not opened</option>
+		    				<option value="2" th:selected="${query.queryStatus.queryStatusId} == 2">Query opened</option>
+		    				<option value="3" th:selected="${query.queryStatus.queryStatusId} == 3">Query closed</option>
 		    			</select>
 		    		</td>
 	    			<td th:text="${query.anomaly.fieldInstance.dataset.datasetName}"/>
@@ -141,8 +145,9 @@
 				$("#dialog_filter").dialog("open");
 			}
 			
-			function onClickDelete() {
-				
+			function removeSavedMessage() {
+				$("#message_bar").removeClass("saved-message");
+				$("#message_bar").empty();
 			}
 			
 			$(function() {
@@ -195,13 +200,32 @@
 					}
 				});
 				
+				// Status selectors
+				$(".select_status").change(function() {
+					const queryCandidateId = this.dataset.query_candidate_id;
+					const queryStatusId = $(this).val();
+					const data = "query_candidate_id=" + queryCandidateId + "&query_status_id="
+						+ queryStatusId;
+					const url = "/rest/query/set_status";
+					$.post(url, data)
+						.done(function() {
+							const html = "Saved <i class='far fa-save'></i>";
+							$("#message_bar").addClass("saved-message");
+							$("#message_bar").html(html);
+							setTimeout(removeSavedMessage, 750);
+						})
+						.fail(function() {
+							console.log("Error");
+						});
+				});
+				
+				// Delete buttons
 				$(".delete-button").click(function() {
 					const queryCandidateId = this.dataset.query_candidate_id;
 					const studyId = $("#select_study").val();
 					const filterString = JSON.stringify(filters).replace(/\"/g, "");
 					const url = encodeURI("/query/delete?study_id=" + studyId + "&" + "filters="
 							+ filterString + "&query_candidate_id=" + queryCandidateId);
-					//console.log(url);
 					window.location.href = url;
 				});
 			});
