@@ -1,5 +1,9 @@
 package com.rho.rhover.web.controller;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -8,8 +12,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.DatasetRepository;
+import com.rho.rhover.common.study.DatasetVersionRepository;
 import com.rho.rhover.common.study.Study;
 import com.rho.rhover.common.study.StudyRepository;
+import com.rho.rhover.web.dto.AnomalySummary;
 import com.rho.rhover.web.dto.AnomalySummaryBuilder;
 
 @Controller
@@ -24,6 +30,9 @@ public class DataController {
 	
 	@Autowired
 	private DatasetRepository datasetRepository;
+	
+	@Autowired
+	private DatasetVersionRepository datasetVersionRepository;
 	
 	@RequestMapping("/all_studies")
 	public String allStudies(Model model) {
@@ -43,8 +52,16 @@ public class DataController {
 	public String dataset(Model model, @RequestParam("dataset_id") Long datasetId) {
 		Dataset dataset = datasetRepository.findOne(datasetId);
 		model.addAttribute("dataset", dataset);
-    	model.addAttribute("dataset", dataset);
-		model.addAttribute("summaries", anomalySummaryBuilder.getUnivariateDataFieldSummaries(datasetId, false));
+		model.addAttribute("summaries", buildAnomalySummaryMap(anomalySummaryBuilder.getUnivariateDataFieldSummaries(datasetId, true)));
+		model.addAttribute("datasetVersion", datasetVersionRepository.findByDatasetAndIsCurrent(dataset, Boolean.TRUE));
 		return "/data/dataset";
+	}
+	
+	private Map<Long, AnomalySummary> buildAnomalySummaryMap(List<AnomalySummary> summaries) {
+		Map<Long, AnomalySummary> map = new HashMap<Long, AnomalySummary>();
+		for (AnomalySummary summary : summaries) {
+			map.put(summary.getEntityId(), summary);
+		}
+		return map;
 	}
 }

@@ -21,23 +21,33 @@
 		
 	<!-- Content -->
     <div layout:fragment="page_content" id="page_content">
-		<h2>Variables</h2>
+		<h2 th:text="${dataset.datasetName}"/>
    		<table class="wide">
    			<tr>
+   				<th>Name</th>
    				<th>Label</th>
+   				<th>Data Type</th>
    				<th th:if="${dataset.isChecked}">Anomalies</th>
-   				<th>View</th>
+   				<th>View Chart</th>
    			</tr>
-   			<tr th:each="summary : ${summaries}">
-   				<td th:text="${summary.entityName}"/>
-   				<td th:if="${dataset.isChecked}">
-   					<span th:text="${summary.numAnomalies}"/>
-   					<span th:if="${summary.numUnviewedAnomalies > 0}">
-   						&nbsp; (<span class="attention" th:text="${summary.numUnviewedAnomalies}"/> unviewed)
-   					</span>
+   			<tr th:each="field : ${datasetVersion.fields}">
+   				<td th:text="${field.fieldName}" align="left"/>
+   				<td th:text="${field.fieldLabel}" align="left"/>
+   				<td th:text="${field.displayDataType}" align="left"/>
+   				<td th:if="${dataset.isChecked}" align="left">
+   					<span th:if="${summaries.containsKey(field.fieldId)}">
+	   					<span th:text="${summaries.get(field.fieldId).numAnomalies}"/>
+	   					<span th:if="${summaries.get(field.fieldId).numUnviewedAnomalies > 0}">
+	   						&nbsp; (<span class="attention" th:text="${summaries.get(field.fieldId).numUnviewedAnomalies}"/> unviewed)
+	   					</span>
+	   				</span>
    				</td>
    				<td>
-   					<a th:href="@{/chart/univariate_beeswarm(field_id=${summary.entityId}, dataset_id=${dataset.datasetId})}">Chart</a>
+   					<span th:if="${field.isNumeric}">
+	   					<a th:href="@{/chart/univariate_beeswarm(field_id=${field.fieldId}, dataset_id=${dataset.datasetId})}">Beeswarm</a> |
+	   					Longitudinal |
+	   					Scatter
+	   				</span>
    				</td>
    			</tr>
    		</table>
