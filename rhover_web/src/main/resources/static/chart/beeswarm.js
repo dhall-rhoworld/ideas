@@ -24,8 +24,7 @@ let maxY = 0;
 let xScale = null;
 
 // Statistical properties
-let dataMean = 0;
-let dataSd = 0;
+let stats = null;
 
 // Parameters set by the user
 let lowerThresh = -1;
@@ -119,12 +118,13 @@ function getSelectedData() {
  * @param numSd Number of SD from mean
  */
 function setThresholdLines(numSd) {
-	lowerThresh = dataMean - numSd * dataSd;
+	lowerThresh = stats.mean - numSd * stats.sd;
 	lowerX = xScale(lowerThresh) + BORDER;
 	line1.transition().attr("x1", lowerX).attr("x2", lowerX);
-	upperThresh = dataMean + numSd * dataSd;
+	upperThresh = stats.mean + numSd * stats.sd;
 	upperX = xScale(upperThresh) + BORDER;
 	line2.transition().attr("x1", upperX).attr("x2", upperX);
+	stats.numSd = numSd;
 }
 
 //
@@ -327,7 +327,11 @@ function isOutlier(dataPoint) {
 }
 
 function isInlier(dataPoint) {
-	return dataPoint["anomaly_id"] == 0 || dataPoint["is_an_issue"] == "false";
+	let inlier =
+		!("anomaly_id" in dataPoint)
+		|| dataPoint["anomaly_id"] == 0
+		|| dataPoint["is_an_issue"] == "false";
+	return inlier;
 }
 
 function isUnderQuery(dataPoint) {
@@ -478,22 +482,27 @@ function drawOverflowMarks() {
 	});
 }
 
+
 /**
  * Render the beeswarm
  * @param dataUrl URL to retrieve data
  * @param fieldName Name of field to plot
  * @param idField Name of record ID field
+ * @param statProperties An object that contains the following properties if univariate checks
+ *                       were run on this variable:
+ *              mean - Statistical mean
+ *              sd   - Standard deviation
+ *              numSd - Inlier/outlier boundary in standard deviations
  * @param mean Statistical mean of field values
  * @param sd Statistical SD of field values
  * @param numSd Threshold value in SD units
  * @param handler Client event handler invoked later on when use performs certain actions,
  * such as selecting data
  */
-function renderBeeswarm(dataUrl, fieldName, idField, mean, sd, numSd, handler) {
+function renderBeeswarm(dataUrl, fieldName, idField, statProperties, handler) {
 	fieldToPlot = fieldName;
 	recordIdField = idField;
-	dataMean = mean;
-	dataSd = sd;
+	stats = statProperties;
 	eventHandler = handler;
 	
 	d3.csv(dataUrl, function(d) {
@@ -501,8 +510,8 @@ function renderBeeswarm(dataUrl, fieldName, idField, mean, sd, numSd, handler) {
 		//console.log(data);
 		
 		// Set extent of data and chart areas on the screen
-		min = data[0][fieldToPlot];
-		max = data[data.length - 1][fieldToPlot];
+		min = d3.min(data, function(d) {return parseFloat(d[fieldToPlot])});
+		max = d3.max(data, function(d) {return parseFloat(d[fieldToPlot])});
 		const dataAreaWidth = SVG_WIDTH - 2 * BORDER;
 		xScale = d3.scaleLinear()
 			.domain([min, max])
@@ -555,18 +564,20 @@ function renderBeeswarm(dataUrl, fieldName, idField, mean, sd, numSd, handler) {
 		drawOverflowMarks();
 		
 		// Draw threshold lines
-		lowerThresh = mean - numSd * sd;
-		upperThresh = mean + numSd * sd;
-		let xLower = xScale(lowerThresh) + BORDER;
-		let xUpper = xScale(upperThresh) + BORDER;
-		let y1 = BORDER;
-		let y2 = BORDER + dataHeight;
-		line1 = svg.append("line")
-			.attr("x1", xLower).attr("y1", y1).attr("x2", xLower).attr("y2", y2)
-			.attr("stroke", "black").attr("stroke-width", 1).attr("stroke-dasharray", "5, 5");
-		line2 = svg.append("line")
-			.attr("x1", xUpper).attr("y1", y1).attr("x2", xUpper).attr("y2", y2)
-			.attr("stroke", "black").attr("stroke-width", 1).attr("stroke-dasharray", "5, 5");
+			if (stats.uniCheckRun) {
+			lowerThresh = stats.mean - stats.numSd * stats.sd;
+			upperThresh = stats.mean + stats.numSd * stats.sd;
+			let xLower = xScale(lowerThresh) + BORDER;
+			let xUpper = xScale(upperThresh) + BORDER;
+			let y1 = BORDER;
+			let y2 = BORDER + dataHeight;
+			line1 = svg.append("line")
+				.attr("x1", xLower).attr("y1", y1).attr("x2", xLower).attr("y2", y2)
+				.attr("stroke", "black").attr("stroke-width", 1).attr("stroke-dasharray", "5, 5");
+			line2 = svg.append("line")
+				.attr("x1", xUpper).attr("y1", y1).attr("x2", xUpper).attr("y2", y2)
+				.attr("stroke", "black").attr("stroke-width", 1).attr("stroke-dasharray", "5, 5");
+		}
 	});
 }
 
@@ -631,20 +642,22 @@ function reRenderBeeswarm() {
 	drawOverflowMarks();
 	
 	// Update threshold lines
-	let y2 = BORDER + dataHeight;
-	line1
-		.transition()
-		.duration(TRANS_DURATION)
-		.attr("y2", y2);
-	line2
-		.transition()
-		.duration(TRANS_DURATION)
-		.attr("y2", y2);
-	
-	axisArea
-		.transition()
-		.duration(TRANS_DURATION)
-		.attr("transform", "translate(" + BORDER + ", " + axisY + ")");
+	if (stats.uniCheckRun) {
+		let y2 = BORDER + dataHeight;
+		line1
+			.transition()
+			.duration(TRANS_DURATION)
+			.attr("y2", y2);
+		line2
+			.transition()
+			.duration(TRANS_DURATION)
+			.attr("y2", y2);
+		
+		axisArea
+			.transition()
+			.duration(TRANS_DURATION)
+			.attr("transform", "translate(" + BORDER + ", " + axisY + ")");
+	}
 	
 	// Panel labels
 	const panelKeys = Object.keys(panels);

@@ -39,12 +39,14 @@
 		</div>
 		
 		<!-- Data check parameters -->
-		<img id="img_boundary" src="/images/info.png" width="20" height="20" 
-			title="Numer of standard deviations from the mean above which a value is considered an outlier. (Current value shown as vertical dashed lines in chart). Changes to this setting will only be applied to this variable. Pressing Apply button will trigger an immediate run of the data check with the specified setting, which will also be saved and used in future data check runs."
-			/>
-		<label for="spinner_sd">Outlier Boundary (stdev from mean)</label>
-		<input id="spinner_sd" size="2" th:value="${num_sd}"/>
-		<button type="button" id="button_boundary">Apply</button>
+		<div th:if="${check_run_id} != -1">
+			<img id="img_boundary" src="/images/info.png" width="20" height="20" 
+				title="Numer of standard deviations from the mean above which a value is considered an outlier. (Current value shown as vertical dashed lines in chart). Changes to this setting will only be applied to this variable. Pressing Apply button will trigger an immediate run of the data check with the specified setting, which will also be saved and used in future data check runs."
+				/>
+			<label for="spinner_sd">Outlier Boundary (stdev from mean)</label>
+			<input id="spinner_sd" size="2" th:value="${num_sd}"/>
+			<button type="button" id="button_boundary">Apply</button>
+		</div>
 	
 		<!-- Chart -->
 		<div>
@@ -161,12 +163,7 @@
 	
 		<!-- Script to initialize Javascript variables -->
 		<script th:inline="javascript">
-			const url = "/rest/anomaly/data/univariate_outliers?check_run_id=" + [[${check_run_id}]];
-			const mean = parseFloat([[${mean}]]);
-			const sd = parseFloat([[${sd}]]);
-			const siteName = [[${site_name}]];
-			const subjectName = [[${subject_name}]];
-			const numSd = parseFloat([[${num_sd}]]);
+			const url = "/rest/chart/univariate_data?field_instance_id=" + [[${field_instance.fieldInstanceId}]];			
 			const siteFieldName = [[${site_field_name}]];
 			const phaseFieldName = [[${phase_field_name}]];
 			const subjectFieldName = [[${subject_field_name}]];
@@ -175,14 +172,15 @@
 			const datasetName = [[${dataset.datasetName}]];
 			const datasetId = [[${dataset.datasetId}]];
 			const fieldName1 = [[${field.fieldName}]];
-			
-			// TODO: Consider consolidating this variable with fieldName1 below
-			const fieldName = [[${field_name}]];
+			const fieldDisplayName = [[${field.displayName}]];
+			const recordId = [[${record_id}]];
+			const checkRunId = parseInt([[${check_run_id}]]);
 		</script>
 		
-		<script th:if="${record_id}" th:inline="javascript">
-			const recordId = [[${record_id}]];
-			console.log("recordId: " + recordId);
+		<script th:if="${check_run_id} != -1" th:inline="javascript">
+			const mean = parseFloat([[${mean}]]);
+			const sd = parseFloat([[${sd}]]);
+			const numSd = parseFloat([[${num_sd}]]);
 		</script>
 	</th:block>
 </html>

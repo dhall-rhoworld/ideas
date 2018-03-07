@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -98,14 +99,11 @@ public class AnomalyRestController {
 		return new ResponseEntity<Integer>(0, HttpStatus.OK);
 	}
 	
-	// TODO: Complete functionality.
-	@RequestMapping("/set_univariate_thresholds")
-	public ResponseEntity<Integer> setUnivariateThresholds(
-			@RequestParam("data_field_id") Long dataFieldId,
-			@RequestParam("lower_threshold") Double lowerThreshold,
-			@RequestParam("upper_threshold") Double upperThreshold) {
-		logger.debug("Setting thresholds for data field " + dataFieldId + ": " + lowerThreshold
-				+ " - " + upperThreshold);
+	@RequestMapping(value="/set_univariate_sd", method=RequestMethod.POST)
+	public ResponseEntity<Integer> setUnivariateSd(
+			@RequestParam("check_run_id") Long checkRunId,
+			@RequestParam("num_sd") Double numSd) {
+		logger.info("checkRunId: " + checkRunId + ", numSd: " + numSd);
 		return new ResponseEntity<Integer>(0, HttpStatus.OK);
 	}
 	

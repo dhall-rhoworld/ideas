@@ -395,6 +395,19 @@ function onClickNotIssue() {
 		});
 }
 
+function onButtonBoundaryClick() {
+	const numSd = $("#spinner_sd").val();
+	const url = "/rest/anomaly/set_univariate_sd";
+	const data = "check_run_id=" + checkRunId + "&num_sd=" + numSd;
+	$.post(url, data)
+		.done(function() {
+			console.log("Success");
+		})
+		.fail(function() {
+			console.log("Error");
+		});
+}
+
 $(function() {
 	initializeDialogs();
 	initializeWidgets();
@@ -402,6 +415,8 @@ $(function() {
 	initializeOptionsDialogFields();
 	
 	$("#tabs").tabs();
+	
+	$("#button_boundary").click(onButtonBoundaryClick);
 	
 	let criteria = null;
 	if (recordId != -1) {
@@ -414,18 +429,16 @@ $(function() {
 		setHighlightCriteria(criteria);
 	}
 	
-	renderBeeswarm(url, fieldName, recordIdFieldName, mean, sd, numSd, function(itemsAreSelected) {
-		if (itemsAreSelected) {
-			$("#button_show").prop("disabled", false);
-			$("#select_issue").prop("disabled", false);
-			$("#button_status").prop("disabled", false);
-		}
-		else {
-			$("#button_show").prop("disabled", true);
-			$("#select_issue").prop("disabled", true);
-			$("#button_status").prop("disabled", true);
-		}
-	});
+	const stats = {
+		uniCheckRun: false
+	};
+	if (checkRunId != -1) {
+		stats.uniCheckRun = true;
+		stats.mean = mean;
+		stats.sd = sd;
+		stats.numSd = numSd;
+	}
+	renderBeeswarm(url, fieldDisplayName, recordIdFieldName, stats, function(itemsAreSelected) {});
 	
 	if (recordId != -1) {
 		synchronizeHighlightsBar(criteria);

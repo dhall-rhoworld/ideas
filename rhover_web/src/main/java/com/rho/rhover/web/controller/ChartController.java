@@ -98,16 +98,27 @@ public class ChartController {
     @RequestMapping("/univariate_beeswarm")
     public String univariateBeeswarm(
 		    @RequestParam("field_id") Long fieldId,
-		    @RequestParam(name="site_id", required=false, defaultValue="-1") Long siteId,
-		    @RequestParam(name="subject_id", required=false, defaultValue="-1") Long subjectId,
-		    @RequestParam(name="record_id", required=false, defaultValue="-1") Long recordId,
 		    @RequestParam("dataset_id") Long datasetId,
+		    @RequestParam(name="record_id", required=false, defaultValue="-1") Long recordId,
 			Model model) {
     	Field field = dataFieldRepository.findOne(fieldId);
     	Dataset dataset = datasetRepository.findOne(datasetId);
-    	model.addAttribute("field", field);
     	DatasetVersion datasetVersion = field.getCurrentDatasetVersion(dataset);
-    	model.addAttribute("dataset", datasetVersion.getDataset());
+    	Study study = datasetVersion.getDataset().getStudy();
+    	List<Phase> phases = phaseRepository.findByStudy(study);
+    	Collections.sort(phases);
+    	
+    	model.addAttribute("field", field);
+    	model.addAttribute("dataset", dataset);
+    	model.addAttribute("subject_field_name", study.getSubjectField().getDisplayName());
+    	model.addAttribute("site_field_name", study.getSiteField().getDisplayName());
+    	model.addAttribute("phase_field_name", study.getPhaseField().getDisplayName());
+    	model.addAttribute("record_id_field_name", study.getRecordIdField().getDisplayName());
+    	model.addAttribute("record_id", recordId);
+    	model.addAttribute("sites", siteRepository.findByStudy(study));
+    	model.addAttribute("phases", phases);
+    	model.addAttribute("field_instance", fieldInstanceRepository.findByFieldAndDataset(field, dataset));
+    	
     	Check check = checkRepository.findByCheckName("UNIVARIATE_OUTLIER");
     	CheckRun checkRun = checkRunRepository.findByCheckAndDatasetVersionAndFieldAndIsLatest(check, datasetVersion, field, Boolean.TRUE);
     	if (checkRun != null) {
@@ -116,43 +127,10 @@ public class ChartController {
 	    	model.addAttribute("sd", dataPropertyRepository.findByCheckRunAndDataPropertyName(checkRun, "sd").getDataPropertyValue());
 	    	model.addAttribute("num_sd", paramUsedRepository.findByCheckRunAndParamName(checkRun, "sd").getParamValue());
     	}
+    	else {
+    		model.addAttribute("check_run_id", "-1");
+    	}
     	
-    	//TODO: Remove this.  Adding whole field object as an attribute below
-    	model.addAttribute("field_name", field.getDisplayName());
-    	
-    	Study study = datasetVersion.getDataset().getStudy();
-    	model.addAttribute("subject_field_name", study.getSubjectField().getDisplayName());
-    	model.addAttribute("site_field_name", study.getSiteField().getDisplayName());
-    	model.addAttribute("phase_field_name", study.getPhaseField().getDisplayName());
-    	model.addAttribute("record_id_field_name", study.getRecordIdField().getDisplayName());
-    	model.addAttribute("field", field);
-    	if (siteId == -1 && subjectId == -1) {
-    		model.addAttribute("site_name", "-1");
-    		model.addAttribute("subject_name", "-1");
-    		model.addAttribute("filter_entity", "none");
-    		model.addAttribute("filter_value", "");
-    	}
-    	if (siteId != -1) {
-    		Site site = siteRepository.findOne(siteId);
-    		model.addAttribute("site_name", site.getSiteName());
-    		model.addAttribute("subject_name", "-1");
-    		model.addAttribute("site", site);
-    		model.addAttribute("filter_entity", "site");
-    		model.addAttribute("filter_value", site.getSiteName());
-    	}
-    	if (subjectId != -1) {
-    		Subject subject = subjectRepository.findOne(subjectId);
-    		model.addAttribute("subject_name", subject.getSubjectName());
-    		model.addAttribute("site_name", "-1");
-    		model.addAttribute("subject", subject);
-    		model.addAttribute("filter_entity", "subject");
-    		model.addAttribute("filter_value", subject.getSubjectName());
-    	}
-    	model.addAttribute("record_id", recordId);
-    	model.addAttribute("sites", siteRepository.findByStudy(study));
-    	List<Phase> phases = phaseRepository.findByStudy(study);
-    	Collections.sort(phases);
-    	model.addAttribute("phases", phases);
     	return "chart/univariate_beeswarm";
     }
 
