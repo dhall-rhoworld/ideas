@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import com.rho.rhover.common.study.Study;
 import com.rho.rhover.common.study.StudyRepository;
@@ -17,6 +18,7 @@ import com.rho.rhover.common.study.StudyRepository;
 @EnableJpaRepositories(basePackages = {"com.rho.rhover.common"})
 @EntityScan("com.rho.rhover.common")
 @ComponentScan("com.rho.rhover")
+@EnableAsync
 public class RhoverDaemonApplication implements CommandLineRunner {
 	
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -35,19 +37,25 @@ public class RhoverDaemonApplication implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 		logger.info("Starting up RhoVer Daemon");
 		
-		Iterable<Study> studies = studyRepository.findAll();
-		for (Study study : studies) {
-			try {
-				boolean changedData = dataLoaderService.updateStudy(study);
-				if (changedData) {
-					dataLoaderService.calculateAndSaveCorrelations(study);
-				}
-			}
-			catch (SourceDataException e) {
-				logger.error("Data error encountered: " + e.getMessage());
-				
-				// TODO: Send notification to user
-			}
+		while (true) {
+			
+			logger.debug("Checking for new data");
+			Thread.sleep(5000);
 		}
+		
+//		Iterable<Study> studies = studyRepository.findAll();
+//		for (Study study : studies) {
+//			try {
+//				boolean changedData = dataLoaderService.updateStudy(study);
+//				if (changedData) {
+//					dataLoaderService.calculateAndSaveCorrelations(study);
+//				}
+//			}
+//			catch (SourceDataException e) {
+//				logger.error("Data error encountered: " + e.getMessage());
+//				
+//				// TODO: Send notification to user
+//			}
+//		}
 	}
 }

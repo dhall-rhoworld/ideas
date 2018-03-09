@@ -10,6 +10,7 @@ import javax.persistence.ManyToOne;
 
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.Phase;
+import com.rho.rhover.common.study.Site;
 import com.rho.rhover.common.study.Subject;
 
 @Entity
@@ -23,6 +24,10 @@ public class Observation {
 	@ManyToOne
 	@JoinColumn(name="dataset_id")
 	private Dataset dataset;
+	
+//	@ManyToOne
+//	@JoinColumn(name="site_id")
+//	private Site site;
 	
 	@ManyToOne
 	@JoinColumn(name="subject_id")
@@ -86,5 +91,13 @@ public class Observation {
 	public void setRecordId(String recordId) {
 		this.recordId = recordId;
 	}
+
+//	public Site getSite() {
+//		return site;
+//	}
+//
+//	public void setSite(Site site) {
+//		this.site = site;
+//	}
 
 }

@@ -403,12 +403,14 @@ CREATE TABLE param_used (
 CREATE TABLE observation (
 	observation_id BIGINT AUTO_INCREMENT NOT NULL,
 	dataset_id BIGINT NOT NULL,
+	site_id BIGINT NOT NULL,
 	subject_id BIGINT NOT NULL,
 	phase_id BIGINT NOT NULL,
 	record_id VARCHAR(50) NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT pk_observation PRIMARY KEY (observation_id),
 	CONSTRAINT fk_observation_2_dataset FOREIGN KEY (dataset_id) REFERENCES dataset(dataset_id),
+	CONSTRAINT fk_observation_2_site FOREIGN KEY (site_id) REFERENCES site(site_id),
 	CONSTRAINT fk_observation_2_subject FOREIGN KEY (subject_id) REFERENCES subject(subject_id),
 	CONSTRAINT fk_observation_2_phase FOREIGN KEY (phase_id) REFERENCES phase(phase_id),
 	CONSTRAINT u_observation UNIQUE (dataset_id, subject_id, phase_id, record_id)
@@ -590,4 +592,20 @@ CREATE TABLE query_candidate (
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT pk_query_candidate PRIMARY KEY (query_candidate_id),
 	CONSTRAINT fk_query_candidate_2_anomaly FOREIGN KEY (anomaly_id) REFERENCES anomaly(anomaly_id)
+);
+
+CREATE TABLE data_load_job (
+	data_load_job_id BIGINT AUTO_INCREMENT NOT NULL,
+	study_id BIGINT NOT NULL,
+	study_db_version_id BIGINT,
+	status VARCHAR(50),
+	created_on DATETIME DEFAULT CURRENT_DATETIME,
+	created_by VARCHAR(50),
+	started_on DATETIME,
+	ended_on DATETIME,
+	CONSTRAINT pk_data_load_job PRIMARY KEY (data_load_job_id),
+	CONSTRAINT fk_data_load_job_2_study FOREIGN KEY (study_id)
+		REFERENCES study(study_id),
+	CONSTRAINT fk_data_load_job_2_study_db_version FOREIGN KEY (study_db_version_id)
+		REFERENCES study_db_version (study_db_version_id)
 );

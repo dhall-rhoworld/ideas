@@ -114,7 +114,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 
 	@Override
 	@Transactional
-	public boolean updateStudy(Study study) {
+	public void updateStudy(Study study) {
 		logger.info("Updating study: " + study.getStudyName());
 		
 		// Check for new and modified files
@@ -125,7 +125,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		
 		// Exit if there are no new or modified files
 		if (modifiedFiles.size() == 0 && newFiles.size() == 0) {
-			return false;
+			return;
 		}
 		
 		// Save new study DB version
@@ -173,7 +173,6 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		}
 		study.setIsInitialized(Boolean.TRUE);
 		studyDbVersionRepository.save(studyDbVersion);
-		return true;
 	}
 
 	private StudyDbVersion createAndSaveStudyDbVersion(Study study) {

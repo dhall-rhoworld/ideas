@@ -1,3 +1,4 @@
+drop table data_load_job;
 drop table query_candidate;
 drop table query_status;
 drop view bivariate_anomaly;
