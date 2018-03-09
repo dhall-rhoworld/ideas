@@ -28,6 +28,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+		<dependency>
+			<groupId>com.rho</groupId>
+			<artifactId>rhover_common</artifactId>
+			<version>0.1.0</version>
+		</dependency>
         <dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
