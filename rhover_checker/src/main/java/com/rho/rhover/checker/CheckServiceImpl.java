@@ -38,6 +38,7 @@ import com.rho.rhover.common.check.CheckRun;
 import com.rho.rhover.common.check.CheckRunRepository;
 import com.rho.rhover.common.check.ParamUsed;
 import com.rho.rhover.common.check.ParamUsedRepository;
+import com.rho.rhover.common.study.CsvDataRepository;
 import com.rho.rhover.common.study.CsvDataService;
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.DatasetVersion;
@@ -47,6 +48,8 @@ import com.rho.rhover.common.study.FieldInstance;
 import com.rho.rhover.common.study.FieldInstanceRepository;
 import com.rho.rhover.common.study.Phase;
 import com.rho.rhover.common.study.PhaseRepository;
+import com.rho.rhover.common.study.Site;
+import com.rho.rhover.common.study.SiteRepository;
 import com.rho.rhover.common.study.Study;
 import com.rho.rhover.common.study.Subject;
 import com.rho.rhover.common.study.SubjectRepository;
@@ -97,7 +100,13 @@ public class CheckServiceImpl implements CheckService {
 	private PhaseRepository phaseRepository;
 	
 	@Autowired
+	private SiteRepository siteRepository;
+	
+	@Autowired
 	private CsvDataService csvDataService;
+	
+	@Autowired
+	private CsvDataRepository csvDataRepository;
 	
 	@Value("${working.dir}")
 	private String workingDirPath;
@@ -238,21 +247,43 @@ public class CheckServiceImpl implements CheckService {
 	// Should given univariate check be run on given field?
 	//
 	private boolean shouldCheckField(Field field, String dataTypesToCheck, Check check, DatasetVersion datasetVersion) {
-		boolean checkable = !(field.getIsSkipped()
+		
+		// Determine if we should ever check the field
+		if (field.getIsSkipped()
 			|| field.getStudy().isFieldIdentifying(field)
 			|| (dataTypesToCheck.equals("continuous") && !field.getDataType().equals("Double"))
-			|| (dataTypesToCheck.equals("numeric") && !(field.getDataType().equals("Double") || field.getDataType().equals("Integer"))));
-		if (checkable) {
-			CheckRun latestRun = checkRunRepository.findByCheckAndDatasetVersionAndFieldAndIsLatest(check, datasetVersion, field, Boolean.TRUE);
-			if (latestRun != null) {
-				checkable = false;
-				Set<CheckParam> params = checkParamService.getAllCheckParams(check, datasetVersion.getDataset(), field);
-				for (CheckParam param : params) {
-					ParamUsed paramUsed = paramUsedRepository.findByCheckRunAndParamName(latestRun, param.getParamName());
-					if (paramUsed != null && !param.getParamValue().equals(paramUsed.getParamValue())) {
-						checkable = true;
-						break;
-					}
+			|| (dataTypesToCheck.equals("numeric") && !(field.getDataType().equals("Double") || field.getDataType().equals("Integer")))) {
+			return false;
+		}
+		
+		// Determine if there is enough data to run the check
+		CheckParam minRecParam = checkParamService.getCheckParam(check, "min-univariate", datasetVersion.getDataset());
+		int minRecords = Integer.parseInt(minRecParam.getParamValue());
+		List<String> values = csvDataRepository.findByFieldAndDataset(field, datasetVersion.getDataset()).extractData();
+		int numValues = 0;
+		for (String value : values) {
+			if (value == null || value.length() == 0 || value.equalsIgnoreCase("null")) {
+				continue;
+			}
+			numValues++;
+		}
+		logger.debug("Num values: " + numValues + ", min values to check: " + minRecords);
+		if (numValues < minRecords) {
+			logger.debug("Too few records to check");
+			return false;
+		}
+		
+		// Determine if any parameters have changed since last run
+		boolean checkable = true;
+		CheckRun latestRun = checkRunRepository.findByCheckAndDatasetVersionAndFieldAndIsLatest(check, datasetVersion, field, Boolean.TRUE);
+		if (latestRun != null) {
+			checkable = false;
+			Set<CheckParam> params = checkParamService.getAllCheckParams(check, datasetVersion.getDataset(), field);
+			for (CheckParam param : params) {
+				ParamUsed paramUsed = paramUsedRepository.findByCheckRunAndParamName(latestRun, param.getParamName());
+				if (paramUsed != null && !param.getParamValue().equals(paramUsed.getParamValue())) {
+					checkable = true;
+					break;
 				}
 			}
 		}
@@ -278,7 +309,7 @@ public class CheckServiceImpl implements CheckService {
 	private void processOutliers(BufferedReader reader, DatasetVersion datasetVersion,
 			Field field, CheckRun checkRun, boolean isBivariate,
 			DatasetVersion datasetVersion2, Field field2) throws IOException {
-		
+		Study study = datasetVersion.getDataset().getStudy();
 		int outlierColNum = 4;
 		if (isBivariate) {
 			outlierColNum = 5;
@@ -293,8 +324,9 @@ public class CheckServiceImpl implements CheckService {
 			String[] values = line.split(",");
 			if (values[outlierColNum].equals("TRUE")) {
 				
-				Subject subject = subjectRepository.findBySubjectName(values[0]);
-				Phase phase = phaseRepository.findByPhaseName(values[1]);
+				Subject subject = subjectRepository.findBySubjectNameAndStudy(values[0], study);
+				Site site = subject.getSite();
+				Phase phase = phaseRepository.findByPhaseNameAndStudy(values[1], study);
 				String recordId = values[2];
 				String anomalousValue = values[3];
 				
@@ -302,12 +334,12 @@ public class CheckServiceImpl implements CheckService {
 				Check check = checkRun.getCheck();
 				Anomaly anomaly = null;
 				DatumVersion datumVersion = fetchOrCreateDatumVersionAndDependentObjects(
-						recordId, subject, phase, field, datasetVersion, anomalousValue);
+						recordId, subject, site, phase, field, datasetVersion, anomalousValue);
 				DatumVersion datumVersion2 = null;
 				if (isBivariate) {
 					String anomalousValue2 = values[4];
 					datumVersion2 = fetchOrCreateDatumVersionAndDependentObjects(
-							recordId, subject, phase, field2, datasetVersion2, anomalousValue2);
+							recordId, subject, site, phase, field2, datasetVersion2, anomalousValue2);
 					anomaly = anomalyRepository.findOne(check, datumVersion, datumVersion2);
 				}
 				else {
@@ -340,7 +372,7 @@ public class CheckServiceImpl implements CheckService {
 		}
 	}
 
-	private DatumVersion fetchOrCreateDatumVersionAndDependentObjects(String recordId, Subject subject, Phase phase,
+	private DatumVersion fetchOrCreateDatumVersionAndDependentObjects(String recordId, Subject subject, Site site, Phase phase,
 			Field field, DatasetVersion datasetVersion, String anomalousValue) {
 		
 		// Fetch or create new observation
@@ -348,7 +380,7 @@ public class CheckServiceImpl implements CheckService {
 		if (observation == null) {
 //			logger.debug("Creating new observation for subject: " + subject.getSubjectName() + ", phase: " + phase.getPhaseName()
 //				+ ", recordId: " + recordId);
-			observation = new Observation(datasetVersion.getDataset(), subject, phase, recordId);
+			observation = new Observation(datasetVersion.getDataset(), subject, site, phase, recordId);
 			observationRepository.save(observation);
 		}
 		

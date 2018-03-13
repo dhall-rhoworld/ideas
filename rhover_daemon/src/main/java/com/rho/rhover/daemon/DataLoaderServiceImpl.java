@@ -3,6 +3,7 @@ package com.rho.rhover.daemon;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,14 +15,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import com.rho.rhover.common.anomaly.Datum;
+import com.rho.rhover.common.anomaly.DatumRepository;
+import com.rho.rhover.common.anomaly.DatumVersion;
+import com.rho.rhover.common.anomaly.DatumVersionRepository;
+import com.rho.rhover.common.anomaly.Observation;
+import com.rho.rhover.common.anomaly.ObservationRepository;
 import com.rho.rhover.common.check.Correlation;
 import com.rho.rhover.common.check.CorrelationService;
 import com.rho.rhover.common.study.CsvData;
@@ -31,6 +40,8 @@ import com.rho.rhover.common.study.DataLocationService;
 import com.rho.rhover.common.study.DataStream;
 import com.rho.rhover.common.study.DataStreamRepository;
 import com.rho.rhover.common.study.Dataset;
+import com.rho.rhover.common.study.DatasetModification;
+import com.rho.rhover.common.study.DatasetModificationRepository;
 import com.rho.rhover.common.study.DatasetRepository;
 import com.rho.rhover.common.study.DatasetVersion;
 import com.rho.rhover.common.study.LoaderIssue;
@@ -111,7 +122,19 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 	
 	@Autowired
 	private DataLocationService dataLocationService;
-
+	
+	@Autowired
+	private ObservationRepository observationRepository;
+	
+	@Autowired
+	private DatumRepository datumRepository;
+	
+	@Autowired
+	private DatumVersionRepository datumVersionRepository;
+	
+	@Autowired
+	private DatasetModificationRepository datasetModificationRepository;
+	
 	@Override
 	@Transactional
 	public void updateStudy(Study study) {
@@ -154,7 +177,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 			if (study.getQueryFilePath() != null && file.getAbsolutePath().equals(study.getQueryFilePath())) {
 				continue;
 			}
-			Dataset dataset = datasetRepository.findByFilePath(file.getAbsolutePath());
+			Dataset dataset = datasetRepository.findByFilePath(file.getAbsolutePath().replaceAll("\\\\", "/"));
 			updateDatasetAndStudy(dataset, study, file, studyDbVersion);
 		}
 		
@@ -172,6 +195,8 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 			}
 		}
 		study.setIsInitialized(Boolean.TRUE);
+		Date date = new Date();
+		studyDbVersion.setLoadStopped(new Timestamp(date.getTime()));
 		studyDbVersionRepository.save(studyDbVersion);
 	}
 
@@ -183,6 +208,8 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		}
 		String studyDbVersionName = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
 		StudyDbVersion studyDbVersion = new StudyDbVersion(studyDbVersionName, study, Boolean.TRUE);
+		Date date = new Date();
+		studyDbVersion.setLoadStarted(new Timestamp(date.getTime()));
 		logger.info("Saving new study DB version: " + studyDbVersionName);
 		studyDbVersionRepository.save(studyDbVersion);
 		return studyDbVersion;
@@ -193,7 +220,6 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		Dataset dataset = new Dataset(file.getName(), study, file.getAbsolutePath(), dataLocation);
 		logger.info("Saving new dataset " + dataset.getDatasetName() + ": " + dataset.getFilePath());
 		datasetRepository.save(dataset);
-		logger.debug("New dataset saved: " + dataset.getDatasetName() + " (" + dataset.getFilePath() + ")");
 		return dataset;
 	}
 	
@@ -230,12 +256,17 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 			studyRepository.save(study);
 			
 			if (!missingAnIdField) {
+				
+				// Find splitter and splittee fields, if any
 				boolean multipleRecs = hasMultipleRecsPerEncounter(df, study);
 				if (multipleRecs && !datasetVersion.getHasMultipleRecsPerEncounter()) {
 					datasetVersion.setHasMultipleRecsPerEncounter(multipleRecs);
 					datasetVersionRepository.save(datasetVersion);
 					findPotentialSplittersAndSplittees(datasetVersion, df);
 				}
+				
+				// Save data
+				saveData(df, datasetVersion);
 			}
 		}
 		catch (SourceDataException e) {
@@ -251,6 +282,65 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 			LoaderIssue issue = new LoaderIssue(e.getMessage(), stackTrace, IssueLevel.DATASET_VERSION);
 			issue.setDatasetVersion(datasetVersion);
 			loaderIssueRepository.save(issue);
+		}
+	}
+	
+	private void saveData(DataFrame df, DatasetVersion datasetVersion) {
+		Study study = datasetVersion.getDataset().getStudy();
+		Dataset dataset = datasetVersion.getDataset();
+		for (String fieldName : df.getColNames()) {
+			if (fieldName.equals(study.getSubjectFieldName())
+					|| fieldName.equals(study.getSiteFieldName())
+					|| fieldName.equals(study.getPhaseFieldName())
+					|| fieldName.equals(study.getRecordIdFieldName())
+					|| fieldName.equals(study.getFormFieldName())) {
+				continue;
+			}
+			Iterator<String> subjectNames = df.getField(study.getSubjectFieldName()).iterator();
+			Iterator<String> siteNames = df.getField(study.getSiteFieldName()).iterator();
+			Iterator<String> phaseNames = df.getField(study.getPhaseFieldName()).iterator();
+			Iterator<String> recordIds = df.getField(study.getRecordIdFieldName()).iterator();
+			Iterator<String> data = df.getField(fieldName).iterator();
+			Field field = fieldRepository.findByStudyAndFieldName(study, fieldName);
+			while (subjectNames.hasNext() && siteNames.hasNext() && phaseNames.hasNext() && recordIds.hasNext() && data.hasNext()) {
+				
+				// Fetch or create new observation
+				Subject subject = subjectRepository.findBySubjectNameAndStudy(subjectNames.next(), study);
+				Site site = siteRepository.findByStudyAndSiteName(study, siteNames.next());
+				Phase phase = phaseRepository.findByPhaseNameAndStudy(phaseNames.next(), study);
+				String recordId = recordIds.next();
+				Observation observation = observationRepository
+						.findByDatasetAndSubjectAndPhaseAndSiteAndRecordId(
+								dataset, subject, phase, site, recordId);
+				if (observation == null) {
+					observation = new Observation(dataset, subject, site, phase, recordId);
+					observation.setFirstDatasetVersion(datasetVersion);
+					observationRepository.save(observation);
+				}
+			
+				// Fetch or create new datum
+				String value = data.next();
+				if (value != null) {
+					Datum datum = datumRepository.findByObservationAndField(observation, field);
+					if (datum == null) {
+						datum = new Datum(field, observation);
+						datumRepository.save(datum);
+					}
+					
+					// Fetch or create new datum version
+					DatumVersion datumVersion = datumVersionRepository.findByDatumAndIsCurrent(datum, Boolean.TRUE);
+					if (datumVersion == null) {
+						datumVersion = new DatumVersion(value, Boolean.TRUE, datum);
+					}
+					else if (!(datumVersion.getValue().equals(value))) {
+						datumVersion.setIsCurrent(Boolean.FALSE);
+						datumVersionRepository.save(datumVersion);
+						datumVersion = new DatumVersion(value, Boolean.TRUE, datum);
+					}
+					datumVersion.getDatasetVersions().add(datasetVersion);
+					datumVersionRepository.save(datumVersion);
+				}
+			}
 		}
 	}
 	
@@ -355,6 +445,18 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		}
 		DatasetVersion datasetVersion = new DatasetVersion(datasetVersionName, Boolean.TRUE, dataset, 0);
 		datasetVersion.addStudyDbVersion(studyDbVersion);
+		DatasetModification datasetMod = new DatasetModification();
+		datasetMod.setDataset(dataset);
+		datasetMod.setStudyDbVersion(studyDbVersion);
+		if (oldVersion == null) {
+			datasetMod.setIsNew(Boolean.TRUE);
+			datasetMod.setIsModified(Boolean.FALSE);
+		}
+		else {
+			datasetMod.setIsNew(Boolean.FALSE);
+			datasetMod.setIsModified(Boolean.TRUE);
+		}
+		datasetModificationRepository.save(datasetMod);
 		datasetVersionRepository.save(datasetVersion);
 		studyDbVersion.addDatasetVersion(datasetVersion);
 		studyDbVersionRepository.save(studyDbVersion);
@@ -401,7 +503,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		// Extract phase names and save any new phases
 		List<String> phaseData = df.getField(study.getPhaseFieldName());
 		for (String phaseName : phaseData) {
-			Phase phase = phaseRepository.findByPhaseName(phaseName);
+			Phase phase = phaseRepository.findByPhaseNameAndStudy(phaseName, study);
 			if (phase == null) {
 				logger.debug("Saving new phase: " + phaseName);
 				phase = new Phase(phaseName, study);
@@ -427,7 +529,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 			String colType = dataTypes.get(i).getSimpleName();
 			Field field = fieldRepository.findByStudyAndFieldName(study, fieldName);
 			if (field == null) {
-				logger.info("Saving field " + fieldName);
+				logger.debug("Saving field " + fieldName);
 				field = new Field(fieldName, fieldLabel, study, colType);
 				fieldRepository.save(field);
 				if (fieldName.equals(study.getFormFieldName())) {
@@ -504,6 +606,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 			FieldInstance fieldInstance = fieldInstanceRepository.findByFieldAndDataset(field, datasetVersion.getDataset());
 			if (fieldInstance == null) {
 				fieldInstance = new FieldInstance(field, datasetVersion.getDataset());
+				fieldInstance.setFirstDatasetVersion(datasetVersion);
 				fieldInstanceRepository.save(fieldInstance);
 			}
 		}
@@ -514,6 +617,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 			datasetVersion.setIsMissingAnIdField(Boolean.TRUE);
 		}
 		datasetVersionRepository.save(datasetVersion);
+		
 		return datasetVersion.getIsMissingAnIdField();
 	}
 
@@ -526,14 +630,14 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		Map<String, Site> siteMap = new HashMap<>();
 		if (hasSiteField) {
 			Set<String> siteNames = df.getUniqueValues(study.getSiteFieldName());
-			for (Object siteName : siteNames) {
-				Site site = siteRepository.findByStudyAndSiteName(study, siteName.toString());
+			for (String siteName : siteNames) {
+				Site site = siteRepository.findByStudyAndSiteName(study, siteName);
 				if (site == null) {
-					logger.info("Saving new site: " + siteName.toString());
-					site = new Site(siteName.toString(), study);
+					logger.info("Saving new site: " + siteName);
+					site = new Site(siteName, study);
 					siteRepository.save(site);
 				}
-				siteMap.put(siteName.toString(), site);
+				siteMap.put(siteName, site);
 			}
 		}
 		
@@ -547,8 +651,8 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 			}
 			
 			// Process subjects
-			for (Object subjectName : subjectNames) {
-				Subject subject = subjectRepository.findBySubjectName(subjectName.toString());
+			for (String subjectName : subjectNames) {
+				Subject subject = subjectRepository.findBySubjectNameAndStudy(subjectName, study);
 				
 				// Case: new subject
 				if (subject == null) {
@@ -556,7 +660,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 					subject = new Subject();
 					subject.setSubjectName(subjectName.toString());
 					if (hasSiteField) {
-						String siteName = subjectNameToSiteName.get(subjectName.toString());
+						String siteName = subjectNameToSiteName.get(subjectName);
 						if (siteName != null) {
 							Site site = siteMap.get(siteName);
 							subject.setSite(site);
@@ -567,7 +671,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 				
 				// Case: add site to subject
 				else if (subject.getSite() == null && hasSiteField) {
-					String siteName = subjectNameToSiteName.get(subjectName.toString());
+					String siteName = subjectNameToSiteName.get(subjectName);
 					if (siteName != null) {
 						Site site = siteMap.get(siteName);
 						subject.setSite(site);

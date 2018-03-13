@@ -223,6 +223,8 @@ CREATE TABLE study_db_version (
 	study_db_version_id BIGINT AUTO_INCREMENT NOT NULL,
 	study_db_version_name VARCHAR(50) NOT NULL,
 	study_id BIGINT NOT NULL,
+	load_started TIMESTAMP,
+	load_stopped TIMESTAMP,
 	is_current TINYINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT pk_study_db_version PRIMARY KEY (study_db_version_id),
@@ -237,6 +239,20 @@ CREATE TABLE study_db_version_config (
 	CONSTRAINT pk_study_db_version_config PRIMARY KEY(study_db_version_id, dataset_version_id),
 	CONSTRAINT fk_study_db_version_config_2_study_db_version FOREIGN KEY (study_db_version_id) REFERENCES study_db_version(study_db_version_id),
 	CONSTRAINT fk_study_db_version_config_2_dataset_version FOREIGN KEY (dataset_version_id) REFERENCES dataset_version(dataset_version_id)
+);
+
+CREATE TABLE dataset_modification (
+	dataset_modification_id BIGINT AUTO_INCREMENT NOT NULL,
+	study_db_version_id BIGINT NOT NULL,
+	dataset_id BIGINT NOT NULL,
+	is_new TINYINT NOT NULL DEFAULT 0,
+	is_modified TINYINT NOT NULL DEFAULT 0,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_dataset_modification PRIMARY KEY (dataset_modification_id),
+	CONSTRAINT fk_dataset_modification_2_study_db_version
+		FOREIGN KEY (study_db_version_id) REFERENCES study_db_version(study_db_version_id),
+	CONSTRAINT fk_dataset_modification_2_dataset
+		FOREIGN KEY (dataset_id) REFERENCES dataset(dataset_id)
 );
 
 CREATE TABLE loader_issue (
@@ -255,6 +271,7 @@ CREATE TABLE field_instance (
 	field_instance_id BIGINT AUTO_INCREMENT NOT NULL,
 	field_id BIGINT NOT NULL,
 	dataset_id BIGINT NOT NULL,
+	first_dataset_version_id BIGINT NOT NULL,
 	is_potential_splitter TINYINT NOT NULL DEFAULT 0,
 	is_potential_splittee TINYINT NOT NULL DEFAULT 0,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -262,6 +279,8 @@ CREATE TABLE field_instance (
 	CONSTRAINT pk_field_instance PRIMARY KEY (field_instance_id),
 	CONSTRAINT fk_field_instance_2_field FOREIGN KEY (field_id) REFERENCES field(field_id),
 	CONSTRAINT fk_field_instance_2_dataset FOREIGN KEY (dataset_id) REFERENCES dataset(dataset_id),
+	CONSTRAINT fk_field_instance_2_dataset_version FOREIGN KEY (first_dataset_version_id)
+		REFERENCES dataset_version (dataset_version_id),
 	CONSTRAINT u_field_instance UNIQUE (field_id, dataset_id)
 );
 
@@ -403,6 +422,7 @@ CREATE TABLE param_used (
 CREATE TABLE observation (
 	observation_id BIGINT AUTO_INCREMENT NOT NULL,
 	dataset_id BIGINT NOT NULL,
+	first_dataset_version_id BIGINT NOT NULL,
 	site_id BIGINT NOT NULL,
 	subject_id BIGINT NOT NULL,
 	phase_id BIGINT NOT NULL,
@@ -410,6 +430,8 @@ CREATE TABLE observation (
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT pk_observation PRIMARY KEY (observation_id),
 	CONSTRAINT fk_observation_2_dataset FOREIGN KEY (dataset_id) REFERENCES dataset(dataset_id),
+	CONSTRAINT fk_observation_2_dataset_version FOREIGN KEY (first_dataset_version_id)
+		REFERENCES dataset_version(dataset_version_id),
 	CONSTRAINT fk_observation_2_site FOREIGN KEY (site_id) REFERENCES site(site_id),
 	CONSTRAINT fk_observation_2_subject FOREIGN KEY (subject_id) REFERENCES subject(subject_id),
 	CONSTRAINT fk_observation_2_phase FOREIGN KEY (phase_id) REFERENCES phase(phase_id),
@@ -594,6 +616,7 @@ CREATE TABLE query_candidate (
 	CONSTRAINT fk_query_candidate_2_anomaly FOREIGN KEY (anomaly_id) REFERENCES anomaly(anomaly_id)
 );
 
+/*
 CREATE TABLE data_load_job (
 	data_load_job_id BIGINT AUTO_INCREMENT NOT NULL,
 	study_id BIGINT NOT NULL,
@@ -609,3 +632,4 @@ CREATE TABLE data_load_job (
 	CONSTRAINT fk_data_load_job_2_study_db_version FOREIGN KEY (study_db_version_id)
 		REFERENCES study_db_version (study_db_version_id)
 );
+*/

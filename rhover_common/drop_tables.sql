@@ -1,4 +1,4 @@
-drop table data_load_job;
+/* drop table data_load_job; */
 drop table query_candidate;
 drop table query_status;
 drop view bivariate_anomaly;
@@ -21,6 +21,7 @@ drop table correlation;
 drop table merge_field;
 drop table field_instance;
 drop table loader_issue;
+drop table dataset_modification;
 drop table study_db_version_config;
 drop table study_db_version;
 drop table dataset_version_field;
@@ -41,6 +42,6 @@ drop table dataset_version;
 drop table dataset;
 drop table data_location;
 drop table study;
-logging_event_exception;
-logging_event_property;
-logging_event;
+drop table logging_event_exception;
+drop table logging_event_property;
+drop table logging_event;

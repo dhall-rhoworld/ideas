@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+	<property name="LOG_HOME" value="c:/temp/logs" />
+	<property name="serverName" value="localhost"/>
+	<property name="port" value="3306"/>
+	<property name="dbName" value="rhover"/>
+	<property name="user" value="rhover"/>
+	<property name="password" value="rhover"/>
+
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>
+				%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+			</Pattern>
+		</layout>
+	</appender>
+	
+	<appender name="FILE-AUDIT"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${LOG_HOME}/debug_daemon.log</file>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<Pattern>
+				<!-- %d{yyyy-MM-dd HH:mm:ss} - %msg%n -->
+				%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n
+			</Pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- rollover monthly -->
+			<fileNamePattern>${LOG_HOME}/archived/debug.%d{yyyy-MM}.%i.log</fileNamePattern>
+			<timeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>10MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+	</appender>
+	
+	<appender name="FILE-ERROR"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${LOG_HOME}/error_daemon.log</file>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<Pattern>
+				%d{yyyy-MM-dd HH:mm:ss} - %msg%n
+			</Pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- rollover monthly -->
+			<fileNamePattern>${LOG_HOME}/archived/error.%d{yyyy-MM}.%i.log
+                        </fileNamePattern>
+			<timeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>10MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+	</appender>
+	
+	<!--
+	<appender name="DB" class="ch.qos.logback.classic.db.DBAppender">
+	    <connectionSource
+	      class="ch.qos.logback.core.db.DataSourceConnectionSource">
+		      <dataSource
+		        class="com.mchange.v2.c3p0.ComboPooledDataSource">
+			        <driverClass>com.mysql.jdbc.Driver</driverClass>
+			        <jdbcUrl>jdbc:mysql://${serverName}:${port}/${dbName}</jdbcUrl>
+			        <user>${user}</user>
+			        <password>${password}</password>
+		      </dataSource>
+	    </connectionSource>
+  	</appender>
+  	-->
+  	
+  	<appender name="DB" class="ch.qos.logback.classic.db.DBAppender">
+	    <connectionSource class="ch.qos.logback.core.db.DataSourceConnectionSource">
+	      <dataSource class="com.mysql.jdbc.jdbc2.optional.MysqlDataSource">
+	        <serverName>${serverName}</serverName>
+	        <port>${port}</port>
+	        <databaseName>${dbName}</databaseName>
+	        <user>${user}</user>
+	        <password>${password}</password>
+	      </dataSource>
+	    </connectionSource>
+	  </appender>
+  	
+	<logger name="com.rho" level="info" additivity="true">
+		<appender-ref ref="DB" />
+	</logger>
+	
+	<root level="info">
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="FILE-AUDIT" />
+	</root>
+
+</configuration>

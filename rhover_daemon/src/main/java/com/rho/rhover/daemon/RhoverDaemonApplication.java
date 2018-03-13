@@ -37,25 +37,25 @@ public class RhoverDaemonApplication implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 		logger.info("Starting up RhoVer Daemon");
 		
-		while (true) {
-			
-			logger.debug("Checking for new data");
-			Thread.sleep(5000);
-		}
+//		while (true) {
+//			
+//			logger.debug("Checking for new data");
+//			Thread.sleep(5000);
+//		}
 		
-//		Iterable<Study> studies = studyRepository.findAll();
-//		for (Study study : studies) {
-//			try {
-//				boolean changedData = dataLoaderService.updateStudy(study);
+		Iterable<Study> studies = studyRepository.findAll();
+		for (Study study : studies) {
+			try {
+				dataLoaderService.updateStudy(study);
 //				if (changedData) {
 //					dataLoaderService.calculateAndSaveCorrelations(study);
 //				}
-//			}
-//			catch (SourceDataException e) {
-//				logger.error("Data error encountered: " + e.getMessage());
-//				
-//				// TODO: Send notification to user
-//			}
-//		}
+			}
+			catch (SourceDataException e) {
+				logger.error("Data error encountered: " + e.getMessage());
+				
+				// TODO: Send notification to user
+			}
+		}
 	}
 }

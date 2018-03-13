@@ -549,3 +549,44 @@ join field f on f.field_id = a.field_id
 where f.study_id = 1
 group by f.field_id, f.field_label
 ;
+
+select sdv.study_db_version_name, s.study_name,
+(
+	select count(*)
+	from study_db_version_config sdvc
+	join dataset_version dv on dv.dataset_version_id = sdvc.dataset_version_id
+	where sdvc.study_db_version_id = sdv.study_db_version_id
+	and dv.is_first = 1
+) num_new_datasets,
+(
+	select count(*)
+	from study_db_version_config sdvc
+	join dataset_version dv on dv.dataset_version_id = sdvc.dataset_version_id
+	join field_instance fi on fi.first_dataset_version_id = sdvc.dataset_version_id
+	where sdvc.study_db_version_id = sdv.study_db_version_id
+) num_new_fields
+from study_db_version sdv
+join study s on s.study_id = sdv.study_id
+;
+
+select sdv.load_started, sdv.load_stopped, s.study_name,
+(
+	select count(*)
+	from study_db_version_config sdvc
+	where sdvc.study_db_version_id = sdv.study_db_version_id
+) total_datasets,
+(
+	select count(*)
+	from dataset_modification dm
+	where dm.study_db_version_id = sdv.study_db_version_id
+	and dm.is_new = 1
+) new_datasets,
+(
+select count(*)
+	from dataset_modification dm
+	where dm.study_db_version_id = sdv.study_db_version_id
+	and dm.is_modified = 1
+) modified_datasets
+from study_db_version sdv
+join study s on s.study_id = sdv.study_id
+;

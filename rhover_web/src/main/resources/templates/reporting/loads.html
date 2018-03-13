@@ -1,0 +1,156 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="base"
+      th:with="currentPage='reporting'">
+	<head> 
+	    <title>Data Loads</title> 
+	    <script defer src="https://use.fontawesome.com/releases/v5.0.7/js/all.js"></script>
+	    <script src="/jquery-3.2.1.min.js"></script>
+	    <script src="/jquery-ui.js"></script>
+	    <link rel="stylesheet" href="/jquery-ui.css"/>
+	</head>
+
+	<!-- Content -->
+    <div layout:fragment="page_content" id="page_content">
+    	<h2>Data Loads</h2>
+    	<table class="wide">
+    		<tr>
+    			<th>Date/Time</th>
+    			<th>Load Elapsed Time</th>
+    			<th>Study</th>
+    			<th>New Datasets</th>
+    			<th>Modified Datasets</th>
+    			<th>Total Datasets</th>
+    		</tr>
+    		<tr th:each="overview : ${overviews}">
+    			<td th:text="${overview.formattedLoadStarted}"/>
+    			<td th:text="${overview.formattedElapsedLoadTime}"/>
+    			<td th:text="${overview.studyName}"/>
+    			<td th:text="${overview.numNewDatasets}"/>
+    			<td th:text="${overview.numModifiedDatasets}"/>
+    			<td th:text="${overview.totalDatasets}"/>
+    		</tr>
+    	</table>
+    </div>
+    
+    <!-- Scripts -->
+	<th:block layout:fragment="scripts">
+	
+		<script th:inline="javascript">
+			
+			const filterOptions = [(${filterOptions})];
+			const filters = [(${filters})];
+			let filterField = null;
+			
+			function onClickFilter(id) {
+				filterField = id.substr(7);
+				const options = filterOptions[filterField];
+				const selectedOptions = filters[filterField];
+				let html = "<table class='invisible'>";
+				for (option of options) {
+					console.log("option: " + option.id + ", selectedOptions: " + selectedOptions);
+					html += "<tr><td><input type='checkbox' class='cb_filter' id='cb_";
+					html += option.id;
+					html += "'";
+					if (selectedOptions.includes(parseInt(option.id))) {
+						console.log("Should be checked");
+						html += " checked='true'";
+					}
+					html += "/></td><td>";
+					html += option.name;
+					html += "</td></tr>";
+				};
+				html += "</table>";
+				$("#dialog_filter_options").html(html);
+				$("#dialog_filter").dialog("open");
+			}
+			
+			function removeSavedMessage() {
+				$("#message_bar").removeClass("saved-message");
+				$("#message_bar").empty();
+			}
+			
+			$(function() {
+				
+				$("#dialog_filter").dialog({
+					title: "Filter Values",
+					autoOpen: false,
+					modal: true,
+					buttons: [
+						{
+							text: "Cancel",
+							click: function() {
+								$(this).dialog("close");
+							}
+						},
+						{
+							text: "OK",
+							click: function() {
+								filters[filterField] = [];
+								$(".cb_filter:checked").each(function(checkBox) {
+									id = this.id.substr(3);
+									filters[filterField].push(id);
+								});
+								const studyId = $("#select_study").val();
+								const filterString = JSON.stringify(filters).replace(/\"/g, "");
+								const url = encodeURI("/query/all_queries?study_id=" + studyId + "&" + "filters=" + filterString);
+								window.location.href = url;
+								//$(this).dialog("close");
+							}
+						}
+					]
+				});
+				
+				// Study selector
+				$("#select_study").change(function() {
+					const studyId = $("#select_study").val();
+					const url = "/query/all_queries?study_id=" + studyId;
+					window.location.href = url;
+				});
+				
+				// Filters
+				$(".data_filter").click(function() {
+					onClickFilter(this.id);
+				});
+				
+				$(".data_filter").each(function() {
+					const filterField = this.id.substr(7);
+					if (filters[filterField].length > 0) {
+						$(this).addClass("filter-set");
+					}
+				});
+				
+				// Status selectors
+				$(".select_status").change(function() {
+					const queryCandidateId = this.dataset.query_candidate_id;
+					const queryStatusId = $(this).val();
+					const data = "query_candidate_id=" + queryCandidateId + "&query_status_id="
+						+ queryStatusId;
+					const url = "/rest/query/set_status";
+					$.post(url, data)
+						.done(function() {
+							const html = "Saved <i class='far fa-save'></i>";
+							$("#message_bar").addClass("saved-message");
+							$("#message_bar").html(html);
+							setTimeout(removeSavedMessage, 750);
+						})
+						.fail(function() {
+							console.log("Error");
+						});
+				});
+				
+				// Delete buttons
+				$(".delete-button").click(function() {
+					const queryCandidateId = this.dataset.query_candidate_id;
+					const studyId = $("#select_study").val();
+					const filterString = JSON.stringify(filters).replace(/\"/g, "");
+					const url = encodeURI("/query/delete?study_id=" + studyId + "&" + "filters="
+							+ filterString + "&query_candidate_id=" + queryCandidateId);
+					window.location.href = url;
+				});
+			});
+		</script>
+	</th:block>
+</html>

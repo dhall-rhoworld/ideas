@@ -33,6 +33,10 @@ public class FieldInstance {
 	@Column(name="is_potential_splittee")
 	@Type(type="org.hibernate.type.NumericBooleanType")
 	private Boolean isPotentialSplittee = Boolean.FALSE;
+	
+	@ManyToOne
+	@JoinColumn(name="first_dataset_version_id")
+	private DatasetVersion firstDatasetVersion;
 
 	public FieldInstance() {
 		
@@ -82,6 +86,14 @@ public class FieldInstance {
 
 	public void setIsPotentialSplittee(Boolean isPotentialSplittee) {
 		this.isPotentialSplittee = isPotentialSplittee;
+	}
+
+	public DatasetVersion getFirstDatasetVersion() {
+		return firstDatasetVersion;
+	}
+
+	public void setFirstDatasetVersion(DatasetVersion firstDatasetVersion) {
+		this.firstDatasetVersion = firstDatasetVersion;
 	}
 
 }

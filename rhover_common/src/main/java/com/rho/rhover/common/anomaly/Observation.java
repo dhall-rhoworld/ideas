@@ -9,6 +9,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 import com.rho.rhover.common.study.Dataset;
+import com.rho.rhover.common.study.DatasetVersion;
 import com.rho.rhover.common.study.Phase;
 import com.rho.rhover.common.study.Site;
 import com.rho.rhover.common.study.Subject;
@@ -25,9 +26,9 @@ public class Observation {
 	@JoinColumn(name="dataset_id")
 	private Dataset dataset;
 	
-//	@ManyToOne
-//	@JoinColumn(name="site_id")
-//	private Site site;
+	@ManyToOne
+	@JoinColumn(name="site_id")
+	private Site site;
 	
 	@ManyToOne
 	@JoinColumn(name="subject_id")
@@ -39,15 +40,20 @@ public class Observation {
 	
 	@Column(name="record_id")
 	private String recordId;
+	
+	@ManyToOne
+	@JoinColumn(name="first_dataset_version_id")
+	private DatasetVersion firstDatasetVersion;
 
 	public Observation() {
 		
 	}
 
-	public Observation(Dataset dataset, Subject subject, Phase phase, String recordId) {
+	public Observation(Dataset dataset, Subject subject, Site site, Phase phase, String recordId) {
 		super();
 		this.dataset = dataset;
 		this.subject = subject;
+		this.site = site;
 		this.phase = phase;
 		this.recordId = recordId;
 	}
@@ -92,12 +98,20 @@ public class Observation {
 		this.recordId = recordId;
 	}
 
-//	public Site getSite() {
-//		return site;
-//	}
-//
-//	public void setSite(Site site) {
-//		this.site = site;
-//	}
+	public Site getSite() {
+		return site;
+	}
+
+	public void setSite(Site site) {
+		this.site = site;
+	}
+
+	public DatasetVersion getFirstDatasetVersion() {
+		return firstDatasetVersion;
+	}
+
+	public void setFirstDatasetVersion(DatasetVersion firstDatasetVersion) {
+		this.firstDatasetVersion = firstDatasetVersion;
+	}
 
 }
