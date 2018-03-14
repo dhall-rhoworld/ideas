@@ -9,6 +9,7 @@ drop table anomaly_datum_version_2;
 drop table anomaly_datum_version;
 drop table anomaly;
 drop table datum_dataset_version;
+drop table datum_change;
 drop table datum_version;
 drop table datum;
 drop table observation;

@@ -1,0 +1,39 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="base"
+      th:with="currentPage='reporting'">
+      
+    <!-- Title -->
+	<head> 
+	    <title>New Records</title> 
+	</head>
+
+	<!-- Breadcrumbs -->
+	<div layout:fragment="breadcrumbs" id="breadcrumbs">
+		<ul class="breadcrumb">
+				<li><a href="/reporting/loads">Reporting</a></li>
+				<li>Loaded Datasets</li>
+		</ul>
+	</div>
+		
+	<!-- Content -->
+    <div layout:fragment="page_content" id="page_content">
+		<h2>New Records</h2>
+		<table class="wide">
+			<tr>
+				<th th:text="${study.recordIdFieldName}"/>
+				<th th:text="${study.subjectFieldName}"/>
+				<th th:text="${study.siteFieldName}"/>
+				<th th:text="${study.phaseFieldName}"/>
+			</tr>
+			<tr th:each="observation : ${observations}">
+				<td th:text="${observation.recordId}"/>
+				<td th:text="${observation.subject.subjectName}"/>
+				<td th:text="${observation.site.siteName}"/>
+				<td th:text="${observation.phase.phaseName}"/>
+			</tr>
+		</table>
+    </div>
+</html>

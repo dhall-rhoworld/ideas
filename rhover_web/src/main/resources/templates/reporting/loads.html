@@ -28,9 +28,14 @@
     			<td th:text="${overview.formattedLoadStarted}"/>
     			<td th:text="${overview.formattedElapsedLoadTime}"/>
     			<td th:text="${overview.studyName}"/>
-    			<td th:text="${overview.numNewDatasets}"/>
-    			<td th:text="${overview.numModifiedDatasets}"/>
-    			<td th:text="${overview.totalDatasets}"/>
+    			<td><a th:if="${overview.numNewDatasets} > 0"
+    				th:href="@{/reporting/loaded_datasets(study_db_version_id=${overview.studyDbVersionId}, datasets=new)}"
+    				th:text="${overview.numNewDatasets}"/></td>
+    			<td><a th:if="${overview.numModifiedDatasets} > 0"
+    				th:href="@{/reporting/loaded_datasets(study_db_version_id=${overview.studyDbVersionId}, datasets=modified)}"
+    				th:text="${overview.numModifiedDatasets}"/></td>
+    			<td><a th:href="@{/reporting/loaded_datasets(study_db_version_id=${overview.studyDbVersionId}, datasets=all)}"
+    				th:text="${overview.totalDatasets}"/></td>
     		</tr>
     	</table>
     </div>

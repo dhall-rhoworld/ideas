@@ -441,10 +441,13 @@ CREATE TABLE observation (
 CREATE TABLE datum (
 	datum_id BIGINT AUTO_INCREMENT NOT NULL,
 	field_id BIGINT NOT NULL,
+	first_dataset_version_id BIGINT NOT NULL,
 	observation_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT pk_datum PRIMARY KEY (datum_id),
 	CONSTRAINT fk_datum_2_field FOREIGN KEY (field_id) REFERENCES field(field_id),
+	CONSTRAINT fk_datum_2_dataset_version FOREIGN KEY (first_dataset_version_id)
+		REFERENCES dataset_version(dataset_version_id),
 	CONSTRAINT fk_datum_2_observation FOREIGN KEY (observation_id) REFERENCES observation(observation_id),
 	CONSTRAINT u_field_observation UNIQUE (field_id, observation_id)
 );
@@ -452,11 +455,29 @@ CREATE TABLE datum (
 CREATE TABLE datum_version (
 	datum_version_id BIGINT AUTO_INCREMENT NOT NULL,
 	value VARCHAR(50),
+	first_dataset_version_id BIGINT NOT NULL,
 	is_current TINYINT NOT NULL DEFAULT 0,
 	datum_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT pk_datum_version PRIMARY KEY (datum_version_id),
-	CONSTRAINT fk_datum_version_2_datum FOREIGN KEY (datum_id) REFERENCES datum (datum_id)
+	CONSTRAINT fk_datum_version_2_datum FOREIGN KEY (datum_id) REFERENCES datum (datum_id),
+	CONSTRAINT fk_datum_version_2_dataset_version FOREIGN KEY (first_dataset_version_id)
+		REFERENCES dataset_version(dataset_version_id)
+);
+
+CREATE TABLE datum_change (
+	datum_change_id BIGINT AUTO_INCREMENT NOT NULL,
+	old_datum_version_id BIGINT NOT NULL,
+	new_datum_version_id BIGINT NOT NULL,
+	dataset_version_id BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_datum_change PRIMARY KEY (datum_change_id),
+	CONSTRAINT fk_datum_change_2_datum_version_old FOREIGN KEY (old_datum_version_id)
+		REFERENCES datum_version(datum_version_id),
+	CONSTRAINT fk_datum_change_2_datum_version_new FOREIGN KEY (new_datum_version_id)
+		REFERENCES datum_version(datum_version_id),
+	CONSTRAINT fk_datum_change_2_dataset_version FOREIGN KEY (dataset_version_id)
+		REFERENCES dataset_version(dataset_version_id)
 );
 
 CREATE TABLE datum_dataset_version (

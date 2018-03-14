@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="base"
+      th:with="currentPage='reporting'">
+      
+    <!-- Title -->
+	<head> 
+	    <title>New Fields</title> 
+	</head>
+
+	<!-- Breadcrumbs -->
+	<div layout:fragment="breadcrumbs" id="breadcrumbs">
+		<ul class="breadcrumb">
+				<li><a href="/reporting/loads">Reporting</a></li>
+				<li>Loaded Datasets</li>
+		</ul>
+	</div>
+		
+	<!-- Content -->
+    <div layout:fragment="page_content" id="page_content">
+		<table class="half-wide">
+			<tr><th>New Fields</th></tr>
+			<tr th:each="fieldInstance : ${fieldInstances}">
+				<td th:text="${fieldInstance.field.displayName}"/>
+			</tr>
+		</table>
+    </div>
+</html>

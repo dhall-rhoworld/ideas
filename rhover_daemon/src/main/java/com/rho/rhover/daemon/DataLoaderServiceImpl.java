@@ -26,6 +26,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import com.rho.rhover.common.anomaly.Datum;
+import com.rho.rhover.common.anomaly.DatumChange;
+import com.rho.rhover.common.anomaly.DatumChangeRepository;
 import com.rho.rhover.common.anomaly.DatumRepository;
 import com.rho.rhover.common.anomaly.DatumVersion;
 import com.rho.rhover.common.anomaly.DatumVersionRepository;
@@ -135,6 +137,9 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 	@Autowired
 	private DatasetModificationRepository datasetModificationRepository;
 	
+	@Autowired
+	private DatumChangeRepository datumChangeRepository;
+	
 	@Override
 	@Transactional
 	public void updateStudy(Study study) {
@@ -158,7 +163,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		Map<String, Boolean> fileChecklist = new HashMap<>();
 		Set<File> allFiles = studyDbService.getDataFiles(study);
 		for (File file : allFiles) {
-			fileChecklist.put(file.getAbsolutePath(), Boolean.FALSE);
+			fileChecklist.put(file.getAbsolutePath().replaceAll("\\\\", "/"), Boolean.FALSE);
 		}
 		
 		// Process new files
@@ -324,6 +329,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 					Datum datum = datumRepository.findByObservationAndField(observation, field);
 					if (datum == null) {
 						datum = new Datum(field, observation);
+						datum.setFirstDatasetVersion(datasetVersion);
 						datumRepository.save(datum);
 					}
 					
@@ -331,11 +337,19 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 					DatumVersion datumVersion = datumVersionRepository.findByDatumAndIsCurrent(datum, Boolean.TRUE);
 					if (datumVersion == null) {
 						datumVersion = new DatumVersion(value, Boolean.TRUE, datum);
+						datumVersion.setFirstDatasetVersion(datasetVersion);
 					}
 					else if (!(datumVersion.getValue().equals(value))) {
+						DatumChange datumChange = new DatumChange();
+						datumChange.setDatasetVersion(datasetVersion);
+						datumChange.setOldDatumVersion(datumVersion);
 						datumVersion.setIsCurrent(Boolean.FALSE);
 						datumVersionRepository.save(datumVersion);
 						datumVersion = new DatumVersion(value, Boolean.TRUE, datum);
+						datumVersion.setFirstDatasetVersion(datasetVersion);
+						datumVersionRepository.save(datumVersion);
+						datumChange.setNewDatumVersion(datumVersion);
+						datumChangeRepository.save(datumChange);
 					}
 					datumVersion.getDatasetVersions().add(datasetVersion);
 					datumVersionRepository.save(datumVersion);

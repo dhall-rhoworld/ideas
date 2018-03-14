@@ -8,6 +8,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import com.rho.rhover.common.study.DatasetVersion;
 import com.rho.rhover.common.study.Field;
 
 @Entity
@@ -21,6 +22,10 @@ public class Datum {
 	@ManyToOne
 	@JoinColumn(name="field_id")
 	private Field field;
+	
+	@ManyToOne
+	@JoinColumn(name="first_dataset_version_id")
+	private DatasetVersion firstDatasetVersion;
 	
 	@ManyToOne
 	@JoinColumn(name="observation_id")
@@ -58,6 +63,14 @@ public class Datum {
 
 	public void setObservation(Observation observation) {
 		this.observation = observation;
+	}
+
+	public DatasetVersion getFirstDatasetVersion() {
+		return firstDatasetVersion;
+	}
+
+	public void setFirstDatasetVersion(DatasetVersion firstDatasetVersion) {
+		this.firstDatasetVersion = firstDatasetVersion;
 	}
 
 }

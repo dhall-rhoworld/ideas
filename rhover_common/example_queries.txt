@@ -590,3 +590,58 @@ select count(*)
 from study_db_version sdv
 join study s on s.study_id = sdv.study_id
 ;
+
+select ds.dataset_name,
+(
+	select count(*)
+	from field_instance fi
+	where fi.first_dataset_version_id = dv.dataset_version_id
+) new_fields,
+(
+	select count(*)
+	from observation o
+	where o.first_dataset_version_id = dv.dataset_version_id
+) new_records,
+(
+	select count(*)
+	from datum_version dtv
+	join datum d on d.datum_id = dtv.datum_id
+	where dtv.first_dataset_version_id = dv.dataset_version_id
+	and d.first_dataset_version_id <> dv.dataset_version_id
+) modified_values
+from study_db_version_config sdvc
+join dataset_version dv on dv.dataset_version_id = sdvc.dataset_version_id
+join dataset ds on ds.dataset_id = dv.dataset_id
+where sdvc.study_db_version_id = 2
+;
+
+select ds.dataset_name,
+(
+	select count(*)
+	from field_instance fi
+	where fi.first_dataset_version_id = dv.dataset_version_id
+) new_fields,
+(
+	select count(*)
+	from observation o
+	where o.first_dataset_version_id = dv.dataset_version_id
+) new_records,
+(
+	select count(*)
+	from datum_version dtv
+	join datum d on d.datum_id = dtv.datum_id
+	where dtv.first_dataset_version_id = dv.dataset_version_id
+	and d.first_dataset_version_id <> dv.dataset_version_id
+) modified_values
+from study_db_version_config sdvc
+join dataset_version dv on dv.dataset_version_id = sdvc.dataset_version_id
+join dataset ds on ds.dataset_id = dv.dataset_id
+where sdvc.study_db_version_id = 2
+and ds.dataset_id in
+(
+	select dm.dataset_id
+	from dataset_modification dm
+	where dm.study_db_version_id = 2
+	and dm.is_new = 1
+)
+;

@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="base"
+      th:with="currentPage='reporting'">
+      
+    <!-- Title -->
+	<head> 
+	    <title>Modified Values</title> 
+	</head>
+
+	<!-- Breadcrumbs -->
+	<div layout:fragment="breadcrumbs" id="breadcrumbs">
+		<ul class="breadcrumb">
+				<li><a href="/reporting/loads">Reporting</a></li>
+				<li>Loaded Datasets</li>
+		</ul>
+	</div>
+		
+	<!-- Content -->
+    <div layout:fragment="page_content" id="page_content">
+		<h2>Modified Data Values</h2>
+		<table class="wide">
+			<tr>
+				<th th:text="${study.recordIdFieldName}"/>
+				<th th:text="${study.subjectFieldName}"/>
+				<th th:text="${study.siteFieldName}"/>
+				<th th:text="${study.phaseFieldName}"/>
+				<th>Field</th>
+				<th>Old Value</th>
+				<th>New Value</th>
+			</tr>
+			<tr th:each="datumChange : ${datumChanges}">
+				<td th:text="${datumChange.newDatumVersion.datum.observation.recordId}"/>
+				<td th:text="${datumChange.newDatumVersion.datum.observation.subject.subjectName}"/>
+				<td th:text="${datumChange.newDatumVersion.datum.observation.site.siteName}"/>
+				<td th:text="${datumChange.newDatumVersion.datum.observation.phase.phaseName}"/>
+				<td th:text="${datumChange.newDatumVersion.datum.field.displayName}"/>
+				<td th:text="${datumChange.oldDatumVersion.value}"/>
+				<td th:text="${datumChange.newDatumVersion.value}"/>
+			</tr>
+		</table>
+    </div>
+</html>

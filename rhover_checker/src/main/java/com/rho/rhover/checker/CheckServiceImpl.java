@@ -389,6 +389,7 @@ public class CheckServiceImpl implements CheckService {
 		if (datum == null) {
 			//logger.debug("Creating new datum for field: " + field.getDisplayName());
 			datum = new Datum(field, observation);
+			datum.setFirstDatasetVersion(datasetVersion);
 			datumRepository.save(datum);
 		}
 		

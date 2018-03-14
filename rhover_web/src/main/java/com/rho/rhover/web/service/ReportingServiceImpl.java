@@ -11,7 +11,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
-import com.rho.rhover.web.reporting.DataLoadOverview;
+import com.rho.rhover.common.study.StudyDbVersion;
+import com.rho.rhover.web.reporting.DatasetLoadOverview;
+import com.rho.rhover.web.reporting.StudyLoadOverview;
 
 @Component
 public class ReportingServiceImpl implements ReportingService {
@@ -20,7 +22,7 @@ public class ReportingServiceImpl implements ReportingService {
 	private DataSource dataSource;
 
 	@Override
-	public List<DataLoadOverview> getDataLoadOverviews() {
+	public List<StudyLoadOverview> getStudyLoadOverviews() {
 		JdbcTemplate template = new JdbcTemplate(dataSource);
 		String sql =
 				"select sdv.load_started, sdv.load_stopped, s.study_name,\r\n" + 
@@ -40,21 +42,142 @@ public class ReportingServiceImpl implements ReportingService {
 				"	from dataset_modification dm\r\n" + 
 				"	where dm.study_db_version_id = sdv.study_db_version_id\r\n" + 
 				"	and dm.is_modified = 1\r\n" + 
-				") modified_datasets\r\n" + 
+				") modified_datasets,\r\n" + 
+				"sdv.study_db_version_id\r\n" +
 				"from study_db_version sdv\r\n" + 
-				"join study s on s.study_id = sdv.study_id";
-		return template.query(sql, new RowMapper<DataLoadOverview>() {
-			public DataLoadOverview mapRow(ResultSet rs, int p) throws SQLException {
-				DataLoadOverview overview = new DataLoadOverview();
+				"join study s on s.study_id = sdv.study_id\r\n" +
+				"order by sdv.study_db_version_id desc";
+		return template.query(sql, new RowMapper<StudyLoadOverview>() {
+			public StudyLoadOverview mapRow(ResultSet rs, int p) throws SQLException {
+				StudyLoadOverview overview = new StudyLoadOverview();
 				overview.setLoadStarted(rs.getTimestamp(1));
 				overview.setLoadStopped(rs.getTimestamp(2));
 				overview.setStudyName(rs.getString(3));
 				overview.setTotalDatasets(rs.getInt(4));
 				overview.setNumNewDatasets(rs.getInt(5));
 				overview.setNumModifiedDatasets(rs.getInt(6));
+				overview.setStudyDbVersionId(rs.getLong(7));
 				return overview;
 			}
 		});
 	}
 
+	@Override
+	public List<DatasetLoadOverview> getAllDatasetLoadOverviews(StudyDbVersion studyDbVersion) {
+		JdbcTemplate template = new JdbcTemplate(dataSource);
+		String sql =
+				"select ds.dataset_name,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from field_instance fi\r\n" + 
+				"	where fi.first_dataset_version_id = dv.dataset_version_id\r\n" + 
+				") new_fields,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from observation o\r\n" + 
+				"	where o.first_dataset_version_id = dv.dataset_version_id\r\n" + 
+				") new_records,\r\n" + 
+				
+				// TODO: Modify subquery to utilize datum_change table
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from datum_version dtv\r\n" + 
+				"	join datum d on d.datum_id = dtv.datum_id\r\n" + 
+				"	where dtv.first_dataset_version_id = dv.dataset_version_id\r\n" + 
+				"	and d.first_dataset_version_id <> dv.dataset_version_id\r\n" + 
+				") modified_values, dv.dataset_version_id\r\n" + 
+				"from study_db_version_config sdvc\r\n" + 
+				"join dataset_version dv on dv.dataset_version_id = sdvc.dataset_version_id\r\n" + 
+				"join dataset ds on ds.dataset_id = dv.dataset_id\r\n" + 
+				"where sdvc.study_db_version_id = " + studyDbVersion.getStudyDbVersionId();
+		return template.query(sql, new DatasetLoadRowMapper());
+	}
+
+	@Override
+	public List<DatasetLoadOverview> getNewDatasetLoadOverviews(StudyDbVersion studyDbVersion) {
+		JdbcTemplate template = new JdbcTemplate(dataSource);
+		String sql =
+				"select ds.dataset_name,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from field_instance fi\r\n" + 
+				"	where fi.first_dataset_version_id = dv.dataset_version_id\r\n" + 
+				") new_fields,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from observation o\r\n" + 
+				"	where o.first_dataset_version_id = dv.dataset_version_id\r\n" + 
+				") new_records,\r\n" + 
+				
+				// TODO: Modify subquery to utilize datum_change table
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from datum_version dtv\r\n" + 
+				"	join datum d on d.datum_id = dtv.datum_id\r\n" + 
+				"	where dtv.first_dataset_version_id = dv.dataset_version_id\r\n" + 
+				"	and d.first_dataset_version_id <> dv.dataset_version_id\r\n" + 
+				") modified_values, dv.dataset_version_id\r\n" + 
+				"from study_db_version_config sdvc\r\n" + 
+				"join dataset_version dv on dv.dataset_version_id = sdvc.dataset_version_id\r\n" + 
+				"join dataset ds on ds.dataset_id = dv.dataset_id\r\n" + 
+				"where sdvc.study_db_version_id = " + studyDbVersion.getStudyDbVersionId() + "\r\n" + 
+				"and ds.dataset_id in\r\n" + 
+				"(\r\n" + 
+				"	select dm.dataset_id\r\n" + 
+				"	from dataset_modification dm\r\n" + 
+				"	where dm.study_db_version_id = " + studyDbVersion.getStudyDbVersionId() + "\r\n" + 
+				"	and dm.is_new = 1\r\n" + 
+				")";
+		return template.query(sql, new DatasetLoadRowMapper());
+	}
+
+	@Override
+	public List<DatasetLoadOverview> getModifiedDatasetLoadOverviews(StudyDbVersion studyDbVersion) {
+		JdbcTemplate template = new JdbcTemplate(dataSource);
+		String sql =
+				"select ds.dataset_name,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from field_instance fi\r\n" + 
+				"	where fi.first_dataset_version_id = dv.dataset_version_id\r\n" + 
+				") new_fields,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from observation o\r\n" + 
+				"	where o.first_dataset_version_id = dv.dataset_version_id\r\n" + 
+				") new_records,\r\n" + 
+				
+                // TODO: Modify subquery to utilize datum_change table
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from datum_version dtv\r\n" + 
+				"	join datum d on d.datum_id = dtv.datum_id\r\n" + 
+				"	where dtv.first_dataset_version_id = dv.dataset_version_id\r\n" + 
+				"	and d.first_dataset_version_id <> dv.dataset_version_id\r\n" + 
+				") modified_values, dv.dataset_version_id\r\n" + 
+				"from study_db_version_config sdvc\r\n" + 
+				"join dataset_version dv on dv.dataset_version_id = sdvc.dataset_version_id\r\n" + 
+				"join dataset ds on ds.dataset_id = dv.dataset_id\r\n" + 
+				"where sdvc.study_db_version_id = " + studyDbVersion.getStudyDbVersionId() + "\r\n" + 
+				"and ds.dataset_id in\r\n" + 
+				"(\r\n" + 
+				"	select dm.dataset_id\r\n" + 
+				"	from dataset_modification dm\r\n" + 
+				"	where dm.study_db_version_id = " + studyDbVersion.getStudyDbVersionId() + "\r\n" + 
+				"	and dm.is_modified = 1\r\n" + 
+				")";
+		return template.query(sql, new DatasetLoadRowMapper());
+	}
+
+	private static class DatasetLoadRowMapper implements RowMapper<DatasetLoadOverview> {
+		public DatasetLoadOverview mapRow(ResultSet rs, int p) throws SQLException {
+			DatasetLoadOverview overview = new DatasetLoadOverview();
+			overview.setDatasetName(rs.getString(1));
+			overview.setNumNewFields(rs.getInt(2));
+			overview.setNumNewRecords(rs.getInt(3));
+			overview.setNumModifiedDataValues(rs.getInt(4));
+			overview.setDatasetVersionId(rs.getLong(5));
+			return overview;
+		}
+	}
 }

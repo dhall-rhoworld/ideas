@@ -3,7 +3,7 @@ package com.rho.rhover.web.reporting;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 
-public class DataLoadOverview {
+public class StudyLoadOverview {
 
 	private Timestamp loadStarted;
 	private Timestamp loadStopped;
@@ -11,8 +11,9 @@ public class DataLoadOverview {
 	private Integer numNewDatasets;
 	private Integer numModifiedDatasets;
 	private Integer totalDatasets;
+	private Long studyDbVersionId;
 	
-	public DataLoadOverview() {
+	public StudyLoadOverview() {
 		
 	}
 
@@ -62,6 +63,14 @@ public class DataLoadOverview {
 
 	public void setTotalDatasets(Integer totalDatasets) {
 		this.totalDatasets = totalDatasets;
+	}
+
+	public Long getStudyDbVersionId() {
+		return studyDbVersionId;
+	}
+
+	public void setStudyDbVersionId(Long studyDbVersionId) {
+		this.studyDbVersionId = studyDbVersionId;
 	}
 
 	public String getFormattedLoadStarted() {

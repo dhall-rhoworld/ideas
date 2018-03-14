@@ -1,0 +1,50 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"   
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="base"
+      th:with="currentPage='reporting'">
+      
+    <!-- Title -->
+	<head> 
+	    <title>Loaded Datasets</title> 
+	</head>
+
+	<!-- Breadcrumbs -->
+	<div layout:fragment="breadcrumbs" id="breadcrumbs">
+		<ul class="breadcrumb">
+				<li><a href="/reporting/loads">Reporting</a></li>
+				<li>Loaded Datasets</li>
+		</ul>
+	</div>
+		
+	<!-- Content -->
+    <div layout:fragment="page_content" id="page_content">
+		<h2>Datasets</h2>
+		<table class="wide">
+			<tr>
+				<th>Dataset</th>
+				<th>New Fields</th>
+				<th>New Records</th>
+				<th>Modified Data Values</th>
+			</tr>
+			<tr th:each="overview : ${overviews}">
+				<td th:text="${overview.datasetName}"/>
+				<td>
+					<a th:href="@{/reporting/new_fields(dataset_version_id=${overview.datasetVersionId})}"
+						th:text="${overview.numNewFields}"
+						th:if="${overview.numNewFields} > 0"/>
+				</td>
+				<td>
+					<a th:href="@{/reporting/new_records(dataset_version_id=${overview.datasetVersionId})}"
+						th:text="${overview.numNewRecords}"
+						th:if="${overview.numNewRecords} > 0"/>
+				</td>
+				<td>
+					<a th:href="@{/reporting/modified_values(dataset_version_id=${overview.datasetVersionId})}"
+						th:text="${overview.numModifiedDataValues}"
+						th:if="${overview.numModifiedDataValues} > 0"/>
+			</tr>
+		</table>
+    </div>
+</html>
