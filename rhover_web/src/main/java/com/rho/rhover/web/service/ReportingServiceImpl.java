@@ -2,6 +2,9 @@ package com.rho.rhover.web.service;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -13,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import com.rho.rhover.common.study.StudyDbVersion;
 import com.rho.rhover.web.reporting.DatasetLoadOverview;
+import com.rho.rhover.web.reporting.FailedLoadOverview;
 import com.rho.rhover.web.reporting.StudyEventOverview;
 import com.rho.rhover.web.reporting.StudyLoadOverview;
 
@@ -25,6 +29,7 @@ public class ReportingServiceImpl implements ReportingService {
 	@Override
 	public List<StudyEventOverview> getStudyEventOverviews() {
 		JdbcTemplate template = new JdbcTemplate(dataSource);
+		List<StudyEventOverview> overviews = new ArrayList<StudyEventOverview>();
 		String sql =
 				"select sdv.load_started, sdv.load_stopped, s.study_name,\r\n" + 
 				"(\r\n" + 
@@ -52,7 +57,7 @@ public class ReportingServiceImpl implements ReportingService {
 				"from study_db_version sdv\r\n" + 
 				"join study s on s.study_id = sdv.study_id\r\n" + 
 				"order by sdv.study_db_version_id desc";
-		return template.query(sql, new RowMapper<StudyEventOverview>() {
+		overviews.addAll(template.query(sql, new RowMapper<StudyEventOverview>() {
 			public StudyLoadOverview mapRow(ResultSet rs, int p) throws SQLException {
 				StudyLoadOverview overview = new StudyLoadOverview();
 				overview.setEventStarted(rs.getTimestamp(1));
@@ -65,7 +70,31 @@ public class ReportingServiceImpl implements ReportingService {
 				overview.setNumIssues(rs.getInt(8));
 				return overview;
 			}
+		}));
+		
+		sql =
+				"select s.study_name, li.last_modified, li.message\r\n" + 
+				"from loader_issue li\r\n" + 
+				"join study s on s.study_id = li.study_id\r\n" + 
+				"where li.issue_level = 'STUDY'";
+		overviews.addAll(template.query(sql, new RowMapper<StudyEventOverview>() {
+			public StudyEventOverview mapRow(ResultSet rs, int p) throws SQLException {
+				FailedLoadOverview overview = new FailedLoadOverview();
+				overview.setErrorMessage(rs.getString(3));
+				overview.setEventStarted(rs.getTimestamp(2));
+				overview.setEventStopped(rs.getTimestamp(2));
+				overview.setNumIssues(0);
+				overview.setStudyName(rs.getString(1));
+				return overview;
+			}
+		}));
+		
+		Collections.sort(overviews, new Comparator<StudyEventOverview>() {
+			public int compare(StudyEventOverview o1, StudyEventOverview o2) {
+				return -(o1.getEventStarted().compareTo(o2.getEventStarted()));
+			}
 		});
+		return overviews;
 	}
 
 	@Override

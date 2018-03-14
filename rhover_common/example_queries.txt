@@ -651,3 +651,9 @@ and ds.dataset_id in
 	and dm.is_new = 1
 )
 ;
+
+select s.study_name, li.last_modified, li.message
+from loader_issue li
+join study s on s.study_id = li.study_id
+where li.issue_level = 'STUDY'
+;

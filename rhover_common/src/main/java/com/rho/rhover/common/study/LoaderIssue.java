@@ -1,5 +1,8 @@
 package com.rho.rhover.common.study;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -38,6 +41,10 @@ public class LoaderIssue {
 	@JoinColumn(name="dataset_version_id")
 	private DatasetVersion datasetVersion;
 	
+	@ManyToOne
+	@JoinColumn(name="study_id")
+	private Study study;
+	
 	public LoaderIssue() {
 		
 	}
@@ -47,6 +54,20 @@ public class LoaderIssue {
 		this.message = message;
 		this.stackTrace = stackTrace;
 		this.issueLevel = issueLevel;
+	}
+	
+	public LoaderIssue(String message, Throwable cause, IssueLevel issueLevel) {
+		super();
+		this.message = message;
+		this.issueLevel = issueLevel;
+		StringWriter stringWriter = new StringWriter();
+		PrintWriter printWriter = new PrintWriter(stringWriter);
+		cause.printStackTrace(printWriter);
+		if (cause.getCause() != null) {
+			printWriter.append("\n\nCaused by:");
+			cause.getCause().printStackTrace(printWriter);
+		}
+		this.stackTrace = stringWriter.toString();
 	}
 
 	public Long getLoaderIssueId() {
@@ -95,6 +116,14 @@ public class LoaderIssue {
 
 	public void setStudyDbVersion(StudyDbVersion studyDbVersion) {
 		this.studyDbVersion = studyDbVersion;
+	}
+
+	public Study getStudy() {
+		return study;
+	}
+
+	public void setStudy(Study study) {
+		this.study = study;
 	}
 	
 }

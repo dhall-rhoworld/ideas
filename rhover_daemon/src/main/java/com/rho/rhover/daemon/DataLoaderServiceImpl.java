@@ -145,6 +145,9 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 	public void updateStudy(Study study) {
 		logger.info("Updating study: " + study.getStudyName());
 		
+//		int[] a = new int[3];
+//		a[5] = 15;
+		
 		// Check for new and modified files
 		Collection<File> modifiedFiles = studyDbService.getModifiedDataFiles(study);
 		Collection<File> newFiles = studyDbService.getNewDataFiles(study);

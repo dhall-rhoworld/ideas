@@ -61,9 +61,14 @@
     						</td>
     					</tr>
     				</table>
+    				<span th:if="${overview.class.simpleName} =='FailedLoadOverview'"
+    					th:text="${overview.errorMessage}"/>
     			</td>
-    			<td th:if="${overview.class.simpleName} =='StudyLoadOverview'" >
+    			<td th:if="${overview.class.simpleName} =='StudyLoadOverview'">
     				<a th:href="@{/reporting/loader_issues(study_db_version_id=${overview.studyDbVersionId})}" th:if="${overview.numIssues} > 0" th:text="${overview.numIssues}"/>
+    			</td>
+    			<td th:if="${overview.class.simpleName} =='FailedLoadOverview'">
+    				N/A
     			</td>
     		</tr>
     	</table>

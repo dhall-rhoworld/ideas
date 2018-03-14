@@ -11,6 +11,9 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
 
+import com.rho.rhover.common.study.LoaderIssue;
+import com.rho.rhover.common.study.LoaderIssue.IssueLevel;
+import com.rho.rhover.common.study.LoaderIssueRepository;
 import com.rho.rhover.common.study.Study;
 import com.rho.rhover.common.study.StudyRepository;
 
@@ -28,6 +31,9 @@ public class RhoverDaemonApplication implements CommandLineRunner {
 	
 	@Autowired
 	private DataLoaderService dataLoaderService;
+	
+	@Autowired
+	private LoaderIssueRepository loaderIssueRepository;
 
 	public static void main(String[] args) {
 		SpringApplication.run(RhoverDaemonApplication.class, args);
@@ -51,9 +57,13 @@ public class RhoverDaemonApplication implements CommandLineRunner {
 //					dataLoaderService.calculateAndSaveCorrelations(study);
 //				}
 			}
-			catch (SourceDataException e) {
+			catch (Exception e) {
 				logger.error("Data error encountered: " + e.getMessage());
-				
+				String message = "Error loading study '" + study.getStudyName() + "': "
+						+ e.getMessage();
+				LoaderIssue loaderIssue = new LoaderIssue(message, e, IssueLevel.STUDY);
+				loaderIssue.setStudy(study);
+				loaderIssueRepository.save(loaderIssue);
 				// TODO: Send notification to user
 			}
 		}
