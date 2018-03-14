@@ -4,11 +4,11 @@ import java.util.List;
 
 import com.rho.rhover.common.study.StudyDbVersion;
 import com.rho.rhover.web.reporting.DatasetLoadOverview;
-import com.rho.rhover.web.reporting.StudyLoadOverview;
+import com.rho.rhover.web.reporting.StudyEventOverview;
 
 public interface ReportingService {
 
-	List<StudyLoadOverview> getStudyLoadOverviews();
+	List<StudyEventOverview> getStudyEventOverviews();
 	
 	List<DatasetLoadOverview> getAllDatasetLoadOverviews(StudyDbVersion studyDbVersion);
 	

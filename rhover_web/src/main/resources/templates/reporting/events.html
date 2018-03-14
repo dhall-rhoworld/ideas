@@ -5,37 +5,66 @@
       layout:decorator="base"
       th:with="currentPage='reporting'">
 	<head> 
-	    <title>Data Loads</title> 
+	    <title>Events</title> 
 	    <script defer src="https://use.fontawesome.com/releases/v5.0.7/js/all.js"></script>
 	    <script src="/jquery-3.2.1.min.js"></script>
 	    <script src="/jquery-ui.js"></script>
 	    <link rel="stylesheet" href="/jquery-ui.css"/>
 	</head>
+	
+	<!-- Breadcrumbs -->
+	<div layout:fragment="breadcrumbs" id="breadcrumbs">
+		<ul class="breadcrumb">
+			<li>Reporting</li>
+			<li>Events</li>
+		</ul>
+	</div>
 
 	<!-- Content -->
     <div layout:fragment="page_content" id="page_content">
-    	<h2>Data Loads</h2>
+    	<h2>Events</h2>
     	<table class="wide">
     		<tr>
     			<th>Date/Time</th>
-    			<th>Load Elapsed Time</th>
+    			<th>Type</th>
+    			<th>Elapsed Time</th>
     			<th>Study</th>
-    			<th>New Datasets</th>
-    			<th>Modified Datasets</th>
-    			<th>Total Datasets</th>
+    			<th>Summary</th>
+    			<th>Issues</th>
     		</tr>
     		<tr th:each="overview : ${overviews}">
-    			<td th:text="${overview.formattedLoadStarted}"/>
-    			<td th:text="${overview.formattedElapsedLoadTime}"/>
+    			<td th:text="${overview.formattedEventStarted}"/>
+    			<td th:text="${overview.eventType}"/>
+    			<td th:text="${overview.formattedElapsedTime}"/>
     			<td th:text="${overview.studyName}"/>
-    			<td><a th:if="${overview.numNewDatasets} > 0"
-    				th:href="@{/reporting/loaded_datasets(study_db_version_id=${overview.studyDbVersionId}, datasets=new)}"
-    				th:text="${overview.numNewDatasets}"/></td>
-    			<td><a th:if="${overview.numModifiedDatasets} > 0"
-    				th:href="@{/reporting/loaded_datasets(study_db_version_id=${overview.studyDbVersionId}, datasets=modified)}"
-    				th:text="${overview.numModifiedDatasets}"/></td>
-    			<td><a th:href="@{/reporting/loaded_datasets(study_db_version_id=${overview.studyDbVersionId}, datasets=all)}"
-    				th:text="${overview.totalDatasets}"/></td>
+    			<td align="center">
+    				<table class="hidden" th:if="${overview.class.simpleName} =='StudyLoadOverview'">
+    					<tr>
+    						<td>New Datasets</td>
+    						<td>Modified Datasets</td>
+    						<td>Total Datasets</td>
+    					</tr>
+    					<tr>
+    						<td align="center">
+    							<a th:if="${overview.numNewDatasets} > 0"
+				    				th:href="@{/reporting/loaded_datasets(study_db_version_id=${overview.studyDbVersionId}, datasets=new)}"
+				    				th:text="${overview.numNewDatasets}"/>
+    						</td>
+    						<td align="center">
+    							<a th:if="${overview.numModifiedDatasets} > 0"
+				    				th:href="@{/reporting/loaded_datasets(study_db_version_id=${overview.studyDbVersionId}, datasets=modified)}"
+				    				th:text="${overview.numModifiedDatasets}"/>
+    						</td>
+    						<td align="center">
+    							<a th:href="@{/reporting/loaded_datasets(study_db_version_id=${overview.studyDbVersionId}, datasets=all)}"
+    								th:text="${overview.totalDatasets}"/>
+    						</td>
+    					</tr>
+    				</table>
+    			</td>
+    			<td th:if="${overview.class.simpleName} =='StudyLoadOverview'" >
+    				<a th:href="@{/reporting/loader_issues(study_db_version_id=${overview.studyDbVersionId})}" th:if="${overview.numIssues} > 0" th:text="${overview.numIssues}"/>
+    			</td>
     		</tr>
     	</table>
     </div>

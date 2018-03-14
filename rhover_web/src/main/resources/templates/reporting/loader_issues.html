@@ -7,7 +7,7 @@
       
     <!-- Title -->
 	<head> 
-	    <title>New Fields</title> 
+	    <title>Loader Issues</title> 
 	</head>
 
 	<!-- Breadcrumbs -->
@@ -15,19 +15,17 @@
 		<ul class="breadcrumb">
 			<li>Reporting</li>
 			<li><a href="/reporting/events">Events</a></li>
-			<li><a th:href="@{/reporting/loaded_datasets(study_db_version_id=${studyDbVersion.studyDbVersionId}, datasets=${datasets})}"
-				th:text="${studyDbVersion.study.studyName} + ' version ' + ${studyDbVersion.studyDbVersionName}"/>
-			</li>
-			<li>New Fields</li>
+			<li><span th:text="${studyDbVersion.study.studyName} + ' version ' + ${studyDbVersion.studyDbVersionName}"/></li>
 		</ul>
 	</div>
 		
 	<!-- Content -->
     <div layout:fragment="page_content" id="page_content">
-		<table class="half-wide">
-			<tr><th>New Fields</th></tr>
-			<tr th:each="fieldInstance : ${fieldInstances}">
-				<td th:text="${fieldInstance.field.displayName}"/>
+		<h2>Loader Issues</h2>
+		<table class="wide">
+			<tr><th>Loader Issues</th></tr>
+			<tr th:each="issue : ${issues}">
+				<td th:text="${issue.message}"/>
 			</tr>
 		</table>
     </div>

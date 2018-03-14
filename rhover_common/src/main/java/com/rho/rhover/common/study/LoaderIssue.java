@@ -31,6 +31,10 @@ public class LoaderIssue {
 	private IssueLevel issueLevel;
 	
 	@ManyToOne
+	@JoinColumn(name="study_db_version_id")
+	private StudyDbVersion studyDbVersion;
+	
+	@ManyToOne
 	@JoinColumn(name="dataset_version_id")
 	private DatasetVersion datasetVersion;
 	
@@ -84,4 +88,13 @@ public class LoaderIssue {
 	public void setDatasetVersion(DatasetVersion datasetVersion) {
 		this.datasetVersion = datasetVersion;
 	}
+
+	public StudyDbVersion getStudyDbVersion() {
+		return studyDbVersion;
+	}
+
+	public void setStudyDbVersion(StudyDbVersion studyDbVersion) {
+		this.studyDbVersion = studyDbVersion;
+	}
+	
 }

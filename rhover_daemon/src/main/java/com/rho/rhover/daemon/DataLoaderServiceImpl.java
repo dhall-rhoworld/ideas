@@ -168,18 +168,18 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		
 		// Process new files
 		for (File file : newFiles) {
-			fileChecklist.put(file.getAbsolutePath(), Boolean.TRUE);
+			fileChecklist.put(file.getAbsolutePath().replaceAll("\\\\", "/"), Boolean.TRUE);
 			if (study.getQueryFilePath() != null && file.getAbsolutePath().equals(study.getQueryFilePath())) {
 				continue;
 			}
-			Dataset dataset = createAndSaveNewDataset(study, file, studyDbVersion);
+			Dataset dataset = null;
 			updateDatasetAndStudy(dataset, study, file, studyDbVersion);
 		}
 		
 		// Process modified files
 		for (File file : modifiedFiles) {
-			fileChecklist.put(file.getAbsolutePath(), Boolean.TRUE);
-			if (study.getQueryFilePath() != null && file.getAbsolutePath().equals(study.getQueryFilePath())) {
+			fileChecklist.put(file.getAbsolutePath().replaceAll("\\\\", "/"), Boolean.TRUE);
+			if (study.getQueryFilePath() != null && file.getAbsolutePath().replaceAll("\\\\", "/").equals(study.getQueryFilePath())) {
 				continue;
 			}
 			Dataset dataset = datasetRepository.findByFilePath(file.getAbsolutePath().replaceAll("\\\\", "/"));
@@ -191,6 +191,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 			if (study.getQueryFilePath() != null && filePath.equals(study.getQueryFilePath())) {
 				continue;
 			}
+			logger.info("Adding unchanged file to study database version: " + filePath);
 			if (fileChecklist.get(filePath).equals(Boolean.FALSE)) {
 				Dataset dataset = datasetRepository.findByFilePath(filePath);
 				DatasetVersion datasetVersion = datasetVersionRepository.findByDatasetAndIsCurrent(dataset, Boolean.TRUE);
@@ -232,8 +233,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 	// TODO: If there is a SAS read error, do not create dataset version
 	private void updateDatasetAndStudy(Dataset dataset, Study study, File file, StudyDbVersion studyDbVersion) {
 		
-		// Save new dataset version
-		DatasetVersion datasetVersion = createAndSaveNewDatasetVersion(file, dataset, studyDbVersion);
+		DatasetVersion datasetVersion = null;
 		
 		try {
 			DataFrame df = null;
@@ -246,6 +246,15 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 			else {
 				throw new RuntimeException("Unsupported file type: " + file.getName());
 			}
+			
+			// Create new dataset if it does not exist
+			if (dataset == null) {
+				dataset = createAndSaveNewDataset(study, file, studyDbVersion);
+			}
+			
+			// Save new dataset version
+			datasetVersion = createAndSaveNewDatasetVersion(file, dataset, studyDbVersion);
+			
 			datasetVersion.setNumRecords(df.numRecords());
 			datasetVersionRepository.save(datasetVersion);
 			
@@ -274,7 +283,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 				saveData(df, datasetVersion);
 			}
 		}
-		catch (SourceDataException e) {
+		catch (Exception e) {
 			StringWriter stringWriter = new StringWriter();
 			PrintWriter printWriter = new PrintWriter(stringWriter);
 			e.printStackTrace(printWriter);
@@ -284,7 +293,9 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 			}
 			String stackTrace = stringWriter.toString();
 			logger.error(stackTrace);
-			LoaderIssue issue = new LoaderIssue(e.getMessage(), stackTrace, IssueLevel.DATASET_VERSION);
+			String message = "File '" + file.getName() + "' could not be loaded: " + e.getMessage();
+			LoaderIssue issue = new LoaderIssue(message, stackTrace, IssueLevel.DATASET_VERSION);
+			issue.setStudyDbVersion(studyDbVersion);
 			issue.setDatasetVersion(datasetVersion);
 			loaderIssueRepository.save(issue);
 		}

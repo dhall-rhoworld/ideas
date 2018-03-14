@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import com.rho.rhover.common.study.StudyDbVersion;
 import com.rho.rhover.web.reporting.DatasetLoadOverview;
+import com.rho.rhover.web.reporting.StudyEventOverview;
 import com.rho.rhover.web.reporting.StudyLoadOverview;
 
 @Component
@@ -22,7 +23,7 @@ public class ReportingServiceImpl implements ReportingService {
 	private DataSource dataSource;
 
 	@Override
-	public List<StudyLoadOverview> getStudyLoadOverviews() {
+	public List<StudyEventOverview> getStudyEventOverviews() {
 		JdbcTemplate template = new JdbcTemplate(dataSource);
 		String sql =
 				"select sdv.load_started, sdv.load_stopped, s.study_name,\r\n" + 
@@ -38,25 +39,30 @@ public class ReportingServiceImpl implements ReportingService {
 				"	and dm.is_new = 1\r\n" + 
 				") new_datasets,\r\n" + 
 				"(\r\n" + 
-				"select count(*)\r\n" + 
+				"	select count(*)\r\n" + 
 				"	from dataset_modification dm\r\n" + 
 				"	where dm.study_db_version_id = sdv.study_db_version_id\r\n" + 
 				"	and dm.is_modified = 1\r\n" + 
-				") modified_datasets,\r\n" + 
-				"sdv.study_db_version_id\r\n" +
+				") modified_datasets, sdv.study_db_version_id,\r\n" + 
+				"(\r\n" + 
+				"	select count(*)\r\n" + 
+				"	from loader_issue li\r\n" + 
+				"	where li.study_db_version_id = sdv.study_db_version_id\r\n" + 
+				") num_issues\r\n" + 
 				"from study_db_version sdv\r\n" + 
-				"join study s on s.study_id = sdv.study_id\r\n" +
+				"join study s on s.study_id = sdv.study_id\r\n" + 
 				"order by sdv.study_db_version_id desc";
-		return template.query(sql, new RowMapper<StudyLoadOverview>() {
+		return template.query(sql, new RowMapper<StudyEventOverview>() {
 			public StudyLoadOverview mapRow(ResultSet rs, int p) throws SQLException {
 				StudyLoadOverview overview = new StudyLoadOverview();
-				overview.setLoadStarted(rs.getTimestamp(1));
-				overview.setLoadStopped(rs.getTimestamp(2));
+				overview.setEventStarted(rs.getTimestamp(1));
+				overview.setEventStopped(rs.getTimestamp(2));
 				overview.setStudyName(rs.getString(3));
 				overview.setTotalDatasets(rs.getInt(4));
 				overview.setNumNewDatasets(rs.getInt(5));
 				overview.setNumModifiedDatasets(rs.getInt(6));
 				overview.setStudyDbVersionId(rs.getLong(7));
+				overview.setNumIssues(rs.getInt(8));
 				return overview;
 			}
 		});

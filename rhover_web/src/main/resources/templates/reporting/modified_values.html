@@ -13,8 +13,12 @@
 	<!-- Breadcrumbs -->
 	<div layout:fragment="breadcrumbs" id="breadcrumbs">
 		<ul class="breadcrumb">
-				<li><a href="/reporting/loads">Reporting</a></li>
-				<li>Loaded Datasets</li>
+			<li>Reporting</li>
+			<li><a href="/reporting/events">Events</a></li>
+			<li><a th:href="@{/reporting/loaded_datasets(study_db_version_id=${studyDbVersion.studyDbVersionId}, datasets=${datasets})}"
+				th:text="${studyDbVersion.study.studyName} + ' version ' + ${studyDbVersion.studyDbVersionName}"/>
+			</li>
+			<li>Modified Values</li>
 		</ul>
 	</div>
 		

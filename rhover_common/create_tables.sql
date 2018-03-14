@@ -260,9 +260,12 @@ CREATE TABLE loader_issue (
 	message VARCHAR(500),
 	stack_trace TEXT,
 	issue_level VARCHAR(50) NOT NULL,
+	study_db_version_id BIGINT,
 	dataset_version_id BIGINT,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT pk_loader_issue PRIMARY KEY (loader_issue_id),
+	CONSTRAINT fk_issue_2_study_db_version FOREIGN KEY (study_db_version_id)
+		REFERENCES study_db_version(study_db_version_id),
 	CONSTRAINT fk_issue_2_dataset_version FOREIGN KEY (dataset_version_id)
 		REFERENCES dataset_version(dataset_version_id)
 );

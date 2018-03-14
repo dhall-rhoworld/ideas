@@ -582,13 +582,19 @@ select sdv.load_started, sdv.load_stopped, s.study_name,
 	and dm.is_new = 1
 ) new_datasets,
 (
-select count(*)
+	select count(*)
 	from dataset_modification dm
 	where dm.study_db_version_id = sdv.study_db_version_id
 	and dm.is_modified = 1
-) modified_datasets
+) modified_datasets, sdv.study_db_version_id,
+(
+	select count(*)
+	from loader_issue li
+	where li.study_db_version_id = sdv.study_db_version_id
+) num_issues
 from study_db_version sdv
 join study s on s.study_id = sdv.study_id
+order by sdv.study_db_version_id desc
 ;
 
 select ds.dataset_name,

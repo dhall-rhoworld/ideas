@@ -13,14 +13,15 @@
 	<!-- Breadcrumbs -->
 	<div layout:fragment="breadcrumbs" id="breadcrumbs">
 		<ul class="breadcrumb">
-				<li><a href="/reporting/loads">Reporting</a></li>
-				<li>Loaded Datasets</li>
+			<li>Reporting</li>
+			<li><a href="/reporting/events">Events</a></li>
+			<li><span th:text="${studyDbVersion.study.studyName} + ' version ' + ${studyDbVersion.studyDbVersionName}"/></li>
 		</ul>
 	</div>
 		
 	<!-- Content -->
     <div layout:fragment="page_content" id="page_content">
-		<h2>Datasets</h2>
+		<h2 th:text="${tableTitle}"/>
 		<table class="wide">
 			<tr>
 				<th>Dataset</th>
@@ -31,17 +32,17 @@
 			<tr th:each="overview : ${overviews}">
 				<td th:text="${overview.datasetName}"/>
 				<td>
-					<a th:href="@{/reporting/new_fields(dataset_version_id=${overview.datasetVersionId})}"
+					<a th:href="@{/reporting/new_fields(dataset_version_id=${overview.datasetVersionId}, study_db_version_id=${studyDbVersion.studyDbVersionId}, datasets=${datasets})}"
 						th:text="${overview.numNewFields}"
 						th:if="${overview.numNewFields} > 0"/>
 				</td>
 				<td>
-					<a th:href="@{/reporting/new_records(dataset_version_id=${overview.datasetVersionId})}"
+					<a th:href="@{/reporting/new_records(dataset_version_id=${overview.datasetVersionId}, study_db_version_id=${studyDbVersion.studyDbVersionId}, datasets=${datasets})}"
 						th:text="${overview.numNewRecords}"
 						th:if="${overview.numNewRecords} > 0"/>
 				</td>
 				<td>
-					<a th:href="@{/reporting/modified_values(dataset_version_id=${overview.datasetVersionId})}"
+					<a th:href="@{/reporting/modified_values(dataset_version_id=${overview.datasetVersionId}, study_db_version_id=${studyDbVersion.studyDbVersionId}, datasets=${datasets})}"
 						th:text="${overview.numModifiedDataValues}"
 						th:if="${overview.numModifiedDataValues} > 0"/>
 			</tr>
