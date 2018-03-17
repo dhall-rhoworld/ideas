@@ -3,6 +3,7 @@
 create database rhover;
 create user 'rhover'@'localhost' identified by 'rhover';
 grant all privileges on rhover.* to 'rhover'@'localhost';
+grant file on *.* to rhover@localhost identified by 'rhover';
 
 create table study (
 	study_id BIGINT AUTO_INCREMENT PRIMARY KEY,

@@ -51,21 +51,21 @@ public class RhoverDaemonApplication implements CommandLineRunner {
 		
 		Iterable<Study> studies = studyRepository.findAll();
 		for (Study study : studies) {
-			try {
+//			try {
 				dataLoaderService.updateStudy(study);
 //				if (changedData) {
 //					dataLoaderService.calculateAndSaveCorrelations(study);
 //				}
-			}
-			catch (Exception e) {
-				logger.error("Data error encountered: " + e.getMessage());
-				String message = "Error loading study '" + study.getStudyName() + "': "
-						+ e.getMessage();
-				LoaderIssue loaderIssue = new LoaderIssue(message, e, IssueLevel.STUDY);
-				loaderIssue.setStudy(study);
-				loaderIssueRepository.save(loaderIssue);
-				// TODO: Send notification to user
-			}
+//			}
+//			catch (Exception e) {
+//				logger.error("Data error encountered: " + e.getMessage());
+//				String message = "Error loading study '" + study.getStudyName() + "': "
+//						+ e.getMessage();
+//				LoaderIssue loaderIssue = new LoaderIssue(message, e, IssueLevel.STUDY);
+//				loaderIssue.setStudy(study);
+//				loaderIssueRepository.save(loaderIssue);
+//				// TODO: Send notification to user
+//			}
 		}
 	}
 }

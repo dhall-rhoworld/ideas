@@ -66,14 +66,15 @@ import com.rho.rhover.common.study.StudyRepository;
 import com.rho.rhover.common.study.Subject;
 import com.rho.rhover.common.study.SubjectRepository;
 
-@Service
-public class DataLoaderServiceImpl implements DataLoaderService {
+public class DataLoaderServiceImpl {//implements DataLoaderService {
 	
 	private static final double MIN_COEFFICIENT = 0.5;
 	
 	private static final double MAX_COEFFICIENT = 0.95;
 	
 	private static final double MIN_OBSERVATIONS = 10;
+	
+	private static final int MAX_VALUE_LENGTH = 50;
 	
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 	
@@ -140,7 +141,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 	@Autowired
 	private DatumChangeRepository datumChangeRepository;
 	
-	@Override
+	//@Override
 	@Transactional
 	public void updateStudy(Study study) {
 		logger.info("Updating study: " + study.getStudyName());
@@ -226,7 +227,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 
 	private Dataset createAndSaveNewDataset(Study study, File file, StudyDbVersion studyDbVersion) {		
 		DataLocation dataLocation = dataLocationService.findByDirectory(file.getParentFile());
-		Dataset dataset = new Dataset(file.getName(), study, file.getAbsolutePath(), dataLocation);
+		Dataset dataset = new Dataset(file.getName(), study, file.getAbsolutePath());
 		logger.info("Saving new dataset " + dataset.getDatasetName() + ": " + dataset.getFilePath());
 		datasetRepository.save(dataset);
 		return dataset;
@@ -275,12 +276,12 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 			if (!missingAnIdField) {
 				
 				// Find splitter and splittee fields, if any
-				boolean multipleRecs = hasMultipleRecsPerEncounter(df, study);
-				if (multipleRecs && !datasetVersion.getHasMultipleRecsPerEncounter()) {
-					datasetVersion.setHasMultipleRecsPerEncounter(multipleRecs);
-					datasetVersionRepository.save(datasetVersion);
-					findPotentialSplittersAndSplittees(datasetVersion, df);
-				}
+//				boolean multipleRecs = hasMultipleRecsPerEncounter(df, study);
+//				if (multipleRecs && !datasetVersion.getHasMultipleRecsPerEncounter()) {
+//					datasetVersion.setHasMultipleRecsPerEncounter(multipleRecs);
+//					datasetVersionRepository.save(datasetVersion);
+//					findPotentialSplittersAndSplittees(datasetVersion, df);
+//				}
 				
 				// Save data
 				saveData(df, datasetVersion);
@@ -307,6 +308,58 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 	private void saveData(DataFrame df, DatasetVersion datasetVersion) {
 		Study study = datasetVersion.getDataset().getStudy();
 		Dataset dataset = datasetVersion.getDataset();
+		
+		List<Subject> subjects = subjectRepository.findByStudy(study);
+		Map<String, Subject> subjectIndex = new HashMap<>();
+		for (Subject sub : subjects) {
+			subjectIndex.put(sub.getSubjectName(), sub);
+		}
+		
+		List<Site> sites = siteRepository.findByStudy(study);
+		Map<String, Site> siteIndex = new HashMap<>();
+		for (Site site : sites) {
+			siteIndex.put(site.getSiteName(), site);
+		}
+		
+		List<Phase> phases = phaseRepository.findByStudy(study);
+		Map<String, Phase> phaseIndex = new HashMap<>();
+		for (Phase phase : phases) {
+			phaseIndex.put(phase.getPhaseName(), phase);
+		}
+		
+		List<Observation> observations = observationRepository.findByDataset(dataset);
+		Map<String, Observation> observationIndex = new HashMap<>();
+		for (Observation obs : observations) {
+			observationIndex.put(obs.getRecordId(), obs);
+		}
+		
+		Iterable<Field> fields = fieldRepository.findByStudy(study);
+		Map<String, Field> fieldIndex = new HashMap<>();
+		for (Field field : fields) {
+			fieldIndex.put(field.getFieldName(), field);
+		}
+		
+		Iterable<Datum> datums = datumRepository.findByDataset(dataset);
+		Map<String, Datum> datumIndex = new HashMap<>();
+		for (Datum datum : datums) {
+			String key = datum.getObservation().getRecordId() + "---"
+					+ datum.getField().getFieldId();
+			datumIndex.put(key, datum);
+		}
+		
+		Iterable<DatumVersion> datumVersions = datumVersionRepository.findByDatasetAndIsCurrent(dataset, Boolean.TRUE);
+		Map<String, DatumVersion> datumVersionIndex = new HashMap<>();
+		for (DatumVersion dv : datumVersions) {
+			String key = dv.getDatum().getObservation().getRecordId() + "---"
+					+ dv.getDatum().getField().getFieldId();
+			datumVersionIndex.put(key, dv);
+		}
+		
+		Iterator<String> subjectNames = df.getField(study.getSubjectFieldName()).iterator();
+		Iterator<String> siteNames = df.getField(study.getSiteFieldName()).iterator();
+		Iterator<String> phaseNames = df.getField(study.getPhaseFieldName()).iterator();
+		Iterator<String> recordIds = df.getField(study.getRecordIdFieldName()).iterator();
+		Map<String, Iterator<String>> fieldValuesIndex = new HashMap<>();
 		for (String fieldName : df.getColNames()) {
 			if (fieldName.equals(study.getSubjectFieldName())
 					|| fieldName.equals(study.getSiteFieldName())
@@ -315,43 +368,55 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 					|| fieldName.equals(study.getFormFieldName())) {
 				continue;
 			}
-			Iterator<String> subjectNames = df.getField(study.getSubjectFieldName()).iterator();
-			Iterator<String> siteNames = df.getField(study.getSiteFieldName()).iterator();
-			Iterator<String> phaseNames = df.getField(study.getPhaseFieldName()).iterator();
-			Iterator<String> recordIds = df.getField(study.getRecordIdFieldName()).iterator();
-			Iterator<String> data = df.getField(fieldName).iterator();
-			Field field = fieldRepository.findByStudyAndFieldName(study, fieldName);
-			while (subjectNames.hasNext() && siteNames.hasNext() && phaseNames.hasNext() && recordIds.hasNext() && data.hasNext()) {
-				
-				// Fetch or create new observation
-				Subject subject = subjectRepository.findBySubjectNameAndStudy(subjectNames.next(), study);
-				Site site = siteRepository.findByStudyAndSiteName(study, siteNames.next());
-				Phase phase = phaseRepository.findByPhaseNameAndStudy(phaseNames.next(), study);
-				String recordId = recordIds.next();
-				Observation observation = observationRepository
-						.findByDatasetAndSubjectAndPhaseAndSiteAndRecordId(
-								dataset, subject, phase, site, recordId);
-				if (observation == null) {
-					observation = new Observation(dataset, subject, site, phase, recordId);
-					observation.setFirstDatasetVersion(datasetVersion);
-					observationRepository.save(observation);
-				}
+			fieldValuesIndex.put(fieldName, df.getField(fieldName).iterator());
+		}
+		
+		List<Datum> newData = new ArrayList<>();
+		int count = 0;
+		boolean moreData = true;
+		while (moreData) {
+			if (!(subjectNames.hasNext() && siteNames.hasNext() && phaseNames.hasNext() && recordIds.hasNext())) {
+				break;
+			}
+			count++;
+			if (count % 100 == 0) {
+				logger.info("Saved " + count + " records");
+			}
+			Subject subject = subjectIndex.get(subjectNames.next());
+			Site site = siteIndex.get(siteNames.next());
+			Phase phase = phaseIndex.get(phaseNames.next());
+			String recordId = recordIds.next();
+			Observation observation = observationIndex.get(recordId);
+			if (observation == null) {
+				observation = new Observation(dataset, subject, site, phase, recordId);
+				observation.setFirstDatasetVersion(datasetVersion);
+				observationRepository.save(observation);
+			}
 			
-				// Fetch or create new datum
-				String value = data.next();
+			for (String fieldName : fieldValuesIndex.keySet()) {
+				Iterator<String> values = fieldValuesIndex.get(fieldName);
+				if (!values.hasNext()) {
+					moreData = false;
+					break;
+				}
+				String value = values.next();
+				Field field = fieldIndex.get(fieldName);
 				if (value != null) {
-					Datum datum = datumRepository.findByObservationAndField(observation, field);
+					if (value.length() > MAX_VALUE_LENGTH) {
+						value = value.substring(0, MAX_VALUE_LENGTH);
+					}
+					String key = observation.getRecordId() + "---" + field.getFieldId();
+					Datum datum = datumIndex.get(key);
 					if (datum == null) {
 						datum = new Datum(field, observation);
 						datum.setFirstDatasetVersion(datasetVersion);
 						datumRepository.save(datum);
 					}
-					
-					// Fetch or create new datum version
-					DatumVersion datumVersion = datumVersionRepository.findByDatumAndIsCurrent(datum, Boolean.TRUE);
+					DatumVersion datumVersion = datumVersionIndex.get(key);
 					if (datumVersion == null) {
 						datumVersion = new DatumVersion(value, Boolean.TRUE, datum);
 						datumVersion.setFirstDatasetVersion(datasetVersion);
+						datumVersion.setLastDatasetVersion(datasetVersion);
 					}
 					else if (!(datumVersion.getValue().equals(value))) {
 						DatumChange datumChange = new DatumChange();
@@ -361,11 +426,12 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 						datumVersionRepository.save(datumVersion);
 						datumVersion = new DatumVersion(value, Boolean.TRUE, datum);
 						datumVersion.setFirstDatasetVersion(datasetVersion);
+						datumVersion.setLastDatasetVersion(datasetVersion);
 						datumVersionRepository.save(datumVersion);
 						datumChange.setNewDatumVersion(datumVersion);
 						datumChangeRepository.save(datumChange);
 					}
-					datumVersion.getDatasetVersions().add(datasetVersion);
+					//datumVersion.getDatasetVersions().add(datasetVersion);
 					datumVersionRepository.save(datumVersion);
 				}
 			}
@@ -464,7 +530,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		return hasMultiples;
 	}
 
-	private DatasetVersion createAndSaveNewDatasetVersion(File file, Dataset dataset, StudyDbVersion studyDbVersion) {
+	private DatasetVersion createAndSaveNewDatasetVersion (File file, Dataset dataset, StudyDbVersion studyDbVersion) {
 		String datasetVersionName = studyDbService.generateDatasetVersionName(file);
 		DatasetVersion oldVersion = datasetVersionRepository.findByDatasetAndIsCurrent(dataset, Boolean.TRUE);
 		if (oldVersion != null) {
@@ -721,20 +787,20 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 		return map;
 	}
 	
-	@Override
-	@Transactional
-	public void calculateAndSaveCorrelations(Study study) {
-		List<Dataset> datasets = datasetRepository.findByStudy(study);
-		List<Field> commonFields = fieldService.findPotentiallyIdentiableFields(study);
-		for (int i = 0; i < datasets.size(); i++) {
-			DatasetVersion datasetVersion1 = datasetVersionRepository.findByDatasetAndIsCurrent(datasets.get(i), Boolean.TRUE);
-			calculateAndSaveCorrelations(datasetVersion1, commonFields);
-			for (int j = i + 1; j < datasets.size(); j++) {
-				DatasetVersion datasetVersion2 = datasetVersionRepository.findByDatasetAndIsCurrent(datasets.get(j), Boolean.TRUE);
-				calculateAndSaveCorrelations(study, datasetVersion1, datasetVersion2, commonFields);
-			}
-		}
-	}
+//	@Override
+//	@Transactional
+//	public void calculateAndSaveCorrelations(Study study) {
+//		List<Dataset> datasets = datasetRepository.findByStudy(study);
+//		List<Field> commonFields = fieldService.findPotentiallyIdentiableFields(study);
+//		for (int i = 0; i < datasets.size(); i++) {
+//			DatasetVersion datasetVersion1 = datasetVersionRepository.findByDatasetAndIsCurrent(datasets.get(i), Boolean.TRUE);
+//			calculateAndSaveCorrelations(datasetVersion1, commonFields);
+//			for (int j = i + 1; j < datasets.size(); j++) {
+//				DatasetVersion datasetVersion2 = datasetVersionRepository.findByDatasetAndIsCurrent(datasets.get(j), Boolean.TRUE);
+//				calculateAndSaveCorrelations(study, datasetVersion1, datasetVersion2, commonFields);
+//			}
+//		}
+//	}
 	
 	private void calculateAndSaveCorrelations(DatasetVersion datasetVersion, List<Field> commonFields) {
 		Dataset dataset = datasetVersion.getDataset();

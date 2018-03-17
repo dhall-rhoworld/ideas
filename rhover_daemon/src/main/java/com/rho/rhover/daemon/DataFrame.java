@@ -3,18 +3,17 @@ package com.rho.rhover.daemon;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.aspectj.apache.bcel.classfile.Unknown;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -276,8 +275,22 @@ public class DataFrame {
 		return s;
 	}
 	
+	public Iterator<Map<String, String>> iterator() {
+		return new DataFrameIterator();
+	}
+	
 	public int numRecords() {
 		return numRecords;
+	}
+	
+	public String getFieldLabel(String fieldName) {
+		int p = colIndex.get(fieldName);
+		return colLabels.get(p);
+	}
+	
+	public Class getDataType(String fieldName) {
+		int p = colIndex.get(fieldName);
+		return dataTypes.get(p);
 	}
 	
 	public static class UnknownType {
@@ -285,6 +298,39 @@ public class DataFrame {
 	}
 	
 	public static class MixedType {
+		
+	}
+	
+	private class DataFrameIterator implements Iterator<Map<String, String>> {
+		
+		List<Iterator<String>> iterators = new ArrayList<>();
+		
+		private DataFrameIterator() {
+			for (List<String> col : data) {
+				iterators.add(col.iterator());
+			}
+		}
+
+		@Override
+		public boolean hasNext() {
+			boolean haveNext = true;
+			for (Iterator<String> it : iterators) {
+				if (!it.hasNext()) {
+					haveNext = false;
+					break;
+				}
+			}
+			return haveNext;
+		}
+
+		@Override
+		public Map<String, String> next() {
+			Map<String, String> record = new HashMap<>();
+			for (int i = 0; i < colNames.size(); i++) {
+				record.put(colNames.get(i), iterators.get(i).next());
+			}
+			return record;
+		}
 		
 	}
 }

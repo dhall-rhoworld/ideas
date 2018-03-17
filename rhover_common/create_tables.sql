@@ -73,7 +73,7 @@ CREATE TABLE data_location (
 );
 
 CREATE TABLE dataset (
-	dataset_id BIGINT AUTO_INCREMENT NOT NULL,
+	dataset_id BIGINT NOT NULL,
 	dataset_name VARCHAR(50) NOT NULL,
 	file_path VARCHAR(400) NOT NULL,
 	is_checked TINYINT NOT NULL DEFAULT 0,
@@ -81,17 +81,15 @@ CREATE TABLE dataset (
 	was_checkability_deduced TINYINT NOT NULL DEFAULT 0,
 	was_checkability_confirmed TINYINT NOT NULL DEFAULT 0,
 	study_id BIGINT NOT NULL,
-	data_location_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	modified_by VARCHAR(50),
 	CONSTRAINT pk_dataset PRIMARY KEY (dataset_id),
 	CONSTRAINT fk_dataset_2_study FOREIGN KEY(study_id) REFERENCES study(study_id),
-	CONSTRAINT fk_dataset_2_data_location FOREIGN KEY (data_location_id) REFERENCES data_location(data_location_id),
 	CONSTRAINT u_dataset_name_study_id UNIQUE (dataset_name, study_id)
 );
 
 CREATE TABLE dataset_version (
-	dataset_version_id BIGINT AUTO_INCREMENT NOT NULL,
+	dataset_version_id BIGINT NOT NULL,
 	dataset_version_name VARCHAR(50) NOT NULL,
 	is_current TINYINT NOT NULL,
 	num_records INT NOT NULL,
@@ -105,7 +103,7 @@ CREATE TABLE dataset_version (
 );
 
 CREATE TABLE data_stream (
-	data_stream_id BIGINT AUTO_INCREMENT NOT NULL,
+	data_stream_id BIGINT NOT NULL,
 	data_stream_name VARCHAR(50) NOT NULL,
 	study_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -126,7 +124,7 @@ CREATE TABLE dataset_version_stream (
 );
 
 CREATE TABLE site (
-	site_id BIGINT AUTO_INCREMENT NOT NULL,
+	site_id BIGINT NOT NULL,
 	site_name VARCHAR(200) NOT NULL,
 	study_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -136,7 +134,7 @@ CREATE TABLE site (
 );
 
 CREATE TABLE subject (
-	subject_id BIGINT AUTO_INCREMENT NOT NULL,
+	subject_id BIGINT NOT NULL,
 	subject_name VARCHAR(50) NOT NULL,
 	site_id BIGINT,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -146,7 +144,7 @@ CREATE TABLE subject (
 );
 
 CREATE TABLE phase (
-	phase_id BIGINT AUTO_INCREMENT NOT NULL,
+	phase_id BIGINT NOT NULL,
 	phase_name VARCHAR(200) NOT NULL,
 	study_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -166,7 +164,7 @@ CREATE TABLE dataset_version_phase (
 );
 
 CREATE TABLE field (
-	field_id BIGINT AUTO_INCREMENT NOT NULL,
+	field_id BIGINT NOT NULL,
 	field_name VARCHAR(200) NOT NULL,
 	field_label VARCHAR(400) NOT NULL,
 	study_id BIGINT NOT NULL,
@@ -220,7 +218,7 @@ CREATE TABLE dataset_version_field (
 );
 
 CREATE TABLE study_db_version (
-	study_db_version_id BIGINT AUTO_INCREMENT NOT NULL,
+	study_db_version_id BIGINT NOT NULL,
 	study_db_version_name VARCHAR(50) NOT NULL,
 	study_id BIGINT NOT NULL,
 	load_started TIMESTAMP,
@@ -242,7 +240,7 @@ CREATE TABLE study_db_version_config (
 );
 
 CREATE TABLE dataset_modification (
-	dataset_modification_id BIGINT AUTO_INCREMENT NOT NULL,
+	dataset_modification_id BIGINT NOT NULL,
 	study_db_version_id BIGINT NOT NULL,
 	dataset_id BIGINT NOT NULL,
 	is_new TINYINT NOT NULL DEFAULT 0,
@@ -274,7 +272,7 @@ CREATE TABLE loader_issue (
 );
 
 CREATE TABLE field_instance (
-	field_instance_id BIGINT AUTO_INCREMENT NOT NULL,
+	field_instance_id BIGINT NOT NULL,
 	field_id BIGINT NOT NULL,
 	dataset_id BIGINT NOT NULL,
 	first_dataset_version_id BIGINT NOT NULL,
@@ -426,7 +424,7 @@ CREATE TABLE param_used (
 );
 
 CREATE TABLE observation (
-	observation_id BIGINT AUTO_INCREMENT NOT NULL,
+	observation_id BIGINT NOT NULL,
 	dataset_id BIGINT NOT NULL,
 	first_dataset_version_id BIGINT NOT NULL,
 	site_id BIGINT NOT NULL,
@@ -445,7 +443,7 @@ CREATE TABLE observation (
 );
 
 CREATE TABLE datum (
-	datum_id BIGINT AUTO_INCREMENT NOT NULL,
+	datum_id BIGINT NOT NULL,
 	field_id BIGINT NOT NULL,
 	first_dataset_version_id BIGINT NOT NULL,
 	observation_id BIGINT NOT NULL,
@@ -459,15 +457,18 @@ CREATE TABLE datum (
 );
 
 CREATE TABLE datum_version (
-	datum_version_id BIGINT AUTO_INCREMENT NOT NULL,
+	datum_version_id BIGINT NOT NULL,
 	value VARCHAR(50),
 	first_dataset_version_id BIGINT NOT NULL,
+	last_dataset_version_id BIGINT NOT NULL,
 	is_current TINYINT NOT NULL DEFAULT 0,
 	datum_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT pk_datum_version PRIMARY KEY (datum_version_id),
 	CONSTRAINT fk_datum_version_2_datum FOREIGN KEY (datum_id) REFERENCES datum (datum_id),
-	CONSTRAINT fk_datum_version_2_dataset_version FOREIGN KEY (first_dataset_version_id)
+	CONSTRAINT fk_datum_version_2_dataset_version_first FOREIGN KEY (first_dataset_version_id)
+		REFERENCES dataset_version(dataset_version_id),
+	CONSTRAINT fk_datum_version_2_dataset_version_last FOREIGN KEY (last_dataset_version_id)
 		REFERENCES dataset_version(dataset_version_id)
 );
 

@@ -40,6 +40,10 @@ public class DatumVersion {
 	@JoinColumn(name="first_dataset_version_id")
 	private DatasetVersion firstDatasetVersion;
 	
+	@ManyToOne
+	@JoinColumn(name="last_dataset_version_id")
+	private DatasetVersion lastDatasetVersion;
+	
 	@ManyToMany
 	@JoinTable(name="datum_dataset_version", joinColumns=@JoinColumn(name="datum_version_id"),
 		inverseJoinColumns=@JoinColumn(name="dataset_version_id"))
@@ -102,6 +106,14 @@ public class DatumVersion {
 
 	public void setFirstDatasetVersion(DatasetVersion firstDatasetVersion) {
 		this.firstDatasetVersion = firstDatasetVersion;
+	}
+
+	public DatasetVersion getLastDatasetVersion() {
+		return lastDatasetVersion;
+	}
+
+	public void setLastDatasetVersion(DatasetVersion lastDatasetVersion) {
+		this.lastDatasetVersion = lastDatasetVersion;
 	}
 
 }

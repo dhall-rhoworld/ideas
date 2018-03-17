@@ -30,10 +30,6 @@ public class Dataset {
 	@Column(name="file_path")
 	private String filePath;
 	
-	@ManyToOne
-	@JoinColumn(name="data_location_id")
-	private DataLocation dataLocation;
-	
 	@Column(name="is_checked")
 	@Type(type="org.hibernate.type.NumericBooleanType")
 	private Boolean isChecked = Boolean.FALSE;
@@ -46,12 +42,11 @@ public class Dataset {
 		
 	}
 
-	public Dataset(String datasetName, Study study, String filePath, DataLocation dataLocation) {
+	public Dataset(String datasetName, Study study, String filePath) {
 		super();
 		this.datasetName = datasetName;
 		this.study = study;
 		this.setFilePath(filePath);
-		this.setDataLocation(dataLocation);
 	}
 
 	public Long getDatasetId() {
@@ -84,14 +79,6 @@ public class Dataset {
 
 	public void setFilePath(String filePath) {
 		this.filePath = filePath.replaceAll("\\\\", "/");
-	}
-
-	public DataLocation getDataLocation() {
-		return dataLocation;
-	}
-
-	public void setDataLocation(DataLocation dataLocation) {
-		this.dataLocation = dataLocation;
 	}
 
 	public Boolean getIsChecked() {

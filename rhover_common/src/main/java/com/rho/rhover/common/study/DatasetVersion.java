@@ -44,6 +44,7 @@ public class DatasetVersion {
 	@JoinColumn(name="dataset_id")
 	private Dataset dataset;
 	
+	// TODO: Do we really need thsi property?
 	@ManyToMany
 	@JoinTable(name="dataset_version_stream", joinColumns = @JoinColumn(name="dataset_version_id"),
 			inverseJoinColumns = @JoinColumn(name="data_stream_id"))
@@ -54,6 +55,7 @@ public class DatasetVersion {
 			inverseJoinColumns = @JoinColumn(name="field_id"))
 	private Set<Field> fields = new HashSet<>();
 	
+	// TODO: Do we really need this property?
 	@ManyToMany
 	@JoinTable(name="dataset_version_phase", joinColumns=@JoinColumn(name="dataset_version_id"),
 			inverseJoinColumns=@JoinColumn(name="phase_id"))
