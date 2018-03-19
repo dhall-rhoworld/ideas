@@ -678,3 +678,10 @@ from subject s
 join site si on si.site_id = s.site_id
 where si.study_id = 1
 ;
+
+select count(*)
+from datum_version dv
+join datum d on d.datum_id = dv.datum_id
+join observation o on o.observation_id = d.observation_id
+where o.dataset_id = 1
+and d.field_id = 1;

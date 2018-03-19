@@ -604,8 +604,7 @@ public class DataLoader {
 	private void copyDataToMainTables() {
 		try {
 			Connection connection = this.jdbcTemplate.getDataSource().getConnection();
-			boolean initialAutocommitValue = connection.getAutoCommit();
-			connection.setAutoCommit(false);
+			boolean initialAutoCommitState = setConnectionForOptimizedLoading(connection);
 			copyDataToMainTable(connection, "study_db_version");
 			copyDataToMainTable(connection, "dataset");
 			copyDataToMainTable(connection, "dataset_version");
@@ -623,10 +622,43 @@ public class DataLoader {
 			copyDataToMainTable(connection, "datum");
 			copyDataToMainTable(connection, "datum_version");
 			connection.commit();
-			connection.setAutoCommit(initialAutocommitValue);
+			returnConnectionToNormalOperation(connection, initialAutoCommitState);
 		}
 		catch(SQLException e) {
 			throw new RuntimeException(e);
+		}
+	}
+	
+	private boolean setConnectionForOptimizedLoading(Connection connection) throws SQLException {
+		boolean initialAutocommitValue = connection.getAutoCommit();
+		connection.setAutoCommit(false);
+		Statement statement = null;
+		try {
+			statement = connection.createStatement();
+			statement.executeUpdate("SET unique_checks=0");
+			statement.executeUpdate("SET foreign_key_checks=0");
+		}
+		finally {
+			if (statement != null) {
+				statement.close();
+			}
+		}
+		return initialAutocommitValue;
+	}
+	
+	private void returnConnectionToNormalOperation(Connection connection,
+			boolean initialAutoCommitState) throws SQLException {
+		connection.setAutoCommit(initialAutoCommitState);
+		Statement statement = null;
+		try {
+			statement = connection.createStatement();
+			statement.executeUpdate("SET unique_checks=1");
+			statement.executeUpdate("SET foreign_key_checks=1");
+		}
+		finally {
+			if (statement != null) {
+				statement.close();
+			}
 		}
 	}
 	
