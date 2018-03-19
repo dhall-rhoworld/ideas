@@ -323,14 +323,14 @@ function onBrushEnd() {
 function isOutlier(dataPoint) {
 	return dataPoint["anomaly_id"] > 0
 		&& dataPoint["query_candidate_id"] == 0
-		&& dataPoint["is_an_issue"] == "true";
+		&& dataPoint["is_an_issue"] == 1;
 }
 
 function isInlier(dataPoint) {
 	let inlier =
 		!("anomaly_id" in dataPoint)
 		|| dataPoint["anomaly_id"] == 0
-		|| dataPoint["is_an_issue"] == "false";
+		|| dataPoint["is_an_issue"] == 0;
 	return inlier;
 }
 
@@ -507,7 +507,7 @@ function renderBeeswarm(dataUrl, fieldName, idField, statProperties, handler) {
 	
 	d3.csv(dataUrl, function(d) {
 		data = d;
-		//console.log(data);
+		console.log(data);
 		
 		// Set extent of data and chart areas on the screen
 		min = d3.min(data, function(d) {return parseFloat(d[fieldToPlot])});

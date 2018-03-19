@@ -1,21 +1,22 @@
 package com.rho.rhover.common.study;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
+
+import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.stereotype.Service;
 
-import com.rho.rhover.common.anomaly.UniAnomalyDto;
-import com.rho.rhover.common.anomaly.UniAnomalyDtoRepository;
 import com.rho.rhover.common.check.CheckRun;
 import com.rho.rhover.common.study.CsvData;
 import com.rho.rhover.common.study.CsvDataRepository;
@@ -31,7 +32,10 @@ public class CsvDataServiceImpl implements CsvDataService {
 	private CsvDataRepository csvDataRepository;
 	
 	@Autowired
-	private UniAnomalyDtoRepository uniAnomalyDtoRepository;
+	private FieldInstanceRepository fieldInstanceRepository;
+	
+	@Autowired
+	private DataSource dataSource;
 
 	@Override
 	public String getCsvData(List<FieldInstance> fieldInstances, boolean useFieldLabelsAsHeaders, boolean removeNulls) {
@@ -383,154 +387,111 @@ public class CsvDataServiceImpl implements CsvDataService {
 		if (checkRun.getBivariateCheck() != null && !checkRun.getBivariateCheck().fieldsInSameDataset()) {
 			throw new UnsupportedOperationException();
 		}
+		FieldInstance fieldInstance = fieldInstanceRepository.findByFieldAndDataset(checkRun.getField(), checkRun.getDatasetVersion().getDataset());
+		return getCurrentDataAndIdFieldsAndAnomalyIdsAsCsv(fieldInstance, HeaderOption.FIELD_DISPLAY_NAMES);
+	}
+
+	@Override
+	public String getCurrentDataAndIdFieldsAsCsv(FieldInstance fieldInstance, HeaderOption headerOption) {
 		
-		// Fetch data
-		Dataset dataset = null;
-		Iterator<String> values = null;
-		Iterator<String> values2 = null;
-		if (checkRun.getBivariateCheck() == null) {
-			dataset = checkRun.getDatasetVersion().getDataset();
-			values = csvDataRepository.findByFieldAndDataset(checkRun.getField(), dataset).extractData().iterator();
-		}
-		else {
-			dataset = checkRun.getBivariateCheck().getxFieldInstance().getDataset();
-			values = csvDataRepository.findByFieldAndDataset(checkRun.getBivariateCheck().getxFieldInstance().getField(), dataset).extractData().iterator();
-			values2 = csvDataRepository.findByFieldAndDataset(checkRun.getBivariateCheck().getyFieldInstance().getField(), dataset).extractData().iterator();
-		}
-		Study study = dataset.getStudy();
-		Iterator<String> subjects =
-				csvDataRepository.findByFieldAndDataset(study.getSubjectField(), dataset).extractData().iterator();
-		Iterator<String> sites =
-				csvDataRepository.findByFieldAndDataset(study.getSiteField(), dataset).extractData().iterator();
-		Iterator<String> phases =
-				csvDataRepository.findByFieldAndDataset(study.getPhaseField(), dataset).extractData().iterator();
-		Iterator<String> recordIds =
-				csvDataRepository.findByFieldAndDataset(study.getRecordIdField(), dataset).extractData().iterator();
+		// Add header
+		StringBuilder results = new StringBuilder();
+		addHeader(results, fieldInstance, headerOption, false);
 		
-		// Package data into Record objects
-		List<Record> records = new ArrayList<>();
-		while (subjects.hasNext() && sites.hasNext() && phases.hasNext() && recordIds.hasNext() && values.hasNext()) {
-			Record rec = new Record();
-			rec.subjectName = subjects.next();
-			rec.siteName = sites.next();
-			rec.phaseName = phases.next();
-			rec.recordId = recordIds.next();
-			rec.dataValue = values.next();
-			if (values2 != null) {
-				rec.dataValue2 = values2.next();
+		// Add data
+		String sql =
+				"select si.site_name, p.phase_name, s.subject_name, o.record_id, cast(dv.value as decimal) value\n" + 
+				"from datum_version dv\n" + 
+				"join datum d on d.datum_id = dv.datum_id\n" + 
+				"join observation o on o.observation_id = d.observation_id\n" + 
+				"join subject s on s.subject_id = o.subject_id\n" + 
+				"join site si on si.site_id = o.site_id\n" + 
+				"join phase p on p.phase_id = o.phase_id\n" + 
+				"where o.dataset_id = " + fieldInstance.getDataset().getDatasetId() + "\n" +
+				"and d.field_id = " + fieldInstance.getField().getFieldId() + "\n" +  
+				"and dv.is_current = 1\n" +
+				"order by value";
+		logger.info(sql);
+		JdbcTemplate template = new JdbcTemplate(dataSource);
+		template.query(sql, new RowCallbackHandler() {
+			public void processRow(ResultSet rs) throws SQLException {
+				results.append(
+						rs.getString(1) + "," +
+						rs.getString(2) + "," +
+						rs.getString(3) + "," +
+						rs.getString(4) + "," +
+						rs.getString(5) + "\n");
 			}
-			if (!isNull(rec.dataValue)) {
-				if (checkRun.getBivariateCheck() == null) {
-					records.add(rec);
-				}
-				else if (!isNull(rec.dataValue2)) {
-					records.add(rec);
-				}
-			}
-		}
+		});
 		
-		// Add anomaly IDs to records
-		addAnomalyIds(records, checkRun);
-		
-		// Sort data by value of checked field
-		Collections.sort(records);
-		
-		// Add column names to output
-		StringBuilder builder = new StringBuilder();
-		builder.append(study.getSubjectField().getDisplayName()
-				+ "," + study.getSiteField().getDisplayName()
-				+ "," + study.getPhaseField().getDisplayName()
-				+ "," + study.getRecordIdField().getDisplayName());
-		if (checkRun.getBivariateCheck() == null) {
-			builder.append("," + checkRun.getField().getDisplayName());
-		}
-		else {
-			builder.append("," + checkRun.getBivariateCheck().getxFieldInstance().getField().getDisplayName() + ","
-					+ checkRun.getBivariateCheck().getyFieldInstance().getField().getDisplayName());
-		}
-		builder.append(",anomaly_id,is_an_issue,query_candidate_id\n");
-		
-		// Add data to output
-		for (Record rec : records) {
-			builder.append(rec.subjectName
-					+ "," + rec.siteName
-					+ "," + rec.phaseName
-					+ "," + rec.recordId
-					+ "," + rec.dataValue
-					);
-			if (rec.dataValue2 != null) {
-				builder.append("," + rec.dataValue2);
-			}
-			builder.append("," + rec.anomalyId
-					+ "," + rec.isAnIssue
-					+ "," + rec.queryCandidateId
-					+ "\n");
-		}
-		
-		
-		//logger.debug(builder.toString());
-		return builder.toString();
+		return results.toString();
 	}
 	
-	private void addAnomalyIds(List<Record> records, CheckRun checkRun) {
-		List<UniAnomalyDto> dtos = uniAnomalyDtoRepository.findByCheckRunId(checkRun.getCheckRunId());
-		Map<String, UniAnomalyDto> anomalyIndex = new HashMap<>();
-		StringBuilder sb = new StringBuilder();
-		for (UniAnomalyDto dto : dtos) {
-			String key = generateKey(dto.getSubjectName(), dto.getSiteName(), dto.getPhaseName(), dto.getRecordId());
-//			sb.append("\n" + key);
-			anomalyIndex.put(key, dto);
-		}
-//		logger.debug(sb.toString());
-//		logger.debug("++++++++++++++++++++");
-		sb = new StringBuilder();
-		for (Record record : records) {
-			String key = generateKey(record.subjectName, record.siteName, record.phaseName, record.recordId);
-			sb.append("\n" + key);
-			UniAnomalyDto dto = anomalyIndex.get(key);
-			if (dto != null) {
-				record.anomalyId = dto.getAnomalyId();
-				record.isAnIssue = dto.getIsAnIssue();
-				record.queryCandidateId = dto.getQueryCandidateId();
-				if (record.queryCandidateId == null) {
-					record.queryCandidateId = 0L;
-				}
+	@Override
+	public String getCurrentDataAndIdFieldsAndAnomalyIdsAsCsv(FieldInstance fieldInstance, HeaderOption headerOption) {
+		
+		// Add header
+		StringBuilder results = new StringBuilder();
+		addHeader(results, fieldInstance, headerOption, true);
+		
+		// Add data
+		String sql =
+				"select si.site_name, p.phase_name, s.subject_name, o.record_id, cast(dv.value as decimal) value,\n" + 
+				"a.anomaly_id, a.is_an_issue, qc.query_candidate_id\n" + 
+				"from datum_version dv\n" + 
+				"join datum d on d.datum_id = dv.datum_id\n" + 
+				"join observation o on o.observation_id = d.observation_id\n" + 
+				"join subject s on s.subject_id = o.subject_id\n" + 
+				"join site si on si.site_id = o.site_id\n" + 
+				"join phase p on p.phase_id = o.phase_id\n" + 
+				"left join anomaly_datum_version adv on adv.datum_version_id = dv.datum_version_id\n" + 
+				"left join anomaly a on a.anomaly_id = adv.anomaly_id\n" + 
+				"left join query_candidate qc on qc.anomaly_id = a.anomaly_id\n" + 
+				"where o.dataset_id = " + fieldInstance.getDataset().getDatasetId() + "\n" +
+				"and d.field_id = " + fieldInstance.getField().getFieldId() + "\n" +  
+				"and dv.is_current = 1\n" + 
+				"order by value";
+		logger.info(sql);
+		JdbcTemplate template = new JdbcTemplate(dataSource);
+		template.query(sql, new RowCallbackHandler() {
+			public void processRow(ResultSet rs) throws SQLException {
+				results.append(
+						rs.getString(1) + "," +
+						rs.getString(2) + "," +
+						rs.getString(3) + "," +
+						rs.getString(4) + "," +
+						rs.getString(5) + "," +
+						rs.getLong(6) + "," +
+						rs.getInt(7) + "," +
+						rs.getLong(8) + "\n");
 			}
-		}
-//		logger.debug(sb.toString());
+		});
+		
+		return results.toString();
 	}
 	
-	private String generateKey(String subjectName, String siteName, String phaseName, String recordId) {
-		return subjectName + "---" + siteName + "---" + phaseName + "---" + recordId;
-	}
-	
-	private static final class Record implements Comparable<Record> {
-		
-		private Logger logger = LoggerFactory.getLogger(this.getClass());
-		
-		private String subjectName;
-		
-		private String siteName;
-		
-		private String phaseName;
-		
-		private String recordId;
-		
-		private String dataValue;
-		
-		private String dataValue2;
-		
-		private Long anomalyId = 0L;
-		
-		private Boolean isAnIssue = Boolean.FALSE;
-		
-		private Long queryCandidateId = 0L;
-	
-		@Override
-		public int compareTo(Record o) {
-			return new Double(this.dataValue).compareTo(new Double(o.dataValue));
+	private void addHeader(StringBuilder builder, FieldInstance fieldInstance, HeaderOption headerOption, boolean includeAnomalyFields) {
+		if (!headerOption.equals(HeaderOption.NO_HEADER)) {
+			Study study = fieldInstance.getField().getStudy();
+			builder.append(
+				study.getSiteFieldName() + "," +
+				study.getPhaseFieldName() + "," +
+				study.getSubjectFieldName() + "," +
+				study.getRecordIdFieldName() + ",");
+			if (headerOption.equals(HeaderOption.FIELD_NAMES)) {
+				builder.append(fieldInstance.getField().getFieldName());
+			}
+			else if (headerOption.equals(HeaderOption.FIELD_LABELS)) {
+				builder.append(fieldInstance.getField().getFieldLabel());
+			}
+			else if (headerOption.equals(HeaderOption.FIELD_DISPLAY_NAMES)) {
+				builder.append(fieldInstance.getField().getDisplayName());
+			}
+			if (includeAnomalyFields) {
+				builder.append(",anomaly_id,is_an_issue,query_candidate_id");
+			}
+			builder.append("\n");
 		}
-		
 	}
 }
 

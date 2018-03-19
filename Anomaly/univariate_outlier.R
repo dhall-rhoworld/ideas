@@ -25,7 +25,7 @@ sdCutoff <- as.numeric(args[5])
 # infile <- "C:/RhoVer/Working/test-in.csv"
 # outfile <- "C:/RhoVer/Working/test-out.csv"
 # paramfile <- "C:/RhoVer/Working/test-param.csv"
-# fieldnum <- 4
+# fieldnum <- 5
 # sdCutoff <- 2
 
 # Configure input data formats.  All columns to the left

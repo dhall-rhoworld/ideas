@@ -10,9 +10,12 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.sql.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.MultiValueMap;
@@ -85,6 +88,9 @@ public class StudyAdminController {
 	
 	@Autowired
 	private MergeFieldRepository mergeFieldRepository;
+	
+	@Autowired
+	private DataSource dataSource;
 
 	@RequestMapping("/all")
 	public String viewAll(Model model) {
@@ -318,14 +324,42 @@ public class StudyAdminController {
 			model.addAttribute("message", message);
 		}
 		study.setStudyName(studyName);
-		study.setFormFieldName(formFieldName);
-		study.setSiteFieldName(siteFieldName);
-		study.setSubjectFieldName(subjectFieldName);
-		study.setPhaseFieldName(phaseFieldName);
 		study.setRecordIdFieldName(recordIdFieldName);
 		if (queryFilePath.length() > 0) {
 			study.setQueryFilePath(queryFilePath);
 		}
+		study.setFormFieldName(formFieldName);
+		study.setSiteFieldName(siteFieldName);
+		study.setSubjectFieldName(subjectFieldName);
+		study.setPhaseFieldName(phaseFieldName);
+		studyRepository.save(study);
+		
+		// Form field
+		Long fieldId = nextFieldPkValue();
+		Field formField = new Field(fieldId++, formFieldName, formFieldName, study, "String");
+		fieldRepository.save(formField);
+		study.setFormField(formField);
+		
+		// Site field
+		Field siteField = new Field(fieldId++, siteFieldName, siteFieldName, study, "String");
+		fieldRepository.save(siteField);
+		study.setSiteField(siteField);
+		
+		// Subject field
+		Field subjectField = new Field(fieldId++, subjectFieldName, subjectFieldName, study, "String");
+		fieldRepository.save(subjectField);
+		study.setSubjectField(subjectField);
+		
+		// Phase field
+		Field phaseField = new Field(fieldId++, phaseFieldName, phaseFieldName, study, "String");
+		fieldRepository.save(phaseField);
+		study.setPhaseField(phaseField);
+		
+		// Record ID field
+		Field recordIdField = new Field(fieldId++, recordIdFieldName, recordIdFieldName, study, "String");
+		fieldRepository.save(recordIdField);
+		study.setRecordIdField(recordIdField);
+		
 		studyRepository.save(study);
 		model.addAttribute("study", study);
 		return nextPage;
@@ -575,5 +609,15 @@ public class StudyAdminController {
 			return val;
 		}
 		
+	}
+	
+	private Long nextFieldPkValue() {
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		String sql = "select max(field_id) from field";
+		Long max = jdbcTemplate.queryForObject(sql, Long.class);
+		if (max == null) {
+			max = 0L;
+		}
+		return max + 1;
 	}
 }

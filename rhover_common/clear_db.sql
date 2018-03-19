@@ -34,10 +34,9 @@ delete from dataset_version_stream;
 delete from data_stream;
 delete from dataset_version;
 delete from dataset;
-/*
-delete from data_location;
-delete from study;
-*/
 delete from logging_event_exception;
 delete from logging_event_property;
 delete from logging_event;
+
+delete from data_location;
+delete from study;

@@ -8,6 +8,8 @@ import com.rho.rhover.common.study.FieldInstance;
 // TODO: Clean this up.  Methods were consolidated from several earlier interfaces with same name but
 // in different packages.
 public interface CsvDataService {
+	
+	public enum HeaderOption {FIELD_NAMES, FIELD_LABELS, FIELD_DISPLAY_NAMES, NO_HEADER};
 
 	String getCsvData(CheckRun checkRun);
 	
@@ -25,4 +27,8 @@ public interface CsvDataService {
 			Boolean removeRecordsWithMissingValues);
 	
 	String getAsCsv(Dataset dataset, Boolean removeRecordsWithMissingValues, Field ...fields);
+	
+	String getCurrentDataAndIdFieldsAsCsv(FieldInstance fieldInstance, HeaderOption headerOption);
+	
+	String getCurrentDataAndIdFieldsAndAnomalyIdsAsCsv(FieldInstance fieldInstance, HeaderOption headerOption);
 }

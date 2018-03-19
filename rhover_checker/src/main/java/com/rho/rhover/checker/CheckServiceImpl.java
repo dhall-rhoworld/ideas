@@ -6,17 +6,18 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
+import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import com.rho.rhover.common.anomaly.Anomaly;
@@ -40,6 +41,7 @@ import com.rho.rhover.common.check.ParamUsed;
 import com.rho.rhover.common.check.ParamUsedRepository;
 import com.rho.rhover.common.study.CsvDataRepository;
 import com.rho.rhover.common.study.CsvDataService;
+import com.rho.rhover.common.study.CsvDataService.HeaderOption;
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.DatasetVersion;
 import com.rho.rhover.common.study.DatasetVersionRepository;
@@ -100,13 +102,10 @@ public class CheckServiceImpl implements CheckService {
 	private PhaseRepository phaseRepository;
 	
 	@Autowired
-	private SiteRepository siteRepository;
-	
-	@Autowired
 	private CsvDataService csvDataService;
 	
 	@Autowired
-	private CsvDataRepository csvDataRepository;
+	private DataSource dataSource;
 	
 	@Value("${working.dir}")
 	private String workingDirPath;
@@ -193,7 +192,7 @@ public class CheckServiceImpl implements CheckService {
 			String outfilePath = fileNameRoot + "-out.csv";
 			String propfilePath = fileNameRoot + "-prop.csv";
 			String sd = checkParamService.getCheckParam(check, "sd", dataset, field).getParamValue();
-			int dataColNum = 3;
+			int dataColNum = 4;
 			String command =
 					rExecutablePath
 					+ " " + univariateOutlierScriptPath
@@ -259,15 +258,7 @@ public class CheckServiceImpl implements CheckService {
 		// Determine if there is enough data to run the check
 		CheckParam minRecParam = checkParamService.getCheckParam(check, "min-univariate", datasetVersion.getDataset());
 		int minRecords = Integer.parseInt(minRecParam.getParamValue());
-		List<String> values = csvDataRepository.findByFieldAndDataset(field, datasetVersion.getDataset()).extractData();
-		int numValues = 0;
-		for (String value : values) {
-			if (value == null || value.length() == 0 || value.equalsIgnoreCase("null")) {
-				continue;
-			}
-			numValues++;
-		}
-		logger.debug("Num values: " + numValues + ", min values to check: " + minRecords);
+		int numValues = numValuesToCheck(datasetVersion.getDataset(), field);
 		if (numValues < minRecords) {
 			logger.debug("Too few records to check");
 			return false;
@@ -310,9 +301,9 @@ public class CheckServiceImpl implements CheckService {
 			Field field, CheckRun checkRun, boolean isBivariate,
 			DatasetVersion datasetVersion2, Field field2) throws IOException {
 		Study study = datasetVersion.getDataset().getStudy();
-		int outlierColNum = 4;
+		int outlierColNum = 5;
 		if (isBivariate) {
-			outlierColNum = 5;
+			outlierColNum = 6;
 		}
 		
 		// Read past header
@@ -323,23 +314,17 @@ public class CheckServiceImpl implements CheckService {
 		while (line != null) {
 			String[] values = line.split(",");
 			if (values[outlierColNum].equals("TRUE")) {
-				
-				Subject subject = subjectRepository.findBySubjectNameAndStudy(values[0], study);
-				Site site = subject.getSite();
+				Subject subject = subjectRepository.findBySubjectNameAndStudy(values[2], study);
 				Phase phase = phaseRepository.findByPhaseNameAndStudy(values[1], study);
-				String recordId = values[2];
-				String anomalousValue = values[3];
+				String recordId = values[3];
 				
 				// Update or save new anomaly
 				Check check = checkRun.getCheck();
 				Anomaly anomaly = null;
-				DatumVersion datumVersion = fetchOrCreateDatumVersionAndDependentObjects(
-						recordId, subject, site, phase, field, datasetVersion, anomalousValue);
+				DatumVersion datumVersion = fetchDatumVersion(recordId, field, datasetVersion);
 				DatumVersion datumVersion2 = null;
 				if (isBivariate) {
-					String anomalousValue2 = values[4];
-					datumVersion2 = fetchOrCreateDatumVersionAndDependentObjects(
-							recordId, subject, site, phase, field2, datasetVersion2, anomalousValue2);
+					datumVersion2 = fetchDatumVersion(recordId, field2, datasetVersion2);
 					anomaly = anomalyRepository.findOne(check, datumVersion, datumVersion2);
 				}
 				else {
@@ -372,42 +357,10 @@ public class CheckServiceImpl implements CheckService {
 		}
 	}
 
-	private DatumVersion fetchOrCreateDatumVersionAndDependentObjects(String recordId, Subject subject, Site site, Phase phase,
-			Field field, DatasetVersion datasetVersion, String anomalousValue) {
-		
-		// Fetch or create new observation
-		Observation observation = observationRepository.findByDatasetAndSubjectAndPhaseAndRecordId(datasetVersion.getDataset(), subject, phase, recordId);
-		if (observation == null) {
-//			logger.debug("Creating new observation for subject: " + subject.getSubjectName() + ", phase: " + phase.getPhaseName()
-//				+ ", recordId: " + recordId);
-			observation = new Observation(datasetVersion.getDataset(), subject, site, phase, recordId);
-			observationRepository.save(observation);
-		}
-		
-		// Fetch or save new datum
+	private DatumVersion fetchDatumVersion(String recordId, Field field, DatasetVersion datasetVersion) {
+		Observation observation = observationRepository.findByDatasetAndRecordId(datasetVersion.getDataset(), recordId);
 		Datum datum = datumRepository.findByObservationAndField(observation, field);
-		if (datum == null) {
-			//logger.debug("Creating new datum for field: " + field.getDisplayName());
-			datum = new Datum(field, observation);
-			datum.setFirstDatasetVersion(datasetVersion);
-			datumRepository.save(datum);
-		}
-		
-		// Fetch or save new datum version
-		DatumVersion datumVersion = datumVersionRepository.findByDatumAndIsCurrent(datum, Boolean.TRUE);
-		
-		if (datumVersion == null) {
-			//logger.debug("Creating new datum version");
-			datumVersion = new DatumVersion(anomalousValue, Boolean.TRUE, datum);
-			datumVersionRepository.save(datumVersion);
-		}
-		
-		if (!datumVersion.getDatasetVersions().contains(datasetVersion)) {
-			datumVersion.getDatasetVersions().add(datasetVersion);
-		}
-		datumVersionRepository.save(datumVersion);
-		
-		return datumVersion;
+		return datumVersionRepository.findByDatumAndIsCurrent(datum, Boolean.TRUE);
 	}
 
 	@Override
@@ -512,26 +465,11 @@ public class CheckServiceImpl implements CheckService {
 	}
 
 	private String generateRInputData(BivariateCheck biCheck, Study study) {
-		String dataStr = null;
-		
-		// Case: fields in same dataset
-		if (biCheck.fieldsInSameDataset()) {
-			dataStr = generateRInputData(biCheck.getxFieldInstance().getDataset(), biCheck.getxFieldInstance(), biCheck.getyFieldInstance());
-		}
-		
-		return dataStr;
+		throw new UnsupportedOperationException();
 	}
 	
-	private String generateRInputData(Dataset dataset, FieldInstance ...dataFieldInstances) {
-		List<FieldInstance> fieldInstances = new ArrayList<>();
-		Study study = dataset.getStudy();
-		fieldInstances.add(fieldInstanceRepository.findByFieldAndDataset(study.getSubjectField(), dataset));
-		fieldInstances.add(fieldInstanceRepository.findByFieldAndDataset(study.getPhaseField(), dataset));
-		fieldInstances.add(fieldInstanceRepository.findByFieldAndDataset(study.getRecordIdField(), dataset));
-		for (FieldInstance data : dataFieldInstances) {
-			fieldInstances.add(data);
-		}
-		return csvDataService.getCsvData(fieldInstances, false, true);
+	private String generateRInputData(Dataset dataset, FieldInstance fieldInstance) {
+		return csvDataService.getCurrentDataAndIdFieldsAsCsv(fieldInstance, HeaderOption.FIELD_NAMES);
 	}
 	
 	private ScriptIoFiles generateScriptIoFiles(String prefix) throws IOException {
@@ -541,6 +479,19 @@ public class CheckServiceImpl implements CheckService {
 		sif.outputOutlierFile = new File(workingDir, root + "-out.csv");
 		sif.outputStatsFile = new File(workingDir, root + "-stats.csv");
 		return sif;
+	}
+	
+	private int numValuesToCheck(Dataset dataset, Field field) {
+		JdbcTemplate template = new JdbcTemplate(dataSource);
+		String sql =
+				"select count(*)\r\n" + 
+				"from datum_version dv\r\n" + 
+				"join datum d on d.datum_id = dv.datum_id\r\n" + 
+				"join observation o on o.observation_id = d.observation_id\r\n" + 
+				"where o.dataset_id = " + dataset.getDatasetId() + "\r\n" + 
+				"and d.field_id = " + field.getFieldId() + "\r\n" +
+				"and dv.is_current = 1";
+		return template.queryForObject(sql, Integer.class);
 	}
 	
 	private class ScriptIoFiles {

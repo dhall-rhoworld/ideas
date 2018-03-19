@@ -19,4 +19,6 @@ public interface ObservationRepository extends CrudRepository<Observation, Long>
 	List<Observation> findByFirstDatasetVersion(DatasetVersion datasetVersion);
 
 	List<Observation> findByDataset(Dataset dataset);
+
+	Observation findByDatasetAndRecordId(Dataset dataset, String recordId);
 }

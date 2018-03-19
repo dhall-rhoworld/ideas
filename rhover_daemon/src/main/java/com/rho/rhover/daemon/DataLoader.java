@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
@@ -70,6 +71,7 @@ public class DataLoader {
 	}
 
 	public boolean loadData() {
+		Timestamp startTimestamp = new Timestamp(new Date().getTime());
 		logger.info("Loading study " + study.getStudyName());
 		
 		createTempDir();
@@ -124,6 +126,8 @@ public class DataLoader {
 		
 		logger.info("Copying data to main tables");
 		copyDataToMainTables();
+		Timestamp endTimestamp = new Timestamp(new Date().getTime());
+		setLoadTimestamps(startTimestamp, endTimestamp);
 		
 		return true;
 	}
@@ -308,7 +312,7 @@ public class DataLoader {
 				Long fieldId = this.fieldIndex.get(fieldName);
 				if (fieldId == null) {
 					fieldId = writeFieldToStaging(fieldName, df.getFieldLabel(fieldName),
-							df.getDataType(fieldName).getName());
+							df.getDataType(fieldName).getSimpleName());
 					this.fieldIndex.put(fieldName, fieldId);
 				}
 				
@@ -687,5 +691,10 @@ public class DataLoader {
 				stmt.close();
 			}
 		}
+	}
+	
+	private void setLoadTimestamps(Timestamp startTimestamp, Timestamp endTimestamp) {
+		String sql = "update study_db_version set load_started = ?, load_stopped = ? where study_db_version_id = ?";
+		this.jdbcTemplate.update(sql, startTimestamp, endTimestamp, this.studyDbVersionId);
 	}
 }

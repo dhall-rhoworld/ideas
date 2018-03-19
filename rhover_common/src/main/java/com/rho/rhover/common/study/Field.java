@@ -42,7 +42,7 @@ public class Field {
 	
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	//@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="field_id")
 	private Long fieldId;
 	
@@ -76,6 +76,15 @@ public class Field {
 
 	public Field(String fieldName, String fieldLabel, Study study, String dataType) {
 		super();
+		this.fieldName = fieldName;
+		this.fieldLabel = fieldLabel;
+		this.study = study;
+		this.dataType = dataType;
+	}
+	
+	public Field(Long fieldId, String fieldName, String fieldLabel, Study study, String dataType) {
+		super();
+		this.fieldId = fieldId;
 		this.fieldName = fieldName;
 		this.fieldLabel = fieldLabel;
 		this.study = study;

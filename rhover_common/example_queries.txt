@@ -685,3 +685,58 @@ join datum d on d.datum_id = dv.datum_id
 join observation o on o.observation_id = d.observation_id
 where o.dataset_id = 1
 and d.field_id = 1;
+
+select si.site_name, p.phase_name, s.subject_name, o.record_id, dv.value
+from datum_version dv
+join datum d on d.datum_id = dv.datum_id
+join observation o on o.observation_id = d.observation_id
+join subject s on s.subject_id = o.subject_id
+join site si on si.site_id = o.site_id
+join phase p on p.phase_id = o.phase_id
+where o.dataset_id = 1
+and d.field_id = 1
+and dv.is_current = true
+limit 50
+;
+
+select si.site_name, p.phase_name, s.subject_name, o.record_id, dv.value
+from datum_version dv
+join datum d on d.datum_id = dv.datum_id
+join observation o on o.observation_id = d.observation_id
+join subject s on s.subject_id = o.subject_id
+join site si on si.site_id = o.site_id
+join phase p on p.phase_id = o.phase_id
+where o.dataset_id = 1
+and d.field_id = 1
+and dv.is_current = 1
+
+select si.site_name, p.phase_name, s.subject_name, o.record_id, cast(dv.value as decimal) value
+from datum_version dv
+join datum d on d.datum_id = dv.datum_id
+join observation o on o.observation_id = d.observation_id
+join subject s on s.subject_id = o.subject_id
+join site si on si.site_id = o.site_id
+join phase p on p.phase_id = o.phase_id
+where o.dataset_id = 9
+and d.field_id = 434
+and dv.is_current = 1
+order by value
+limit 25;
+
+select si.site_name, p.phase_name, s.subject_name, o.record_id, cast(dv.value as decimal) value,
+a.anomaly_id, a.is_an_issue, qc.query_candidate_id
+from datum_version dv
+join datum d on d.datum_id = dv.datum_id
+join observation o on o.observation_id = d.observation_id
+join subject s on s.subject_id = o.subject_id
+join site si on si.site_id = o.site_id
+join phase p on p.phase_id = o.phase_id
+left join anomaly_datum_version adv on adv.datum_version_id = dv.datum_version_id
+left join anomaly a on a.anomaly_id = adv.anomaly_id
+left join query_candidate qc on qc.anomaly_id = a.anomaly_id
+where o.dataset_id = 1
+and d.field_id = 6
+and dv.is_current = 1
+order by value
+limit 100;
+

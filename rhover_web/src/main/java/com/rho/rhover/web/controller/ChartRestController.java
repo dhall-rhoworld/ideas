@@ -16,7 +16,7 @@ import com.rho.rhover.common.study.DatasetVersion;
 import com.rho.rhover.common.study.Field;
 import com.rho.rhover.common.study.FieldInstance;
 import com.rho.rhover.common.study.FieldInstanceRepository;
-import com.rho.rhover.common.study.Study;
+import com.rho.rhover.common.study.CsvDataService.HeaderOption;
 
 @RestController
 @RequestMapping("/rest/chart")
@@ -49,9 +49,7 @@ public class ChartRestController {
     		data = csvDataService.getCsvData(checkRun);
     	}
     	else {
-    		Study study = field.getStudy();
-    		data = csvDataService.getAsCsv(fieldInstance.getDataset(), Boolean.TRUE, study.getSubjectField(),
-    				study.getSiteField(), study.getPhaseField(), study.getRecordIdField(), field);
+    		data = csvDataService.getCurrentDataAndIdFieldsAsCsv(fieldInstance, HeaderOption.FIELD_DISPLAY_NAMES);
     	}
 		return data;
 	}
