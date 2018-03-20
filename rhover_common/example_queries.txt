@@ -740,3 +740,17 @@ and dv.is_current = 1
 order by value
 limit 100;
 
+select dv.dataset_id, dv.dataset_version_id
+from dataset_version dv
+join dataset d on d.dataset_id = dv.dataset_id
+where d.study_id = 1
+and dv.is_current = 1
+;
+
+select dataset_version_id
+from dataset_version
+where is_current = 1
+and dataset_id = 1
+;
+
+

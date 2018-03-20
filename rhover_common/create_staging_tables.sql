@@ -105,7 +105,13 @@ CREATE TABLE stg_datum_version (
 	datum_version_id BIGINT PRIMARY KEY,
 	value VARCHAR(50),
 	first_dataset_version_id BIGINT,
-	last_dataset_version_id BIGINT,
 	is_current TINYINT,
 	datum_id BIGINT
+);
+
+CREATE TABLE stg_datum_change (
+	datum_change_id BIGINT PRIMARY KEY,
+	old_datum_version_id BIGINT,
+	new_datum_version_id BIGINT,
+	dataset_version_id BIGINT
 );

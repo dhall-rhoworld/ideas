@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -29,7 +30,18 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 import com.rho.rhover.common.study.Study;
 import com.rho.rhover.common.util.IOUtils;
 
+/**
+ * Optimized data loader.  Loads most data directly into staging tables using JDBC while large data,
+ * i.e. OBSERVATION, DATUM, and DATUM_VERSION are written to CSV file and then imported into staging.
+ * Then, in a single transaction all new data are copied from staging to target tables.
+ * To minimimize foreign key lookup, the loader caches natural and foreign key pairs in Maps.
+ * 
+ * @author dhall
+ *
+ */
 public class DataLoader {
+	
+	private static final int BATCH_UPDATE_SIZE = 100;
 	
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 	
@@ -44,23 +56,18 @@ public class DataLoader {
 	private StudyDbService studyDbService;
 	
 	private Long studyDbVersionId;
+	private Long previousStudyDbVersionId;
 	
-	private Map<String, Long> primaryKeyIndex = new HashMap<>();
-	
-	private Map<String, Long> siteIndex = new HashMap<>();
-	
-	private Map<String, Long> subjectIndex = new HashMap<>();
-	
-	private Map<String, Long> phaseIndex = new HashMap<>();
-	
-	private Map<String, Long> dataStreamIndex = new HashMap<>();
-	
-	private Map<String, Long> fieldIndex = new HashMap<>();
-	
+	private Map<String, Long> primaryKeyIndex = null;
+	private Map<String, Long> siteIndex = null;
+	private Map<String, Long> subjectIndex = null;
+	private Map<String, Long> phaseIndex = null;
+	private Map<String, Long> dataStreamIndex = null;
+	private Map<String, Long> fieldIndex = null;
+	private Map<Long, Set<Long>> modifiedDatumVersionIds = null; // Keyed on dataset version ID
+	private Set<Long> previousDatasetVersionIds = null;
 	private BufferedWriter observationWriter = null;
-	
 	private BufferedWriter datumWriter = null;
-	
 	private BufferedWriter datumVersionWriter = null;
 
 	public DataLoader(Study study, File workingDir, DataSource dataSource, StudyDbService studyDbService) {
@@ -68,11 +75,21 @@ public class DataLoader {
 		this.workingDir = workingDir;
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 		this.studyDbService = studyDbService;
+		//((DataSourceProxy)dataSource).setDefaultAutoCommit(Boolean.FALSE);
 	}
 
 	public boolean loadData() {
 		Timestamp startTimestamp = new Timestamp(new Date().getTime());
 		logger.info("Loading study " + study.getStudyName());
+		
+		primaryKeyIndex = new HashMap<>();
+		siteIndex = new HashMap<>();
+		subjectIndex = new HashMap<>();
+		phaseIndex = new HashMap<>();
+		dataStreamIndex = new HashMap<>();
+		fieldIndex = new HashMap<>();
+		modifiedDatumVersionIds = new HashMap<Long, Set<Long>>();
+		previousDatasetVersionIds = new HashSet<>();
 		
 		createTempDir();
 		clearStagingTables();
@@ -98,6 +115,7 @@ public class DataLoader {
 		initializeFileWriters();
 
 		// New study db version
+		setPreviousStudyDbVersion();
 		writeStudyDbVersionDataToStaging();
 		
 		// Create lookup indices
@@ -114,11 +132,20 @@ public class DataLoader {
 				continue;
 			}
 			Long datasetId = writeDatasetToStaging(file);
-			writeDatasetModificationToFile(datasetId, true);
+			writeDatasetModificationToStaging(datasetId, true);
 			processFile(file, datasetId);
 		}
 		
-		
+		// Process modified files
+		for (File file : modifiedFiles) {
+			fileChecklist.put(file.getAbsolutePath().replaceAll("\\\\", "/"), Boolean.TRUE);
+			if (study.getQueryFilePath() != null && file.getAbsolutePath().replaceAll("\\\\", "/").equals(study.getQueryFilePath())) {
+				continue;
+			}
+			Long datasetId = lookupDatasetId(file.getAbsolutePath().replaceAll("\\\\", "/"));
+			writeDatasetModificationToStaging(datasetId, false);
+			processFile(file, datasetId);
+		}
 		closeFileWriters();
 		
 		logger.info("Loading staging files");
@@ -132,6 +159,24 @@ public class DataLoader {
 		return true;
 	}
 	
+	private void setPreviousStudyDbVersion() {
+		String sql =
+				"select study_db_version_id " +
+				"from study_db_version " +
+				"where study_id = " + this.study.getStudyId() + " " +
+				"and is_current = 1";
+		this.jdbcTemplate.query(sql, new RowCallbackHandler() {
+			public void processRow(ResultSet rs) throws SQLException {
+				previousStudyDbVersionId = rs.getLong(1);
+			}
+		});
+	}
+
+	private Long lookupDatasetId(String filePath) {
+		String sql = "select dataset_id from dataset where file_path = '" + filePath + "'";
+		return this.jdbcTemplate.queryForObject(sql, Long.class);
+	}
+
 	private void initializeFileWriters() {
 		try {
 			this.observationWriter = new BufferedWriter(new FileWriter(
@@ -169,7 +214,7 @@ public class DataLoader {
 				"stg_subject", "stg_phase", "stg_data_stream", "stg_dataset_version_stream",
 				"stg_observation", "stg_field", "stg_field_instance", "stg_dataset_version_field",
 				"stg_study_db_version_config", "stg_dataset_modification", "stg_datum",
-				"stg_datum_version");
+				"stg_datum_version", "stg_datum_change");
 	}
 	
 	private void clearTables(String ...tableNames) {
@@ -210,7 +255,7 @@ public class DataLoader {
 		return datasetId;
 	}
 	
-	private void writeDatasetModificationToFile(Long datasetId, boolean isNew) {
+	private void writeDatasetModificationToStaging(Long datasetId, boolean isNew) {
 		Long datasetModificationId = getNextPkValue("dataset_modification", "dataset_modification_id");
 		short newDataset = 0;
 		short modifiedDataset = 1;
@@ -239,6 +284,7 @@ public class DataLoader {
 		}
 		
 		// Dataset version
+		Long oldDatasetVersionId = addCurrentDatasetVersionToListOfOldVersions(datasetId);
 		Long datasetVersionId = writeNewDatasetVersionToStaging(file, df, datasetId);
 		writeStudyDbVersionConfigToStaging(datasetVersionId);
 		
@@ -341,15 +387,50 @@ public class DataLoader {
 				String value = record.get(fieldName);
 				if (!(value == null || value.length() == 0 || value.equalsIgnoreCase("null"))) {
 					Long datumVersionId = datumVersionIndex.get(datumKey);
+					
+					// Case: new data point
 					if (datumVersionId == null) {
 						datumVersionId = writeDatumVersionToFile(datumId, value, datasetVersionId);
 						datumVersionIndex.put(datumKey, datumVersionId);
+					}
+					else {
+						String oldValue = datumVersionValueIndex.get(datumKey);
+						
+						// Case: updated data point
+						if (!value.equals(oldValue)) {
+							Long oldDatumVersionId = datumVersionId;
+							datumVersionId = writeDatumVersionToFile(datumId, value, datasetVersionId);
+							Set<Long> idList = this.modifiedDatumVersionIds.get(oldDatasetVersionId);
+							if (idList == null) {
+								idList = new HashSet<>();
+								this.modifiedDatumVersionIds.put(oldDatasetVersionId, idList);
+							}
+							idList.add(oldDatumVersionId);
+							writeDatumChangeToStaging(oldDatumVersionId, datumVersionId, datasetVersionId);
+							datumVersionIndex.put(datumKey, datumVersionId);
+						}
 					}
 				}
 			}
 		}
 	}
 	
+	private Long addCurrentDatasetVersionToListOfOldVersions(Long datasetId) {
+		String sql =
+				"select dataset_version_id\r\n" + 
+				"from dataset_version\r\n" + 
+				"where is_current = 1\r\n" + 
+				"and dataset_id = " + datasetId;
+		Long id = null;
+		this.jdbcTemplate.query(sql, new RowCallbackHandler() {
+			public void processRow(ResultSet rs) throws SQLException {
+				final Long id = rs.getLong(1);
+				previousDatasetVersionIds.add(id);
+			}
+		});
+		return id;
+	}
+
 	private boolean anyNulls(String ...strings) {
 		boolean nulls = false;
 		for (String str : strings) {
@@ -531,14 +612,19 @@ public class DataLoader {
 	
 	private Long writeDatumVersionToFile(Long datumId, String value, Long datasetVersionId) {
 		Long datumVersionId = getNextPkValue("datum_version", "datum_version_id");
-		String record = toCsv(datumVersionId, value.replaceAll(",", " "), datasetVersionId,
-				datasetVersionId, 1, datumId);
+		String record = toCsv(datumVersionId, value.replaceAll(",", " "), datasetVersionId, 1, datumId);
 		try {
 			this.datumVersionWriter.write(record + "\n");
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 		return datumVersionId;
+	}
+	
+	private void writeDatumChangeToStaging(Long oldDatumVersionId, Long newDatumVersionId, Long datasetVersionId) {
+		Long datumChangeId = getNextPkValue("datum_change", "datum_change_id");
+		String sql = "insert into stg_datum_change values(?, ?, ?, ?)";
+		this.jdbcTemplate.update(sql, datumChangeId, oldDatumVersionId, newDatumVersionId, datasetVersionId);
 	}
 	
 	private Map<String, Long> generateDatumVersionIndex(Long datasetId) {
@@ -606,8 +692,9 @@ public class DataLoader {
 	}
 	
 	private void copyDataToMainTables() {
+		Connection connection = null;
 		try {
-			Connection connection = this.jdbcTemplate.getDataSource().getConnection();
+			connection = this.jdbcTemplate.getDataSource().getConnection();
 			boolean initialAutoCommitState = setConnectionForOptimizedLoading(connection);
 			copyDataToMainTable(connection, "study_db_version");
 			copyDataToMainTable(connection, "dataset");
@@ -625,20 +712,32 @@ public class DataLoader {
 			copyDataToMainTable(connection, "dataset_modification");
 			copyDataToMainTable(connection, "datum");
 			copyDataToMainTable(connection, "datum_version");
+			copyDataToMainTable(connection, "datum_change");
+			markModifiedDataAsNotCurrent(connection);
 			connection.commit();
 			returnConnectionToNormalOperation(connection, initialAutoCommitState);
 		}
 		catch(SQLException e) {
+			if (connection != null) {
+				try {
+					connection.rollback();
+				} catch (SQLException f) {
+					throw new RuntimeException(f);
+				}
+			}
 			throw new RuntimeException(e);
 		}
 	}
 	
 	private boolean setConnectionForOptimizedLoading(Connection connection) throws SQLException {
+		logger.info("Connection type: " + connection.getClass().getName());
+		logger.info("Datasource type: " + this.jdbcTemplate.getDataSource().getClass().getName());
 		boolean initialAutocommitValue = connection.getAutoCommit();
 		connection.setAutoCommit(false);
 		Statement statement = null;
 		try {
 			statement = connection.createStatement();
+			statement.executeUpdate("SET autocommit=0");
 			statement.executeUpdate("SET unique_checks=0");
 			statement.executeUpdate("SET foreign_key_checks=0");
 		}
@@ -656,6 +755,7 @@ public class DataLoader {
 		Statement statement = null;
 		try {
 			statement = connection.createStatement();
+			statement.executeUpdate("SET autocommit=1");
 			statement.executeUpdate("SET unique_checks=1");
 			statement.executeUpdate("SET foreign_key_checks=1");
 		}
@@ -693,8 +793,74 @@ public class DataLoader {
 		}
 	}
 	
+	private void markModifiedDataAsNotCurrent(Connection connection) throws SQLException {
+		
+		// Study database version
+		if (this.previousStudyDbVersionId != null && !this.previousStudyDbVersionId.equals(0L)) {
+			String sql = "update study_db_version set is_current = 0 where study_db_version_id = " + this.previousStudyDbVersionId;
+			executeUpdate(connection, sql);
+		}
+		
+		// Dataset version
+		for (Long id : this.previousDatasetVersionIds) {
+			String sql = "update dataset_version set is_current = 0 where dataset_id = " + id;
+			executeUpdate(connection, sql);
+		}
+		
+		// Datum version
+		for (Long datasetVersionId : this.modifiedDatumVersionIds.keySet()) {
+			Set<Long> datumVersionIds = this.modifiedDatumVersionIds.get(datasetVersionId);
+			markModifiedDatumVersionAsNotCurrent(connection, datumVersionIds, datasetVersionId);
+		}
+	}
+	
+	private void markModifiedDatumVersionAsNotCurrent(Connection connection, Set<Long> datumVersionIds, Long datasetVersionId) throws SQLException {
+		List<Long> idList = new ArrayList<>();
+		for (Long id : datumVersionIds) {
+			if (idList.size() == BATCH_UPDATE_SIZE) {
+				markModifiedDatumVersionAsNotCurrent(connection, idList, datasetVersionId);
+			}
+			idList.add(id);
+		}
+		if (idList.size() > 0) {
+			markModifiedDatumVersionAsNotCurrent(connection, idList, datasetVersionId);
+		}
+	}
+	
+	// TODO: Method signature too similar to previous method.  This smells fishy.  Consider a refactor.
+	private void markModifiedDatumVersionAsNotCurrent(Connection connection, List<Long> idList, Long datasetVersionId) throws SQLException {
+		StringBuilder builder = new StringBuilder();
+		int count = 0;
+		for (Long id : idList) {
+			count++;
+			if (count > 1) {
+				builder.append(", ");
+			}
+			builder.append(id);
+		}
+		String sql =
+				"update datum_version " +
+				"set is_current = 0, " +
+				"last_dataset_version_id = " + datasetVersionId + " " +
+				"where datum_version_id in (" + builder.toString() + ")";
+		executeUpdate(connection, sql);
+	}
+
 	private void setLoadTimestamps(Timestamp startTimestamp, Timestamp endTimestamp) {
 		String sql = "update study_db_version set load_started = ?, load_stopped = ? where study_db_version_id = ?";
 		this.jdbcTemplate.update(sql, startTimestamp, endTimestamp, this.studyDbVersionId);
+	}
+	
+	private void executeUpdate(Connection connection, String sql) throws SQLException {
+		Statement stmt = null;
+		try {
+			stmt = connection.createStatement();
+			stmt.executeUpdate(sql);
+		}
+		finally {
+			if (stmt != null) {
+				stmt.close();
+			}
+		}
 	}
 }

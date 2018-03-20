@@ -460,7 +460,7 @@ CREATE TABLE datum_version (
 	datum_version_id BIGINT NOT NULL,
 	value VARCHAR(50),
 	first_dataset_version_id BIGINT NOT NULL,
-	last_dataset_version_id BIGINT NOT NULL,
+	last_dataset_version_id BIGINT,
 	is_current TINYINT NOT NULL DEFAULT 0,
 	datum_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -473,7 +473,7 @@ CREATE TABLE datum_version (
 );
 
 CREATE TABLE datum_change (
-	datum_change_id BIGINT AUTO_INCREMENT NOT NULL,
+	datum_change_id BIGINT NOT NULL,
 	old_datum_version_id BIGINT NOT NULL,
 	new_datum_version_id BIGINT NOT NULL,
 	dataset_version_id BIGINT NOT NULL,
