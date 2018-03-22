@@ -13,7 +13,11 @@ import org.springframework.stereotype.Service;
 
 import com.rho.rhover.common.check.Check;
 import com.rho.rhover.common.check.CheckParam;
+import com.rho.rhover.common.check.CheckParamChange;
+import com.rho.rhover.common.check.CheckParamChangeRepository;
 import com.rho.rhover.common.check.CheckParamRepository;
+import com.rho.rhover.common.session.Event;
+import com.rho.rhover.common.session.EventRepository;
 import com.rho.rhover.common.session.UserSession;
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.DatasetRepository;
@@ -37,6 +41,12 @@ public class CheckConfigurationServiceImpl implements CheckConfigurationService 
 	
 	@Autowired
 	private DatasetVersionRepository datasetVersionRepository;
+	
+	@Autowired
+	private CheckParamChangeRepository CheckParamChangeRepository;
+	
+	@Autowired
+	private EventRepository eventRepository;
 
 	@Override
 	@Transactional
@@ -46,25 +56,39 @@ public class CheckConfigurationServiceImpl implements CheckConfigurationService 
 		// Save check parameters
 		for (String paramName : params.keySet()) {
 			String paramValue = params.get(paramName);
-			CheckParam checkParam = checkParamRepository.findByCheckAndStudyAndParamName(check, study, paramName);
-			if (checkParam == null) {
-				checkParam = new CheckParam(paramName, "STUDY", check, userSession);
-				checkParam.setStudy(study);
+			CheckParam oldCheckParam = checkParamRepository.findByCheckAndStudyAndParamNameAndIsCurrent(check, study, paramName, Boolean.TRUE);
+			CheckParam newCheckParam = new CheckParam(paramName, paramValue, "STUDY", check, userSession);
+			newCheckParam.setStudy(study);
+			checkParamRepository.save(newCheckParam);
+			if (oldCheckParam != null) {
+				oldCheckParam.setIsCurrent(Boolean.FALSE);
+				checkParamRepository.save(oldCheckParam);
+				CheckParamChange change = new CheckParamChange(oldCheckParam, newCheckParam, userSession);
+				CheckParamChangeRepository.save(change);
+				Event event = Event.newModifiedCheckParamEvent(userSession, change);
+				eventRepository.save(event);
 			}
-			checkParam.setParamValue(paramValue);
-			checkParamRepository.save(checkParam);
+			else {
+				Event event = Event.newNewCheckParamEvent(userSession, newCheckParam);
+				eventRepository.save(event);
+			}
 		}
 		
 		// Save datasets to be checked
 		Iterable<Dataset> datasets = datasetRepository.findByStudy(study);
 		for (Dataset dataset : datasets) {
-			dataset.setIsChecked(Boolean.FALSE);
-			datasetRepository.save(dataset);
-		}
-		for (Long datasetId : checkedDatasetIds) {
-			Dataset dataset = datasetRepository.findOne(datasetId);
-			dataset.setIsChecked(Boolean.TRUE);
-			datasetRepository.save(dataset);
+			if (!dataset.getIsChecked() && checkedDatasetIds.contains(dataset.getDatasetId())) {
+				dataset.setIsChecked(Boolean.TRUE);
+				datasetRepository.save(dataset);
+				Event event = Event.newAddDatasetCheckEvent(userSession, dataset);
+				eventRepository.save(event);
+			}
+			else if (dataset.getIsChecked() && !checkedDatasetIds.contains(dataset.getDatasetId())) {
+				dataset.setIsChecked(Boolean.FALSE);
+				datasetRepository.save(dataset);
+				Event event = Event.newRemoveDatasetCheckEvent(userSession, dataset);
+				eventRepository.save(event);
+			}
 		}
 	}
 
@@ -75,19 +99,19 @@ public class CheckConfigurationServiceImpl implements CheckConfigurationService 
 			Collection<Long> skippedFieldIds, UserSession userSession) {
 		
 		// Save/update/delete dataset-level check parameters
-		List<CheckParam> datasetParams = checkParamRepository.findByCheckAndDataset(check, dataset);
+		List<CheckParam> datasetParams = checkParamRepository.findByCheckAndDatasetAndIsCurrent(check, dataset, Boolean.TRUE);
 		if (useStudyDefaults) {
 			checkParamRepository.delete(datasetParams);
 		}
 		else {
-			List<CheckParam> globalParams = checkParamRepository.findByCheckAndParamScope(check, "GLOBAL");
+			List<CheckParam> globalParams = checkParamRepository.findByCheckAndParamScopeAndIsCurrent(check, "GLOBAL", Boolean.TRUE);
 			Set<String> globalParamNames = new HashSet<>();
 			for (CheckParam globalParam : globalParams) {
 				globalParamNames.add(globalParam.getParamName());
 			}
 			for (String paramName : datasetParamValues.keySet()) {
 				String paramValue = datasetParamValues.get(paramName);
-				CheckParam param = checkParamRepository.findByCheckAndDatasetAndParamName(check, dataset, paramName);
+				CheckParam param = checkParamRepository.findByCheckAndDatasetAndParamNameAndIsCurrent(check, dataset, paramName, Boolean.TRUE);
 				if (param == null) {
 					param = new CheckParam(paramName, "DATASET", check, userSession);
 					param.setDataset(dataset);
@@ -97,7 +121,7 @@ public class CheckConfigurationServiceImpl implements CheckConfigurationService 
 				globalParamNames.remove(paramName);
 			}
 			for (String paramName : globalParamNames) {
-				CheckParam param = checkParamRepository.findByCheckAndDatasetAndParamName(check, dataset, paramName);
+				CheckParam param = checkParamRepository.findByCheckAndDatasetAndParamNameAndIsCurrent(check, dataset, paramName, Boolean.TRUE);
 				if (param == null) {
 					param = new CheckParam(paramName, "DATASET", check, userSession);
 					param.setDataset(dataset);
@@ -121,7 +145,7 @@ public class CheckConfigurationServiceImpl implements CheckConfigurationService 
 		
 		// Save/update field param values
 		for (Field field : datasetVersion.getFields()) {
-			List<CheckParam> fieldParams = checkParamRepository.findByCheckAndField(check, field);
+			List<CheckParam> fieldParams = checkParamRepository.findByCheckAndFieldAndIsCurrent(check, field, Boolean.TRUE);
 			for (CheckParam param : fieldParams) {
 				field.getCheckParams().remove(param.getParamName());
 			}

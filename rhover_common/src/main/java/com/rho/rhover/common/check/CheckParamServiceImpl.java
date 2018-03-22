@@ -24,16 +24,16 @@ public class CheckParamServiceImpl implements CheckParamService {
 	
 	@Override
 	public CheckParam getCheckParam(Check check, String paramName, Study study) {
-		CheckParam param = checkParamRepository.findByCheckAndStudyAndParamName(check, study, paramName);
+		CheckParam param = checkParamRepository.findByCheckAndStudyAndParamNameAndIsCurrent(check, study, paramName, Boolean.TRUE);
 		if (param == null) {
-			param = checkParamRepository.findByCheckAndParamScopeAndParamName(check, "GLOBAL", paramName);
+			param = checkParamRepository.findByCheckAndParamScopeAndParamNameAndIsCurrent(check, "GLOBAL", paramName, Boolean.TRUE);
 		}
 		return param;
 	}
 
 	@Override
 	public CheckParam getCheckParam(Check check, String paramName, Dataset dataset) {
-		CheckParam param = checkParamRepository.findByCheckAndDatasetAndParamName(check, dataset, paramName);
+		CheckParam param = checkParamRepository.findByCheckAndDatasetAndParamNameAndIsCurrent(check, dataset, paramName, Boolean.TRUE);
 		if (param == null) {
 			param = getCheckParam(check, paramName, dataset.getStudy());
 		}
@@ -42,7 +42,7 @@ public class CheckParamServiceImpl implements CheckParamService {
 
 	@Override
 	public CheckParam getCheckParam(Check check, String paramName, Dataset dataset, Field field) {
-		CheckParam param = checkParamRepository.findByCheckAndFieldAndParamName(check, field, paramName);
+		CheckParam param = checkParamRepository.findByCheckAndFieldAndParamNameAndIsCurrent(check, field, paramName, Boolean.TRUE);
 		if (param == null) {
 			param = getCheckParam(check, paramName, dataset);
 		}
@@ -51,7 +51,7 @@ public class CheckParamServiceImpl implements CheckParamService {
 
 	@Override
 	public Set<CheckParam> getAllCheckParams(Check check, Study study) {
-		List<CheckParam> globalParams = checkParamRepository.findByCheckAndParamScope(check, "GLOBAL");
+		List<CheckParam> globalParams = checkParamRepository.findByCheckAndParamScopeAndIsCurrent(check, "GLOBAL", Boolean.TRUE);
 		Set<CheckParam> params = new HashSet<>();
 		for (CheckParam globalParam : globalParams) {
 			logger.debug(globalParam.getParamName() + " -> " + globalParam.getParamValue());
@@ -68,7 +68,7 @@ public class CheckParamServiceImpl implements CheckParamService {
 
 	@Override
 	public Set<CheckParam> getAllCheckParams(Check check, Dataset dataset, Field field) {
-		List<CheckParam> globalParams = checkParamRepository.findByCheckAndParamScope(check, "GLOBAL");
+		List<CheckParam> globalParams = checkParamRepository.findByCheckAndParamScopeAndIsCurrent(check, "GLOBAL", Boolean.TRUE);
 		Set<CheckParam> params = new HashSet<>();
 		for (CheckParam globalParam : globalParams) {
 			params.add(getCheckParam(check, globalParam.getParamName(), dataset, field));

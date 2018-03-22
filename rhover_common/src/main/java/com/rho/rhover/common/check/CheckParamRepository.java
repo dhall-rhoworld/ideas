@@ -10,19 +10,19 @@ import com.rho.rhover.common.study.Study;
 
 public interface CheckParamRepository extends CrudRepository<CheckParam, Long> {
 
-	List<CheckParam> findByCheckAndStudy(Check check, Study study);
+	List<CheckParam> findByCheckAndStudyAndIsCurrent(Check check, Study study, Boolean isCurrent);
 	
-	List<CheckParam> findByCheckAndDataset(Check check, Dataset dataset);
+	List<CheckParam> findByCheckAndDatasetAndIsCurrent(Check check, Dataset dataset, Boolean isCurrent);
 	
-	List<CheckParam> findByCheckAndField(Check check, Field field);
+	List<CheckParam> findByCheckAndFieldAndIsCurrent(Check check, Field field, Boolean isCurrent);
 	
-	List<CheckParam> findByCheckAndParamScope(Check check, String paramScope);
+	List<CheckParam> findByCheckAndParamScopeAndIsCurrent(Check check, String paramScope, Boolean isCurrent);
 	
-	CheckParam findByCheckAndFieldAndParamName(Check check, Field field, String paramName);
+	CheckParam findByCheckAndFieldAndParamNameAndIsCurrent(Check check, Field field, String paramName, Boolean isCurrent);
 	
-	CheckParam findByCheckAndDatasetAndParamName(Check check, Dataset dataset, String paramName);
+	CheckParam findByCheckAndDatasetAndParamNameAndIsCurrent(Check check, Dataset dataset, String paramName, Boolean isCurrent);
 	
-	CheckParam findByCheckAndStudyAndParamName(Check check, Study study, String paramName);
+	CheckParam findByCheckAndStudyAndParamNameAndIsCurrent(Check check, Study study, String paramName, Boolean isCurrent);
 
-	CheckParam findByCheckAndParamScopeAndParamName(Check check, String string, String paramName);
+	CheckParam findByCheckAndParamScopeAndParamNameAndIsCurrent(Check check, String string, String paramName, Boolean isCurrent);
 }

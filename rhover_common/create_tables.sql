@@ -411,6 +411,21 @@ insert into check_param (param_name, param_value, param_scope, check_id, user_se
 values('min-bivariate', '25', 'GLOBAL', (select check_id from checks where check_name = 'BIVARIATE_OUTLIER'),
 (select user_session_id from user_session where web_session_id = '0'));
 
+CREATE TABLE check_param_change (
+	check_param_change_id BIGINT AUTO_INCREMENT NOT NULL,
+	old_check_param_id BIGINT NOT NULL,
+	new_check_param_id BIGINT NOT NULL,
+	user_session_id BIGINT NOT NULL,
+	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT pk_check_param_change PRIMARY KEY (check_param_change_id),
+	CONSTRAINT fk_check_param_change_2_check_param_old FOREIGN KEY (old_check_param_id)
+		REFERENCES check_param(check_param_id),
+	CONSTRAINT fk_check_param_change_2_check_param_new FOREIGN KEY (new_check_param_id)
+		REFERENCES check_param(check_param_id),
+	CONSTRAINT fk_check_param_change_2_user_session FOREIGN KEY (user_session_id)
+		REFERENCES user_session(user_session_id)
+);
+
 CREATE TABLE check_run (
 	check_run_id BIGINT AUTO_INCREMENT NOT NULL,
 	dataset_version_id BIGINT NOT NULL,
@@ -664,6 +679,10 @@ CREATE TABLE event (
 	user_session_id BIGINT,
 	study_id BIGINT,
 	data_location_id BIGINT,
+	study_db_version_id BIGINT,
+	check_param_id BIGINT,
+	check_param_change_id BIGINT,
+	dataset_id BIGINT,
 	created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	CONSTRAINT pk_event PRIMARY KEY (event_id),
 	CONSTRAINT fk_event_2_user_session FOREIGN KEY (user_session_id)
@@ -671,7 +690,15 @@ CREATE TABLE event (
 	CONSTRAINT fk_event_2_study FOREIGN KEY (study_id)
 		REFERENCES study(study_id),
 	CONSTRAINT fk_event_2_data_location FOREIGN KEY (data_location_id)
-		REFERENCES data_location(data_location_id)
+		REFERENCES data_location(data_location_id),
+	CONSTRAINT fk_event_2_study_db_version FOREIGN KEY (study_db_version_id)
+		REFERENCES study_db_version(study_db_version_id),
+	CONSTRAINT fk_event_2_check_param FOREIGN KEY (check_param_id)
+		REFERENCES check_param (check_param_id),
+	CONSTRAINT fk_event_2_check_param_change FOREIGN KEY (check_param_change_id)
+		REFERENCES check_param_change (check_param_change_id),
+	CONSTRAINT fk_event_2_dataset FOREIGN KEY (dataset_id)
+		REFERENCES dataset(dataset_id)
 );
 
 create or replace view uni_anomaly_dto as

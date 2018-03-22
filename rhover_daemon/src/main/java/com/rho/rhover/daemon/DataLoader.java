@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -152,9 +153,7 @@ public class DataLoader {
 		loadStagingFiles();
 		
 		logger.info("Copying data to main tables");
-		copyDataToMainTables();
-		Timestamp endTimestamp = new Timestamp(new Date().getTime());
-		setLoadTimestamps(startTimestamp, endTimestamp);
+		copyDataToMainTables(startTimestamp);
 		
 		return true;
 	}
@@ -691,7 +690,7 @@ public class DataLoader {
 		this.jdbcTemplate.execute(sql);
 	}
 	
-	private void copyDataToMainTables() {
+	private void copyDataToMainTables(Timestamp startTimestamp) {
 		Connection connection = null;
 		try {
 			connection = this.jdbcTemplate.getDataSource().getConnection();
@@ -714,6 +713,9 @@ public class DataLoader {
 			copyDataToMainTable(connection, "datum_version");
 			copyDataToMainTable(connection, "datum_change");
 			markModifiedDataAsNotCurrent(connection);
+			Timestamp endTimestamp = new Timestamp(new Date().getTime());
+			setLoadTimestamps(connection, startTimestamp, endTimestamp);
+			addEvent(connection);
 			connection.commit();
 			returnConnectionToNormalOperation(connection, initialAutoCommitState);
 		}
@@ -846,9 +848,26 @@ public class DataLoader {
 		executeUpdate(connection, sql);
 	}
 
-	private void setLoadTimestamps(Timestamp startTimestamp, Timestamp endTimestamp) {
+	private void setLoadTimestamps(Connection connection, Timestamp startTimestamp, Timestamp endTimestamp) throws SQLException {
 		String sql = "update study_db_version set load_started = ?, load_stopped = ? where study_db_version_id = ?";
-		this.jdbcTemplate.update(sql, startTimestamp, endTimestamp, this.studyDbVersionId);
+		PreparedStatement stmt = null;
+		try {
+			stmt = connection.prepareStatement(sql);
+			stmt.setTimestamp(1, startTimestamp);
+			stmt.setTimestamp(2, endTimestamp);
+			stmt.setLong(3, this.studyDbVersionId);
+			stmt.execute();
+		}
+		finally {
+			if (stmt != null) {
+				stmt.close();
+			}
+		}
+	}
+	
+	private void addEvent(Connection connection) throws SQLException {
+		String sql = "insert into event(event_type, user_session_id, study_db_version_id) values('LOAD_STUDY', 1, " + this.studyDbVersionId + ")";
+		executeUpdate(connection, sql);
 	}
 	
 	private void executeUpdate(Connection connection, String sql) throws SQLException {

@@ -267,7 +267,7 @@ public class StudyAdminController {
 			model.addAttribute("study_min_univariate", checkParamService.getCheckParam(check, "min-univariate", study));
 			model.addAttribute("study_sd", checkParamService.getCheckParam(check, "sd", study));
 			
-			model.addAttribute("use_study_defaults", checkParamRepository.findByCheckAndDataset(check, dataset).size() == 0);
+			model.addAttribute("use_study_defaults", checkParamRepository.findByCheckAndDatasetAndIsCurrent(check, dataset, Boolean.TRUE).size() == 0);
 		}
 		return "admin/study/dataset_univariate";
 	}

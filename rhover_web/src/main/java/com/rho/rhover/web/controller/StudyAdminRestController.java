@@ -131,24 +131,24 @@ public class StudyAdminRestController {
 			Field field = fieldRepository.findOne(fieldId);
 			logger.debug("Fetching check parameters for field " + field.getFieldName());
 			for (Check check : checks) {
-				params.addAll(CheckParamDto.toCheckParamDtos(checkParamRepository.findByCheckAndField(check, field)));
+				params.addAll(CheckParamDto.toCheckParamDtos(checkParamRepository.findByCheckAndFieldAndIsCurrent(check, field, Boolean.TRUE)));
 			}
 		}
 		else if (datasetId != -1) {
 			Dataset dataset = datasetRepository.findOne(datasetId);
 			logger.debug("Fetching check parameters for dataset " + dataset.getDatasetName());
 			for (Check check : checks) {
-				params.addAll(CheckParamDto.toCheckParamDtos(checkParamRepository.findByCheckAndDataset(check, dataset)));
+				params.addAll(CheckParamDto.toCheckParamDtos(checkParamRepository.findByCheckAndDatasetAndIsCurrent(check, dataset, Boolean.TRUE)));
 			}
 		}
 		else if (studyId != -1) {
 			Study study = studyRepository.findOne(studyId);
 			logger.debug("Fetching check parameters for study " + study.getStudyName());
 			for (Check check : checks) {
-				List<CheckParam> checkParams = checkParamRepository.findByCheckAndStudy(check, study);
+				List<CheckParam> checkParams = checkParamRepository.findByCheckAndStudyAndIsCurrent(check, study, Boolean.TRUE);
 				if (checkParams.size() == 0) {
 					logger.debug("No study-level check parameters found for check " + check.getCheckName() + ".  Fetching globals.");
-					checkParams = checkParamRepository.findByCheckAndParamScope(check, "GLOBAL");
+					checkParams = checkParamRepository.findByCheckAndParamScopeAndIsCurrent(check, "GLOBAL", Boolean.TRUE);
 				}
 				params.addAll(CheckParamDto.toCheckParamDtos(checkParams));
 			}
@@ -156,7 +156,7 @@ public class StudyAdminRestController {
 		else {
 			logger.debug("Fetching global check parameters");
 			for (Check check : checks) {
-				params.addAll(CheckParamDto.toCheckParamDtos(checkParamRepository.findByCheckAndParamScope(check, "GLOBAL")));
+				params.addAll(CheckParamDto.toCheckParamDtos(checkParamRepository.findByCheckAndParamScopeAndIsCurrent(check, "GLOBAL", Boolean.TRUE)));
 			}
 		}
 		logger.debug("Found " + params.size() + " check parameters");
@@ -181,7 +181,7 @@ public class StudyAdminRestController {
 				UserSession userSession = userSessionRepository.findByWebSessionId(session.getId());
 				if (fieldId != -1) {
 					Field field = fieldRepository.findOne(fieldId);
-					checkParam = checkParamRepository.findByCheckAndFieldAndParamName(check, field, paramName);
+					checkParam = checkParamRepository.findByCheckAndFieldAndParamNameAndIsCurrent(check, field, paramName, Boolean.TRUE);
 					if (checkParam == null) {
 						checkParam = new CheckParam(paramName, "FIELD", check, userSession);
 						checkParam.setField(field);
@@ -189,7 +189,7 @@ public class StudyAdminRestController {
 				}
 				else if (datasetId != -1) {
 					Dataset dataset = datasetRepository.findOne(datasetId);
-					checkParam = checkParamRepository.findByCheckAndDatasetAndParamName(check, dataset, paramName);
+					checkParam = checkParamRepository.findByCheckAndDatasetAndParamNameAndIsCurrent(check, dataset, paramName, Boolean.TRUE);
 					if (checkParam == null) {
 						checkParam = new CheckParam(paramName, "DATASET", check, userSession);
 						checkParam.setDataset(dataset);
@@ -197,7 +197,7 @@ public class StudyAdminRestController {
 				}
 				else {
 					Study study = studyRepository.findOne(studyId);
-					checkParam = checkParamRepository.findByCheckAndStudyAndParamName(check, study, paramName);
+					checkParam = checkParamRepository.findByCheckAndStudyAndParamNameAndIsCurrent(check, study, paramName, Boolean.TRUE);
 					if (checkParam == null) {
 						checkParam = new CheckParam(paramName, "STUDY", check, userSession);
 						checkParam.setStudy(study);

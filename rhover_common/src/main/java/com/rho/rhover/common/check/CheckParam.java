@@ -59,7 +59,7 @@ public class CheckParam {
 	
 	@Column(name="is_current")
 	@Type(type="org.hibernate.type.NumericBooleanType")
-	private Boolean isCurrent; 
+	private Boolean isCurrent = Boolean.TRUE;
 	
 	public CheckParam() {
 		
@@ -73,7 +73,15 @@ public class CheckParam {
 		this.userSession = userSession;
 	}
 
-
+	public CheckParam(String paramName, String paramValue, String paramScope, Check check, UserSession userSession) {
+		super();
+		this.paramName = paramName;
+		this.paramValue = paramValue;
+		this.paramScope = paramScope;
+		this.check = check;
+		this.userSession = userSession;
+	}
+	
 	public Long getCheckParamId() {
 		return checkParamId;
 	}

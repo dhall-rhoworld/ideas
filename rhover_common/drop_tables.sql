@@ -17,6 +17,7 @@ drop table datum;
 drop table observation;
 drop table param_used;
 drop table check_run;
+drop table check_param_change;
 drop table check_param;
 drop table bivariate_check;
 drop table checks;

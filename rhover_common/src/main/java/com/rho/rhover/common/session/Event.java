@@ -12,17 +12,22 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import com.rho.rhover.common.check.CheckParam;
+import com.rho.rhover.common.check.CheckParamChange;
 import com.rho.rhover.common.study.DataLocation;
+import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.Study;
+import com.rho.rhover.common.study.StudyDbVersion;
 
 @Entity
 public class Event {
 	
-	public enum EventType {ADD_STUDY, ADD_DATA_LOCATION};
+	public enum EventType {ADD_STUDY, ADD_DATA_LOCATION, LOAD_STUDY, NEW_CHECK_PARAM, MODIFIED_CHECK_PARAM,
+		ADD_DATASET_CHECK, REMOVE_DATASET_CHECK};
 	
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="evemt_id")
+	@Column(name="event_id")
 	private Long eventId;
 	
 	@Enumerated(EnumType.STRING)
@@ -40,6 +45,22 @@ public class Event {
 	@ManyToOne
 	@JoinColumn(name="data_location_id")
 	private DataLocation dataLocation;
+	
+	@ManyToOne
+	@JoinColumn(name="study_db_version_id")
+	private StudyDbVersion studyDbVersion;
+	
+	@ManyToOne
+	@JoinColumn(name="check_param_id")
+	private CheckParam checkParam;
+	
+	@ManyToOne
+	@JoinColumn(name="check_param_change_id")
+	private CheckParamChange checkParamChange;
+	
+	@ManyToOne
+	@JoinColumn(name="dataset_id")
+	private Dataset dataset;
 	
 	@Column(name="created_on")
 	private Timestamp createdOn;
@@ -61,6 +82,38 @@ public class Event {
 		event.setUserSession(userSession);
 		event.setEventType(EventType.ADD_DATA_LOCATION);
 		event.setDataLocation(dataLocation);
+		return event;
+	}
+	
+	public static Event newNewCheckParamEvent(UserSession userSession, CheckParam checkParam) {
+		Event event = new Event();
+		event.setUserSession(userSession);
+		event.setEventType(EventType.NEW_CHECK_PARAM);
+		event.setCheckParam(checkParam);
+		return event;
+	}
+	
+	public static Event newModifiedCheckParamEvent(UserSession userSession, CheckParamChange checkParamChange) {
+		Event event = new Event();
+		event.setUserSession(userSession);
+		event.setEventType(EventType.MODIFIED_CHECK_PARAM);
+		event.setCheckParamChange(checkParamChange);
+		return event;
+	}
+	
+	public static Event newAddDatasetCheckEvent(UserSession userSession, Dataset dataset) {
+		Event event = new Event();
+		event.setUserSession(userSession);
+		event.setEventType(EventType.ADD_DATASET_CHECK);
+		event.setDataset(dataset);
+		return event;
+	}
+	
+	public static Event newRemoveDatasetCheckEvent(UserSession userSession, Dataset dataset) {
+		Event event = new Event();
+		event.setUserSession(userSession);
+		event.setEventType(EventType.REMOVE_DATASET_CHECK);
+		event.setDataset(dataset);
 		return event;
 	}
 
@@ -110,6 +163,38 @@ public class Event {
 
 	public void setCreatedOn(Timestamp createdOn) {
 		this.createdOn = createdOn;
+	}
+
+	public StudyDbVersion getStudyDbVersion() {
+		return studyDbVersion;
+	}
+
+	public void setStudyDbVersion(StudyDbVersion studyDbVersion) {
+		this.studyDbVersion = studyDbVersion;
+	}
+
+	public CheckParam getCheckParam() {
+		return checkParam;
+	}
+
+	public void setCheckParam(CheckParam checkParam) {
+		this.checkParam = checkParam;
+	}
+
+	public CheckParamChange getCheckParamChange() {
+		return checkParamChange;
+	}
+
+	public void setCheckParamChange(CheckParamChange checkParamChange) {
+		this.checkParamChange = checkParamChange;
+	}
+
+	public Dataset getDataset() {
+		return dataset;
+	}
+
+	public void setDataset(Dataset dataset) {
+		this.dataset = dataset;
 	}
 
 }
