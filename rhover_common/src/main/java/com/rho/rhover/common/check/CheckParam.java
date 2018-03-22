@@ -8,6 +8,9 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import org.hibernate.annotations.Type;
+
+import com.rho.rhover.common.session.UserSession;
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.Field;
 import com.rho.rhover.common.study.Study;
@@ -50,15 +53,24 @@ public class CheckParam {
 	@JoinColumn(name="check_id")
 	private Check check;
 	
+	@ManyToOne
+	@JoinColumn(name="user_session_id")
+	private UserSession userSession;
+	
+	@Column(name="is_current")
+	@Type(type="org.hibernate.type.NumericBooleanType")
+	private Boolean isCurrent; 
+	
 	public CheckParam() {
 		
 	}
 
-	public CheckParam(String paramName, String paramScope, Check check) {
+	public CheckParam(String paramName, String paramScope, Check check, UserSession userSession) {
 		super();
 		this.paramName = paramName;
 		this.paramScope = paramScope;
 		this.check = check;
+		this.userSession = userSession;
 	}
 
 
@@ -133,4 +145,21 @@ public class CheckParam {
 	public void setBivariateCheck(BivariateCheck bivariateCheck) {
 		this.bivariateCheck = bivariateCheck;
 	}
+
+	public UserSession getUserSession() {
+		return userSession;
+	}
+
+	public void setUserSession(UserSession userSession) {
+		this.userSession = userSession;
+	}
+
+	public Boolean getIsCurrent() {
+		return isCurrent;
+	}
+
+	public void setIsCurrent(Boolean isCurrent) {
+		this.isCurrent = isCurrent;
+	}
+	
 }

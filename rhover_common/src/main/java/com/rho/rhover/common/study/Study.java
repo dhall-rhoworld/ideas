@@ -15,7 +15,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
-import org.hibernate.annotations.Type;
+import com.rho.rhover.common.session.UserSession;
 
 /**
  * Represents a research study.
@@ -56,10 +56,6 @@ public class Study {
 	@Column(name="query_file_path")
 	private String queryFilePath;
 	
-	@Column(name="is_initialized")
-	@Type(type="org.hibernate.type.NumericBooleanType")
-	private Boolean isInitialized = Boolean.FALSE;
-	
 	@ManyToOne
 	@JoinColumn(name="form_field_id")
 	private Field formField;
@@ -79,6 +75,10 @@ public class Study {
 	@ManyToOne
 	@JoinColumn(name="record_id_field_id")
 	private Field recordIdField;
+	
+	@ManyToOne
+	@JoinColumn(name="user_session_id")
+	private UserSession userSession;
 	
 	public Study() {
 		
@@ -140,14 +140,6 @@ public class Study {
 		this.queryFilePath = queryFilePath;
 	}
 
-	public Boolean getIsInitialized() {
-		return isInitialized;
-	}
-
-	public void setIsInitialized(Boolean isInitialized) {
-		this.isInitialized = isInitialized;
-	}
-
 	public String getRecordIdFieldName() {
 		return recordIdFieldName;
 	}
@@ -204,6 +196,14 @@ public class Study {
 		this.phaseField = phaseField;
 	}
 	
+	public UserSession getUserSession() {
+		return userSession;
+	}
+
+	public void setUserSession(UserSession userSession) {
+		this.userSession = userSession;
+	}
+
 	public boolean isFieldIdentifying(Field field) {
 		return
 				field.equals(this.formField)

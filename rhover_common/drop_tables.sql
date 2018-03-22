@@ -1,13 +1,15 @@
 /* drop table data_load_job; */
+drop view uni_anomaly_dto;
+drop table event;
 drop table query_candidate;
 drop table query_status;
 drop view bivariate_anomaly;
-drop view uni_anomaly_dto;
 drop table data_property;
 drop table anomaly_check_run;
 drop table anomaly_datum_version_2;
 drop table anomaly_datum_version;
 drop table anomaly;
+drop table anomaly_resolution;
 drop table datum_dataset_version;
 drop table datum_change;
 drop table datum_version;
@@ -43,6 +45,7 @@ drop table dataset_version;
 drop table dataset;
 drop table data_location;
 drop table study;
+drop table user_session;
 drop table logging_event_exception;
 drop table logging_event_property;
 drop table logging_event;

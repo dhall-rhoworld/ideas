@@ -204,7 +204,6 @@ public class DataLoaderServiceImpl {//implements DataLoaderService {
 				studyDbVersion.addDatasetVersion(datasetVersion);
 			}
 		}
-		study.setIsInitialized(Boolean.TRUE);
 		Date date = new Date();
 		studyDbVersion.setLoadStopped(new Timestamp(date.getTime()));
 		studyDbVersionRepository.save(studyDbVersion);

@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
 
 import org.slf4j.Logger;
@@ -30,7 +31,12 @@ import com.rho.rhover.common.check.CheckParam;
 import com.rho.rhover.common.check.CheckParamRepository;
 import com.rho.rhover.common.check.CheckParamService;
 import com.rho.rhover.common.check.CheckRepository;
+import com.rho.rhover.common.session.Event;
+import com.rho.rhover.common.session.EventRepository;
+import com.rho.rhover.common.session.UserSession;
+import com.rho.rhover.common.session.UserSessionRepository;
 import com.rho.rhover.common.study.DataLocation;
+import com.rho.rhover.common.study.DataLocationRepository;
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.DatasetRepository;
 import com.rho.rhover.common.study.DatasetVersion;
@@ -91,6 +97,15 @@ public class StudyAdminController {
 	
 	@Autowired
 	private DataSource dataSource;
+	
+	@Autowired
+	private UserSessionRepository userSessionRepository;
+	
+	@Autowired
+	private EventRepository eventRepository;
+	
+	@Autowired
+	private DataLocationRepository dataLocationRepository;
 
 	@RequestMapping("/all")
 	public String viewAll(Model model) {
@@ -164,7 +179,7 @@ public class StudyAdminController {
 	@RequestMapping(value="/save_study_univariate", method=RequestMethod.POST)
 	public String saveStudyUnivariate(
 			@RequestParam MultiValueMap<String, String> requestParams,
-			Model model) {
+			Model model, HttpSession session) {
 		Long studyId = Long.parseLong(requestParams.getFirst("study_id"));
 		Study study = studyRepository.findOne(studyId);
 		Check check = checkRepository.findByCheckName("UNIVARIATE_OUTLIER");
@@ -188,7 +203,8 @@ public class StudyAdminController {
 				datasetIds.add(datasetId);
 			}
 		}
-		checkConfigurationService.saveStudyCheckConfiguration(study, check, studyParams, datasetIds);
+		UserSession userSession = userSessionRepository.findByWebSessionId(session.getId());
+		checkConfigurationService.saveStudyCheckConfiguration(study, check, studyParams, datasetIds, userSession);
 		model.addAttribute("message", "Study parameters saved");
 		return "forward:/admin/study/study_univariate";
 	}
@@ -261,7 +277,7 @@ public class StudyAdminController {
 			@RequestParam("use_study_defaults") Boolean useStudyDefaults,
 			@RequestParam("dataset_id") Long datasetId,
 			@RequestParam MultiValueMap<String, String> requestParams,
-			Model model) {
+			Model model, HttpSession session) {
 		Collection<Long> skipList = new ArrayList<>();
 		Map<String, String> datasetParams = new HashMap<>();
 		Map<Long, Map<String, String>> fieldParams = new HashMap<>();
@@ -292,7 +308,8 @@ public class StudyAdminController {
 		}
 		Dataset dataset = datasetRepository.findOne(datasetId);
 		Check check = checkRepository.findByCheckName("UNIVARIATE_OUTLIER");
-		checkConfigurationService.saveDatasetCheckConfiguration(dataset, check, useStudyDefaults, datasetParams, fieldParams, skipList);
+		UserSession userSession = userSessionRepository.findByWebSessionId(session.getId());
+		checkConfigurationService.saveDatasetCheckConfiguration(dataset, check, useStudyDefaults, datasetParams, fieldParams, skipList, userSession);
 		model.addAttribute("message", "Parameters saved");
 		return "forward:/admin/study/dataset_univariate";
 	}
@@ -307,7 +324,7 @@ public class StudyAdminController {
 			@RequestParam("phase_field_name") String phaseFieldName,
 			@RequestParam("record_id_field_name") String recordIdFieldName,
 			@RequestParam(name="query_file_path", required=false, defaultValue="") String queryFilePath,
-			Model model) {
+			Model model, HttpSession session) {
 		Study study = null;
 		String nextPage = null;
 		if (studyId != -1) {
@@ -332,6 +349,9 @@ public class StudyAdminController {
 		study.setSiteFieldName(siteFieldName);
 		study.setSubjectFieldName(subjectFieldName);
 		study.setPhaseFieldName(phaseFieldName);
+		logger.info("Session ID: " + session.getId());
+		UserSession userSession = userSessionRepository.findByWebSessionId(session.getId());
+		study.setUserSession(userSession);
 		studyRepository.save(study);
 		
 		// Form field
@@ -362,6 +382,8 @@ public class StudyAdminController {
 		
 		studyRepository.save(study);
 		model.addAttribute("study", study);
+		Event event = Event.newAddStudyEvent(userSession, study);
+		eventRepository.save(event);
 		return nextPage;
 	}
 	
@@ -371,13 +393,15 @@ public class StudyAdminController {
 			@RequestParam("folder_path") String folderPath,
 			@RequestParam(name="include_sas", required=false, defaultValue="off") String includeSasFiles,
 			@RequestParam(name="include_csv", required=false, defaultValue="off") String includeCsvFiles,
-			Model model) {
+			Model model, HttpSession session) {
 		logger.debug("studyId: " + studyId);
 		logger.debug("folderPath: " + folderPath);
 		Study study = studyRepository.findOne(studyId);
 		DataLocation location = new DataLocation();
 		location.setFolderPath(folderPath);
 		location.setStudy(study);
+		UserSession userSession = userSessionRepository.findByWebSessionId(session.getId());
+		location.setUserSession(userSession);
 		if (includeSasFiles.equals("on")) {
 			location.setIncludeSasFiles(Boolean.TRUE);
 		}
@@ -390,9 +414,12 @@ public class StudyAdminController {
 		else {
 			location.setIncludeCsvFiles(Boolean.FALSE);
 		}
+		dataLocationRepository.save(location);
 		study.getDataLocations().add(location);
 		studyRepository.save(study);
 		model.addAttribute("study", study);
+		Event event = Event.newAddDataLocationEvent(userSession, location);
+		eventRepository.save(event);
 		String message = "The system will process the data files in the new data folder.  You will be notified after processing " +
 				"is complete.  Afterwards, you will be able to select key variables and configure data checks for these datasets.";
 		model.addAttribute("message", message);
@@ -448,7 +475,7 @@ public class StudyAdminController {
 		@RequestParam(name="param_sd-residual", required=false, defaultValue="") String sdResidual,
 		@RequestParam(name="param_sd-density", required=false, defaultValue="") String sdDensity,
 		@RequestParam MultiValueMap<String, String> params,
-		Model model
+		Model model, HttpSession session
 	) {
 		
 		// Fetch X field instance
@@ -533,16 +560,17 @@ public class StudyAdminController {
 			
 			// Save parameters
 			if (useDefaultParams.equals("off")) {
+				UserSession userSession = userSessionRepository.findByWebSessionId(session.getId());
 				
 				// sd-residual
-				CheckParam param = new CheckParam("sd-residual", "BIVARIATE", check);
+				CheckParam param = new CheckParam("sd-residual", "BIVARIATE", check, userSession);
 				param.setBivariateCheck(bivariateCheck);
 				param.setParamValue(sdResidual);
 				checkParamRepository.save(param);
 				bivariateCheck.getCheckParams().put("sd-residual", param);
 				
 				// sd-density
-				param = new CheckParam("sd-density", "BIVARIATE", check);
+				param = new CheckParam("sd-density", "BIVARIATE", check, userSession);
 				param.setBivariateCheck(bivariateCheck);
 				param.setParamValue(sdDensity);
 				checkParamRepository.save(param);

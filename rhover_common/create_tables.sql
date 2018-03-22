@@ -35,28 +35,36 @@ CREATE TABLE logging_event_exception
     FOREIGN KEY (event_id) REFERENCES logging_event(event_id)
   );
   
+CREATE TABLE user_session (
+	user_session_id BIGINT AUTO_INCREMENT NOT NULL,
+	user_name VARCHAR(50) NOT NULL,
+	session_started TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	web_session_id VARCHAR(100),
+	CONSTRAINT pk_user_session PRIMARY KEY (user_session_id)
+);
+
+insert into user_session(user_name, web_session_id) values ('system', '0');
+  
 CREATE TABLE study (
 	study_id BIGINT AUTO_INCREMENT NOT NULL,
 	study_name VARCHAR(50) NOT NULL,
-	
 	form_field_name VARCHAR(50) NOT NULL,
 	site_field_name VARCHAR(50) NOT NULL,
 	subject_field_name VARCHAR(50) NOT NULL,
 	phase_field_name VARCHAR(50) NOT NULL,
 	record_id_field_name VARCHAR(50) NOT NULL,
-	
 	form_field_id BIGINT,
 	site_field_id BIGINT,
 	subject_field_id BIGINT,
 	phase_field_id BIGINT,
 	record_id_field_id BIGINT,
-	
 	query_file_path VARCHAR(400),
-	is_initialized TINYINT NOT NULL DEFAULT 0,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	modified_by VARCHAR(50),
+	user_session_id BIGINT NOT NULL,
 	CONSTRAINT pk_study PRIMARY KEY (study_id),
-	CONSTRAINT u_study_name UNIQUE (study_name)
+	CONSTRAINT u_study_name UNIQUE (study_name),
+	CONSTRAINT fk_study_2_user_session FOREIGN KEY (user_session_id) REFERENCES user_session(user_session_id)
 );
 
 CREATE TABLE data_location (
@@ -66,10 +74,11 @@ CREATE TABLE data_location (
 	include_csv TINYINT NOT NULL DEFAULT 1,
 	study_id BIGINT NOT NULL,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-	modified_by VARCHAR(50),
+	user_session_id BIGINT NOT NULL,
 	CONSTRAINT pk_data_location PRIMARY KEY (data_location_id),
 	CONSTRAINT fk_data_location_2_study FOREIGN KEY (study_id) REFERENCES study(study_id),
-	CONSTRAINT u_data_location_folder_path_study_id UNIQUE (folder_path, study_id)
+	CONSTRAINT u_data_location_folder_path_study_id UNIQUE (folder_path, study_id),
+	CONSTRAINT fk_data_location_2_user_session FOREIGN KEY (user_session_id) REFERENCES user_session(user_session_id)
 );
 
 CREATE TABLE dataset (
@@ -358,39 +367,49 @@ CREATE TABLE check_param (
 	field_id BIGINT,
 	bivariate_check_id BIGINT,
 	check_id BIGINT NOT NULL,
+	is_current TINYINT NOT NULL DEFAULT 1,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-	modified_by VARCHAR(50),
+	user_session_id BIGINT NOT NULL,
 	CONSTRAINT pk_check_param PRIMARY KEY (check_param_id),
 	CONSTRAINT fk_check_param_2_study FOREIGN KEY (study_id) REFERENCES study(study_id),
 	CONSTRAINT fk_check_param_2_dataset FOREIGN KEY (dataset_id) REFERENCES dataset(dataset_id),
 	CONSTRAINT fk_check_param_2_field FOREIGN KEY (field_id) REFERENCES field(field_id),
 	CONSTRAINT fk_check_param_2_bivariate_check FOREIGN KEY (bivariate_check_id) REFERENCES bivariate_check(bivariate_check_id),
-	CONSTRAINT fk_check_param_2_checks FOREIGN KEY (check_id) REFERENCES checks(check_id)
+	CONSTRAINT fk_check_param_2_checks FOREIGN KEY (check_id) REFERENCES checks(check_id),
+	CONSTRAINT fk_check_param_2_user_session FOREIGN KEY (user_session_id) REFERENCES user_session(user_session_id)
 );
 
-insert into check_param (param_name, param_value, param_scope, check_id)
-values('data_types', 'continuous', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));
+insert into check_param (param_name, param_value, param_scope, check_id, user_session_id)
+values('data_types', 'continuous', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'),
+(select user_session_id from user_session where web_session_id = '0'));
 
-insert into check_param (param_name, param_value, param_scope, check_id)
-values('sd', '2', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));
+insert into check_param (param_name, param_value, param_scope, check_id, user_session_id)
+values('sd', '2', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'),
+(select user_session_id from user_session where web_session_id = '0'));
 
-insert into check_param (param_name, param_value, param_scope, check_id)
-values('min-univariate', '25', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'));
+insert into check_param (param_name, param_value, param_scope, check_id, user_session_id)
+values('min-univariate', '25', 'GLOBAL', (select check_id from checks where check_name = 'UNIVARIATE_OUTLIER'),
+(select user_session_id from user_session where web_session_id = '0'));
 
-insert into check_param (param_name, param_value, param_scope, check_id)
-values('sd-residual', '2', 'GLOBAL', (select check_id from checks where check_name = 'BIVARIATE_OUTLIER'));
+insert into check_param (param_name, param_value, param_scope, check_id, user_session_id)
+values('sd-residual', '2', 'GLOBAL', (select check_id from checks where check_name = 'BIVARIATE_OUTLIER'),
+(select user_session_id from user_session where web_session_id = '0'));
 
-insert into check_param (param_name, param_value, param_scope, check_id)
-values('num-nearest-neighbors', '5', 'GLOBAL', (select check_id from checks where check_name = 'BIVARIATE_OUTLIER'));
+insert into check_param (param_name, param_value, param_scope, check_id, user_session_id)
+values('num-nearest-neighbors', '5', 'GLOBAL', (select check_id from checks where check_name = 'BIVARIATE_OUTLIER'),
+(select user_session_id from user_session where web_session_id = '0'));
 
-insert into check_param (param_name, param_value, param_scope, check_id)
-values('sd-density', '6', 'GLOBAL', (select check_id from checks where check_name = 'BIVARIATE_OUTLIER'));
+insert into check_param (param_name, param_value, param_scope, check_id, user_session_id)
+values('sd-density', '6', 'GLOBAL', (select check_id from checks where check_name = 'BIVARIATE_OUTLIER'),
+(select user_session_id from user_session where web_session_id = '0'));
 
-insert into check_param (param_name, param_value, param_scope, check_id)
-values('sd-density', '6', 'GLOBAL', (select check_id from checks where check_name = 'BIVARIATE_OUTLIER'));
+insert into check_param (param_name, param_value, param_scope, check_id, user_session_id)
+values('sd-density', '6', 'GLOBAL', (select check_id from checks where check_name = 'BIVARIATE_OUTLIER'),
+(select user_session_id from user_session where web_session_id = '0'));
 
-insert into check_param (param_name, param_value, param_scope, check_id)
-values('min-bivariate', '25', 'GLOBAL', (select check_id from checks where check_name = 'BIVARIATE_OUTLIER'));
+insert into check_param (param_name, param_value, param_scope, check_id, user_session_id)
+values('min-bivariate', '25', 'GLOBAL', (select check_id from checks where check_name = 'BIVARIATE_OUTLIER'),
+(select user_session_id from user_session where web_session_id = '0'));
 
 CREATE TABLE check_run (
 	check_run_id BIGINT AUTO_INCREMENT NOT NULL,
@@ -498,6 +517,19 @@ CREATE TABLE datum_dataset_version (
 		REFERENCES dataset_version(dataset_version_id)
 );
 
+CREATE TABLE anomaly_resolution (
+	anomaly_resolution_id BIGINT NOT NULL,
+	anomaly_resolution_code VARCHAR(20) NOT NULL,
+	anomaly_resolution_description VARCHAR(100) NOT NULL,
+	CONSTRAINT pk_anomaly_resolution PRIMARY KEY (anomaly_resolution_id)
+);
+
+INSERT INTO anomaly_resolution values (1, 'DATA_REMOVED', 'Data removed from clinical database');
+INSERT INTO anomaly_resolution values (2, 'DATA_CHANGED', 'Anomalous data value changed');
+INSERT INTO anomaly_resolution values (3, 'CHECK_PARAMS_CHANGED', 'Check parameters changed');
+INSERT INTO anomaly_resolution values (4, 'USER_LABEL', 'User labeled data a non-issue');
+INSERT INTO anomaly_resolution values (5, 'DISTRIBUTION_CHANGED', 'Statistical distribution of dataset changed');
+
 CREATE TABLE anomaly (
 	anomaly_id BIGINT AUTO_INCREMENT NOT NULL,
 	subject_id BIGINT NOT NULL,
@@ -511,6 +543,10 @@ CREATE TABLE anomaly (
 	record_id VARCHAR(50) NOT NULL,
 	has_been_viewed TINYINT NOT NULL DEFAULT 0,
 	is_an_issue TINYINT NOT NULL DEFAULT 1,
+	anomaly_resolution_id BIGINT,
+	resolution_time TIMESTAMP,
+	resolution_user_session_id BIGINT,
+	resolution_check_run_id BIGINT,
 	last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT pk_anomaly PRIMARY KEY (anomaly_id),
 	CONSTRAINT fk_anomaly_2_subject FOREIGN KEY (subject_id) REFERENCES subject(subject_id),
@@ -520,7 +556,10 @@ CREATE TABLE anomaly (
 	CONSTRAINT fk_anomaly_2_phase FOREIGN KEY (phase_id) REFERENCES phase(phase_id),
 	CONSTRAINT fk_anomaly_2_field_2 FOREIGN KEY (field_2_id) REFERENCES field(field_id),
 	CONSTRAINT fk_anomaly_2_field_instance FOREIGN KEY (field_instance_id) REFERENCES field_instance(field_instance_id),
-	CONSTRAINT fk_anomaly_2_field_instance_2 FOREIGN KEY (field_instance_2_id) REFERENCES field_instance(field_instance_id)
+	CONSTRAINT fk_anomaly_2_field_instance_2 FOREIGN KEY (field_instance_2_id) REFERENCES field_instance(field_instance_id),
+	CONSTRAINT fk_anomaly_2_anomaly_resolution FOREIGN KEY (anomaly_resolution_id) REFERENCES anomaly_resolution(anomaly_resolution_id),
+	CONSTRAINT fk_anomaly_2_check_run FOREIGN KEY (resolution_check_run_id) REFERENCES check_run(check_run_id),
+	CONSTRAINT fk_anomaly_2_user_session FOREIGN KEY (resolution_user_session_id) REFERENCES user_session(user_session_id)
 );
 
 CREATE TABLE anomaly_datum_version (
@@ -560,31 +599,6 @@ CREATE TABLE data_property (
 	CONSTRAINT fk_data_property_2_check_run FOREIGN KEY (check_run_id) REFERENCES check_run (check_run_id),
 	CONSTRAINT u_data_property UNIQUE (data_property_name, check_run_id)
 );
-
-create or replace view uni_anomaly_dto as
-select acr.check_run_id as check_run_id,
-a.anomaly_id as anomaly_id,
-f.field_id as field_id,
-f.field_name as field_name,
-dv.value as anomalous_value,
-s.subject_id as subject_id,
-s.subject_name as subject_name,
-si.site_id as site_id,
-si.site_name as site_name,
-p.phase_id as phase_id,
-p.phase_name as phase_name,
-a.record_id as record_id,
-a.is_an_issue as is_an_issue,
-qc.query_candidate_id as query_candidate_id
-from anomaly a
-join subject s on s.subject_id = a.subject_id
-join phase p on p.phase_id = a.phase_id
-join site si on si.site_id = a.site_id
-join field f on f.field_id = a.field_id 
-join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id
-join anomaly_datum_version adv on adv.anomaly_id = a.anomaly_id
-join datum_version dv on dv.datum_version_id = adv.datum_version_id
-left join query_candidate qc on qc.anomaly_id = a.anomaly_id;
 
 create or replace view bivariate_anomaly as
 select acr.check_run_id as check_run_id,
@@ -643,6 +657,47 @@ CREATE TABLE query_candidate (
 	CONSTRAINT pk_query_candidate PRIMARY KEY (query_candidate_id),
 	CONSTRAINT fk_query_candidate_2_anomaly FOREIGN KEY (anomaly_id) REFERENCES anomaly(anomaly_id)
 );
+
+CREATE TABLE event (
+	event_id BIGINT AUTO_INCREMENT NOT NULL,
+	event_type VARCHAR(50) NOT NULL,
+	user_session_id BIGINT,
+	study_id BIGINT,
+	data_location_id BIGINT,
+	created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	CONSTRAINT pk_event PRIMARY KEY (event_id),
+	CONSTRAINT fk_event_2_user_session FOREIGN KEY (user_session_id)
+		REFERENCES user_session(user_session_id),
+	CONSTRAINT fk_event_2_study FOREIGN KEY (study_id)
+		REFERENCES study(study_id),
+	CONSTRAINT fk_event_2_data_location FOREIGN KEY (data_location_id)
+		REFERENCES data_location(data_location_id)
+);
+
+create or replace view uni_anomaly_dto as
+select acr.check_run_id as check_run_id,
+a.anomaly_id as anomaly_id,
+f.field_id as field_id,
+f.field_name as field_name,
+dv.value as anomalous_value,
+s.subject_id as subject_id,
+s.subject_name as subject_name,
+si.site_id as site_id,
+si.site_name as site_name,
+p.phase_id as phase_id,
+p.phase_name as phase_name,
+a.record_id as record_id,
+a.is_an_issue as is_an_issue,
+qc.query_candidate_id as query_candidate_id
+from anomaly a
+join subject s on s.subject_id = a.subject_id
+join phase p on p.phase_id = a.phase_id
+join site si on si.site_id = a.site_id
+join field f on f.field_id = a.field_id 
+join anomaly_check_run acr on acr.anomaly_id = a.anomaly_id
+join anomaly_datum_version adv on adv.anomaly_id = a.anomaly_id
+join datum_version dv on dv.datum_version_id = adv.datum_version_id
+left join query_candidate qc on qc.anomaly_id = a.anomaly_id;
 
 /*
 CREATE TABLE data_load_job (

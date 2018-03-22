@@ -10,6 +10,8 @@ import javax.persistence.ManyToOne;
 
 import org.hibernate.annotations.Type;
 
+import com.rho.rhover.common.session.UserSession;
+
 @Entity
 public class DataLocation {
 
@@ -32,6 +34,10 @@ public class DataLocation {
 	@ManyToOne
 	@JoinColumn(name="study_id")
 	private Study study;
+	
+	@ManyToOne
+	@JoinColumn(name="user_session_id")
+	private UserSession userSession;
 	
 	public DataLocation() {
 		
@@ -75,6 +81,14 @@ public class DataLocation {
 
 	public void setIncludeCsvFiles(Boolean includeCsvFiles) {
 		this.includeCsvFiles = includeCsvFiles;
+	}
+
+	public UserSession getUserSession() {
+		return userSession;
+	}
+
+	public void setUserSession(UserSession userSession) {
+		this.userSession = userSession;
 	}
 	
 }

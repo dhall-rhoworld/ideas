@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
@@ -33,6 +34,8 @@ import com.rho.rhover.common.check.CheckParamRepository;
 import com.rho.rhover.common.check.CheckRepository;
 import com.rho.rhover.common.check.Correlation;
 import com.rho.rhover.common.check.CorrelationFinder;
+import com.rho.rhover.common.session.UserSession;
+import com.rho.rhover.common.session.UserSessionRepository;
 import com.rho.rhover.common.study.CsvDataService;
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.DatasetRepository;
@@ -109,6 +112,9 @@ public class StudyAdminRestController {
 	@Autowired
 	private CsvDataService csvDataService;
 	
+	@Autowired
+	private UserSessionRepository userSessionRepository;
+	
 	@Value("${checker.url}")
 	private String checkerUrl;
 
@@ -158,7 +164,7 @@ public class StudyAdminRestController {
 	}
 	
 	@RequestMapping(value="/save_check_params", method=RequestMethod.POST)
-	public Integer saveCheckParams(@RequestParam MultiValueMap<String, String> params) {
+	public Integer saveCheckParams(@RequestParam MultiValueMap<String, String> params, HttpSession session) {
 		int numParams = 0;
 		Long studyId = Long.parseLong(params.getFirst("study_id"));
 		Long datasetId = Long.parseLong(params.getFirst("dataset_id"));
@@ -172,11 +178,12 @@ public class StudyAdminRestController {
 				logger.debug(checkName + " " + paramName + ": " + paramValue);
 				Check check = checkRepository.findByCheckName(checkName);
 				CheckParam checkParam = null;
+				UserSession userSession = userSessionRepository.findByWebSessionId(session.getId());
 				if (fieldId != -1) {
 					Field field = fieldRepository.findOne(fieldId);
 					checkParam = checkParamRepository.findByCheckAndFieldAndParamName(check, field, paramName);
 					if (checkParam == null) {
-						checkParam = new CheckParam(paramName, "FIELD", check);
+						checkParam = new CheckParam(paramName, "FIELD", check, userSession);
 						checkParam.setField(field);
 					}
 				}
@@ -184,7 +191,7 @@ public class StudyAdminRestController {
 					Dataset dataset = datasetRepository.findOne(datasetId);
 					checkParam = checkParamRepository.findByCheckAndDatasetAndParamName(check, dataset, paramName);
 					if (checkParam == null) {
-						checkParam = new CheckParam(paramName, "DATASET", check);
+						checkParam = new CheckParam(paramName, "DATASET", check, userSession);
 						checkParam.setDataset(dataset);
 					}
 				}
@@ -192,7 +199,7 @@ public class StudyAdminRestController {
 					Study study = studyRepository.findOne(studyId);
 					checkParam = checkParamRepository.findByCheckAndStudyAndParamName(check, study, paramName);
 					if (checkParam == null) {
-						checkParam = new CheckParam(paramName, "STUDY", check);
+						checkParam = new CheckParam(paramName, "STUDY", check, userSession);
 						checkParam.setStudy(study);
 					}
 				}
@@ -310,7 +317,7 @@ public class StudyAdminRestController {
 	}
 	
 	@RequestMapping(value="save_bivariate_check_edits", method=RequestMethod.POST)
-	public Integer saveBivariateCheckEdits(@RequestBody List<BivariateCheckParamsDto> dtos) {
+	public Integer saveBivariateCheckEdits(@RequestBody List<BivariateCheckParamsDto> dtos, HttpSession session) {
 		for (BivariateCheckParamsDto dto : dtos) {
 			BivariateCheck biCheck = bivariateCheckRepository.findOne(dto.getBivariateCheckId());
 			
@@ -331,12 +338,13 @@ public class StudyAdminRestController {
 			else {
 				logger.debug("Saving custom params for bivariate check " + dto.getBivariateCheckId());
 				Check check = checkRepository.findByCheckName("BIVARIATE_OUTLIER");
+				UserSession userSession = userSessionRepository.findByWebSessionId(session.getId());
 				
 				// Save 'sd-residual' parameter
 				CheckParam sdResidual = biCheck.getCheckParams().get("sd-residual");
 				if (sdResidual == null) {
 					logger.debug("Creating new 'sd-residual' parameter");
-					sdResidual = new CheckParam("sd-residual", "BIVARIATE", check);
+					sdResidual = new CheckParam("sd-residual", "BIVARIATE", check, userSession);
 					sdResidual.setBivariateCheck(biCheck);
 					biCheck.getCheckParams().put("sd-residual", sdResidual);
 				}
@@ -350,7 +358,7 @@ public class StudyAdminRestController {
 				CheckParam sdDensity = biCheck.getCheckParams().get("sd-density");
 				if (sdDensity == null) {
 					logger.debug("Creating new 'sd-density' parameter");
-					sdDensity = new CheckParam("sd-density", "BIVARIATE", check);
+					sdDensity = new CheckParam("sd-density", "BIVARIATE", check, userSession);
 					sdDensity.setBivariateCheck(biCheck);
 					biCheck.getCheckParams().put("sd-density", sdDensity);
 				}
