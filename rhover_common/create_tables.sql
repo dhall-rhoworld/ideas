@@ -683,6 +683,7 @@ CREATE TABLE event (
 	check_param_id BIGINT,
 	check_param_change_id BIGINT,
 	dataset_id BIGINT,
+	field_id BIGINT,
 	created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	CONSTRAINT pk_event PRIMARY KEY (event_id),
 	CONSTRAINT fk_event_2_user_session FOREIGN KEY (user_session_id)
@@ -698,7 +699,9 @@ CREATE TABLE event (
 	CONSTRAINT fk_event_2_check_param_change FOREIGN KEY (check_param_change_id)
 		REFERENCES check_param_change (check_param_change_id),
 	CONSTRAINT fk_event_2_dataset FOREIGN KEY (dataset_id)
-		REFERENCES dataset(dataset_id)
+		REFERENCES dataset(dataset_id),
+	CONSTRAINT fk_event_2_field FOREIGN KEY (field_id)
+		REFERENCES field(field_id)
 );
 
 create or replace view uni_anomaly_dto as

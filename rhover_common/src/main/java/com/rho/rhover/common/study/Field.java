@@ -9,8 +9,6 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
@@ -19,6 +17,7 @@ import javax.persistence.MapKey;
 import javax.persistence.OneToMany;
 
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.Where;
 
 import com.rho.rhover.common.check.CheckParam;
 
@@ -64,6 +63,7 @@ public class Field {
 	
 	@OneToMany(mappedBy="field", cascade=CascadeType.ALL, fetch=FetchType.EAGER)
 	@MapKey(name="paramName")
+	@Where(clause="is_current = 1")
 	private Map<String, CheckParam> checkParams = new HashMap<>();
 	
 	@Column(name="is_skipped")

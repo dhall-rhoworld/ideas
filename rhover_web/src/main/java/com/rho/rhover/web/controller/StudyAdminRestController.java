@@ -1,5 +1,6 @@
 package com.rho.rhover.web.controller;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -36,6 +37,7 @@ import com.rho.rhover.common.check.Correlation;
 import com.rho.rhover.common.check.CorrelationFinder;
 import com.rho.rhover.common.session.UserSession;
 import com.rho.rhover.common.session.UserSessionRepository;
+import com.rho.rhover.common.session.UserSessionService;
 import com.rho.rhover.common.study.CsvDataService;
 import com.rho.rhover.common.study.Dataset;
 import com.rho.rhover.common.study.DatasetRepository;
@@ -113,7 +115,7 @@ public class StudyAdminRestController {
 	private CsvDataService csvDataService;
 	
 	@Autowired
-	private UserSessionRepository userSessionRepository;
+	private UserSessionService userSessionService;
 	
 	@Value("${checker.url}")
 	private String checkerUrl;
@@ -164,7 +166,8 @@ public class StudyAdminRestController {
 	}
 	
 	@RequestMapping(value="/save_check_params", method=RequestMethod.POST)
-	public Integer saveCheckParams(@RequestParam MultiValueMap<String, String> params, HttpSession session) {
+	public Integer saveCheckParams(@RequestParam MultiValueMap<String, String> params, HttpSession session,
+			Principal principal) {
 		int numParams = 0;
 		Long studyId = Long.parseLong(params.getFirst("study_id"));
 		Long datasetId = Long.parseLong(params.getFirst("dataset_id"));
@@ -178,7 +181,8 @@ public class StudyAdminRestController {
 				logger.debug(checkName + " " + paramName + ": " + paramValue);
 				Check check = checkRepository.findByCheckName(checkName);
 				CheckParam checkParam = null;
-				UserSession userSession = userSessionRepository.findByWebSessionId(session.getId());
+				UserSession userSession = userSessionService.getUserSession(
+						principal.getName(), session.getId());
 				if (fieldId != -1) {
 					Field field = fieldRepository.findOne(fieldId);
 					checkParam = checkParamRepository.findByCheckAndFieldAndParamNameAndIsCurrent(check, field, paramName, Boolean.TRUE);
@@ -317,7 +321,8 @@ public class StudyAdminRestController {
 	}
 	
 	@RequestMapping(value="save_bivariate_check_edits", method=RequestMethod.POST)
-	public Integer saveBivariateCheckEdits(@RequestBody List<BivariateCheckParamsDto> dtos, HttpSession session) {
+	public Integer saveBivariateCheckEdits(@RequestBody List<BivariateCheckParamsDto> dtos, HttpSession session,
+			Principal principal) {
 		for (BivariateCheckParamsDto dto : dtos) {
 			BivariateCheck biCheck = bivariateCheckRepository.findOne(dto.getBivariateCheckId());
 			
@@ -338,7 +343,8 @@ public class StudyAdminRestController {
 			else {
 				logger.debug("Saving custom params for bivariate check " + dto.getBivariateCheckId());
 				Check check = checkRepository.findByCheckName("BIVARIATE_OUTLIER");
-				UserSession userSession = userSessionRepository.findByWebSessionId(session.getId());
+				UserSession userSession = userSessionService.getUserSession(
+						principal.getName(), session.getId());
 				
 				// Save 'sd-residual' parameter
 				CheckParam sdResidual = biCheck.getCheckParams().get("sd-residual");

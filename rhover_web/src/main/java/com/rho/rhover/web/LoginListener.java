@@ -2,6 +2,8 @@ package com.rho.rhover.web;
 
 import java.sql.Timestamp;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
@@ -14,6 +16,8 @@ import com.rho.rhover.common.session.UserSessionRepository;
 @Component
 public class LoginListener implements ApplicationListener<AuthenticationSuccessEvent> {
 	
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+	
 	@Autowired
 	private UserSessionRepository userSessionRepository;
 
@@ -24,5 +28,6 @@ public class LoginListener implements ApplicationListener<AuthenticationSuccessE
 		Timestamp sessionStarted = new Timestamp(event.getTimestamp());
 		UserSession userSession = new UserSession(userName, sessionStarted, sessionId);
 		userSessionRepository.save(userSession);
+		logger.info("New user session: " + userSession.getUserName());
 	}
 }

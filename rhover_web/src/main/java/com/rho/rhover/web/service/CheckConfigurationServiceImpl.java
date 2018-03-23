@@ -57,20 +57,22 @@ public class CheckConfigurationServiceImpl implements CheckConfigurationService 
 		for (String paramName : params.keySet()) {
 			String paramValue = params.get(paramName);
 			CheckParam oldCheckParam = checkParamRepository.findByCheckAndStudyAndParamNameAndIsCurrent(check, study, paramName, Boolean.TRUE);
-			CheckParam newCheckParam = new CheckParam(paramName, paramValue, "STUDY", check, userSession);
-			newCheckParam.setStudy(study);
-			checkParamRepository.save(newCheckParam);
-			if (oldCheckParam != null) {
-				oldCheckParam.setIsCurrent(Boolean.FALSE);
-				checkParamRepository.save(oldCheckParam);
-				CheckParamChange change = new CheckParamChange(oldCheckParam, newCheckParam, userSession);
-				CheckParamChangeRepository.save(change);
-				Event event = Event.newModifiedCheckParamEvent(userSession, change);
-				eventRepository.save(event);
-			}
-			else {
-				Event event = Event.newNewCheckParamEvent(userSession, newCheckParam);
-				eventRepository.save(event);
+			if (oldCheckParam == null || !oldCheckParam.getParamValue().equals(paramValue)) {
+				CheckParam newCheckParam = new CheckParam(paramName, paramValue, "STUDY", check, userSession);
+				newCheckParam.setStudy(study);
+				checkParamRepository.save(newCheckParam);
+				if (oldCheckParam == null) {
+					Event event = Event.newNewCheckParamEvent(userSession, newCheckParam);
+					eventRepository.save(event);
+				}
+				else {
+					oldCheckParam.setIsCurrent(Boolean.FALSE);
+					checkParamRepository.save(oldCheckParam);
+					CheckParamChange change = new CheckParamChange(oldCheckParam, newCheckParam, userSession);
+					CheckParamChangeRepository.save(change);
+					Event event = Event.newModifiedCheckParamEvent(userSession, change);
+					eventRepository.save(event);
+				}
 			}
 		}
 		
@@ -101,7 +103,12 @@ public class CheckConfigurationServiceImpl implements CheckConfigurationService 
 		// Save/update/delete dataset-level check parameters
 		List<CheckParam> datasetParams = checkParamRepository.findByCheckAndDatasetAndIsCurrent(check, dataset, Boolean.TRUE);
 		if (useStudyDefaults) {
-			checkParamRepository.delete(datasetParams);
+			for (CheckParam param : datasetParams) {
+				param.setIsCurrent(Boolean.FALSE);
+				checkParamRepository.save(param);
+				Event event = Event.newDeactivateCheckParamEvent(userSession, param);
+				eventRepository.save(event);
+			}
 		}
 		else {
 			List<CheckParam> globalParams = checkParamRepository.findByCheckAndParamScopeAndIsCurrent(check, "GLOBAL", Boolean.TRUE);
@@ -111,60 +118,116 @@ public class CheckConfigurationServiceImpl implements CheckConfigurationService 
 			}
 			for (String paramName : datasetParamValues.keySet()) {
 				String paramValue = datasetParamValues.get(paramName);
-				CheckParam param = checkParamRepository.findByCheckAndDatasetAndParamNameAndIsCurrent(check, dataset, paramName, Boolean.TRUE);
-				if (param == null) {
-					param = new CheckParam(paramName, "DATASET", check, userSession);
-					param.setDataset(dataset);
+				CheckParam oldParam = checkParamRepository.findByCheckAndDatasetAndParamNameAndIsCurrent(check, dataset, paramName, Boolean.TRUE);
+				if (oldParam == null || !oldParam.getParamValue().equals(paramValue)) {
+					CheckParam newParam = new CheckParam(paramName, paramValue, "DATASET", check, userSession);
+					newParam.setDataset(dataset);
+					checkParamRepository.save(newParam);
+					if (oldParam == null) {
+						Event event = Event.newNewCheckParamEvent(userSession, newParam);
+						eventRepository.save(event);
+					}
+					else {
+						oldParam.setIsCurrent(Boolean.FALSE);
+						checkParamRepository.save(oldParam);
+						CheckParamChange change = new CheckParamChange(oldParam, newParam, userSession);
+						CheckParamChangeRepository.save(change);
+						Event event = Event.newModifiedCheckParamEvent(userSession, change);
+						eventRepository.save(event);
+					}
 				}
-				param.setParamValue(paramValue);
-				checkParamRepository.save(param);
 				globalParamNames.remove(paramName);
 			}
+			
+			// Checkbox parameters (i.e. will not have an HTTP query parameter if 'off')
 			for (String paramName : globalParamNames) {
-				CheckParam param = checkParamRepository.findByCheckAndDatasetAndParamNameAndIsCurrent(check, dataset, paramName, Boolean.TRUE);
-				if (param == null) {
-					param = new CheckParam(paramName, "DATASET", check, userSession);
-					param.setDataset(dataset);
+				CheckParam oldParam = checkParamRepository.findByCheckAndDatasetAndParamNameAndIsCurrent(check, dataset, paramName, Boolean.TRUE);
+				if (oldParam == null || !oldParam.getParamValue().equals("off")) {
+					CheckParam newParam = new CheckParam(paramName, "off", "DATASET", check, userSession);
+					newParam.setDataset(dataset);
+					checkParamRepository.save(newParam);
+					if (oldParam == null) {
+						Event event = Event.newNewCheckParamEvent(userSession, newParam);
+						eventRepository.save(event);
+					}
+					else {
+						oldParam.setIsCurrent(Boolean.FALSE);
+						checkParamRepository.save(oldParam);
+						CheckParamChange change = new CheckParamChange(oldParam, newParam, userSession);
+						CheckParamChangeRepository.save(change);
+						Event event = Event.newModifiedCheckParamEvent(userSession, change);
+						eventRepository.save(event);
+					}
 				}
-				param.setParamValue("off");
-				checkParamRepository.save(param);
 			}
 		}
 		
 		// Save/update skipped fields
 		DatasetVersion datasetVersion = datasetVersionRepository.findByDatasetAndIsCurrent(dataset, Boolean.TRUE);
 		for (Field field : datasetVersion.getFields()) {
-			field.setIsSkipped(Boolean.FALSE);
-			fieldRepository.save(field);
-		}
-		for (Long fieldId : skippedFieldIds) {
-			Field field = fieldRepository.findOne(fieldId);
-			field.setIsSkipped(Boolean.TRUE);
-			fieldRepository.save(field);
+			if (!field.getIsSkipped() && skippedFieldIds.contains(field.getFieldId())) {
+				field.setIsSkipped(Boolean.TRUE);
+				fieldRepository.save(field);
+				Event event = Event.newAddSkipEvent(userSession, field);
+				eventRepository.save(event);
+			}
+			else if (field.getIsSkipped() && !skippedFieldIds.contains(field.getFieldId())) {
+				field.setIsSkipped(Boolean.FALSE);
+				fieldRepository.save(field);
+				Event event = Event.newRemoveSkipEvent(userSession, field);
+				eventRepository.save(event);
+			}
 		}
 		
 		// Save/update field param values
 		for (Field field : datasetVersion.getFields()) {
 			List<CheckParam> fieldParams = checkParamRepository.findByCheckAndFieldAndIsCurrent(check, field, Boolean.TRUE);
-			for (CheckParam param : fieldParams) {
-				field.getCheckParams().remove(param.getParamName());
+			if (field.getIsSkipped()) {
+				for (CheckParam param : fieldParams) {
+					param.setIsCurrent(Boolean.FALSE);
+					checkParamRepository.save(param);
+					Event event = Event.newDeactivateCheckParamEvent(userSession, param);
+					eventRepository.save(event);
+				}
 			}
-			fieldRepository.save(field);
-			checkParamRepository.delete(fieldParams);
-		}
-		
-		for (Long fieldId : fieldParamValues.keySet()) {
-			Field field = fieldRepository.findOne(fieldId);
-			Map<String, String> namesAndValues = fieldParamValues.get(fieldId);
-			for (String paramName : namesAndValues.keySet()) {
-				String paramValue = namesAndValues.get(paramName);
-				CheckParam param = new CheckParam(paramName, "FIELD", check, userSession);
-				param.setParamValue(paramValue);
-				param.setField(field);
-				checkParamRepository.save(param);
-				field.getCheckParams().put(paramName, param);
+			else {
+				if (fieldParamValues.containsKey(field.getFieldId())) {
+					Map<String, String> nameAndValues = fieldParamValues.get(field.getFieldId());
+					for (String paramName : nameAndValues.keySet()) {
+						String paramValue = nameAndValues.get(paramName);
+						CheckParam oldParam = checkParamRepository.findByCheckAndFieldAndParamNameAndIsCurrent(check, field, paramName, Boolean.TRUE);
+						if (oldParam == null || !oldParam.getParamValue().equals(paramValue)) {
+							CheckParam newParam = new CheckParam(paramName, paramValue, "FIELD", check, userSession);
+							newParam.setField(field);
+							checkParamRepository.save(newParam);
+							field.getCheckParams().put(paramName, newParam);
+							if (oldParam == null) {
+								Event event = Event.newNewCheckParamEvent(userSession, newParam);
+								eventRepository.save(event);
+							}
+							else {
+								oldParam.setIsCurrent(Boolean.FALSE);
+								checkParamRepository.save(oldParam);
+								CheckParamChange change = new CheckParamChange(oldParam, newParam, userSession);
+								CheckParamChangeRepository.save(change);
+								Event event = Event.newModifiedCheckParamEvent(userSession, change);
+								eventRepository.save(event);
+							}
+						}
+					}
+				}
+				else {
+					for (String paramName : field.getCheckParams().keySet()) {
+						CheckParam param = field.getCheckParam(paramName);
+						param.setIsCurrent(Boolean.FALSE);
+						checkParamRepository.save(param);
+						field.getCheckParams().remove(paramName);
+						fieldRepository.save(field);
+						Event event = Event.newDeactivateCheckParamEvent(userSession, param);
+						eventRepository.save(event);
+					}
+				}
 			}
-			fieldRepository.save(field);
 		}
 	}
 

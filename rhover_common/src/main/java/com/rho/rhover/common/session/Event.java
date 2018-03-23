@@ -16,6 +16,8 @@ import com.rho.rhover.common.check.CheckParam;
 import com.rho.rhover.common.check.CheckParamChange;
 import com.rho.rhover.common.study.DataLocation;
 import com.rho.rhover.common.study.Dataset;
+import com.rho.rhover.common.study.Field;
+import com.rho.rhover.common.study.FieldInstance;
 import com.rho.rhover.common.study.Study;
 import com.rho.rhover.common.study.StudyDbVersion;
 
@@ -23,7 +25,7 @@ import com.rho.rhover.common.study.StudyDbVersion;
 public class Event {
 	
 	public enum EventType {ADD_STUDY, ADD_DATA_LOCATION, LOAD_STUDY, NEW_CHECK_PARAM, MODIFIED_CHECK_PARAM,
-		ADD_DATASET_CHECK, REMOVE_DATASET_CHECK};
+		ADD_DATASET_CHECK, REMOVE_DATASET_CHECK, DEACTIVATE_CHECK_PARAM, ADD_FIELD_SKIP, REMOVE_FIELD_SKIP};
 	
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -61,6 +63,10 @@ public class Event {
 	@ManyToOne
 	@JoinColumn(name="dataset_id")
 	private Dataset dataset;
+	
+	@ManyToOne
+	@JoinColumn(name="field_id")
+	private Field field;
 	
 	@Column(name="created_on")
 	private Timestamp createdOn;
@@ -114,6 +120,30 @@ public class Event {
 		event.setUserSession(userSession);
 		event.setEventType(EventType.REMOVE_DATASET_CHECK);
 		event.setDataset(dataset);
+		return event;
+	}
+	
+	public static Event newDeactivateCheckParamEvent(UserSession userSession, CheckParam checkParam) {
+		Event event = new Event();
+		event.setUserSession(userSession);
+		event.setEventType(EventType.DEACTIVATE_CHECK_PARAM);
+		event.setCheckParam(checkParam);
+		return event;
+	}
+	
+	public static Event newAddSkipEvent(UserSession userSession, Field field) {
+		Event event = new Event();
+		event.setUserSession(userSession);
+		event.setEventType(EventType.ADD_FIELD_SKIP);
+		event.setField(field);
+		return event;
+	}
+	
+	public static Event newRemoveSkipEvent(UserSession userSession, Field field) {
+		Event event = new Event();
+		event.setUserSession(userSession);
+		event.setEventType(EventType.REMOVE_FIELD_SKIP);
+		event.setField(field);
 		return event;
 	}
 
@@ -195,6 +225,14 @@ public class Event {
 
 	public void setDataset(Dataset dataset) {
 		this.dataset = dataset;
+	}
+
+	public Field getField() {
+		return field;
+	}
+
+	public void setField(Field field) {
+		this.field = field;
 	}
 
 }
